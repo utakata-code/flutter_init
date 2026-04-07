@@ -22,6 +22,7 @@ lib/features/{permission_level}/{feature_name}/
 - **admin**: 管理者専用機能
 - **user**: 一般ユーザー機能
 - **shared**: 共通機能（認証、共通UIコンポーネントなど）
+- **direct**: 直下配置（権限レベルを介さず `lib/features/` 直下に配置する特殊ケース）
 
 
 ### 3. 生成されるディレクトリ構造
