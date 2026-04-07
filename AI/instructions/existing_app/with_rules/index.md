@@ -9,9 +9,9 @@
 - 継続運用ルール: ドリフト防止指針の適用
 
 ## 進行ファイル
-- 逆算生成: `AI/instructions/existing_app_with_rules/reverse_generate.md`
-- 機能追加/修正フロー: `AI/instructions/existing_app_with_rules/feature_update.md`
-- 検証・ドリフト防止: `AI/instructions/existing_app_with_rules/validation.md`
+- 逆算生成: `AI/instructions/existing_app/with_rules/reverse_generate.md`
+- 機能追加/修正フロー: `AI/instructions/existing_app/with_rules/feature_update.md`
+- 検証・ドリフト防止: `AI/instructions/existing_app/with_rules/validation.md`
 
 ## 開始前チェック
 - [ ] `lib/core/` が存在し、`routing/theme/api/exceptions/database` が責務分離されている
