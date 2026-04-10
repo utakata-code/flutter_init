@@ -2,11 +2,11 @@
 
 ## 事前準備チェックリスト
 
-- [ ] プロジェクト初期化: `./AI/scripts/bash/init_project.sh --yes`
-- [ ] 依存追加: `./AI/scripts/bash/add_dependencies.sh --yes`
-- [ ] Core生成: `./AI/scripts/bash/generate_core.sh --yes`
-- [ ] 例外クラス生成: `./AI/scripts/bash/init_core_exceptions.sh --yes`
-- [ ] フィーチャー構造生成: `./AI/scripts/bash/generate_feature.sh -n Name -p user -y`
+- [ ] プロジェクト初期化: `./AI/scripts/setup/init_project.sh --yes`
+- [ ] 依存追加: `./AI/scripts/setup/add_dependencies.sh --yes`
+- [ ] Core生成: `./AI/scripts/generate/generate_core.sh --yes`
+- [ ] 例外クラス生成: `./AI/scripts/generate/init_core_exceptions.sh --yes`
+- [ ] フィーチャー構造生成: `./AI/scripts/generate/generate_feature.sh -n Name -p user -y`
 
 ## 実装順序
 

@@ -4,14 +4,14 @@ description: project_status.mdを現在の状態で自動更新
 
 # project_status.md の更新
 
-このワークフローは、プロジェクトの現在状態を検出して `AI/logs/project_status.md` を自動更新します。
+このワークフローは、プロジェクトの現在状態を検出して `AI/snapshots/project_status.yaml` を自動更新します。
 
 ## 手順
 
 // turbo
 1. ステータスファイルを更新
 ```bash
-./AI/scripts/bash/status.sh update --yes
+./AI/scripts/status/update_status.sh --yes
 ```
 
 ## 更新内容
@@ -39,5 +39,5 @@ description: project_status.mdを現在の状態で自動更新
 このワークフローは `--yes` フラグで自動承認モードで実行されます。
 手動で確認したい場合は、直接スクリプトを実行してください:
 ```bash
-./AI/scripts/bash/update_status.sh
+./AI/scripts/status/update_status.sh
 ```

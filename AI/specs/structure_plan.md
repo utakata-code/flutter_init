@@ -9,7 +9,7 @@
 - 作成者: 
 
 ## 構造ポリシー（重要制約）
-- クリーンアーキテクチャの構造に厳密準拠: `AI/architecture/lib/features/features_architecture.md`
+- クリーンアーキテクチャの構造に厳密準拠: `AI/guides/lib/features/features_architecture.md`
 - 新しいフォルダの作成禁止（既存定義内でのファイル配置のみ）
 - 命名規則の遵守（例: `snake_case`、責務ごとのフォルダ分割）
 
@@ -18,7 +18,7 @@
 - 対象レイヤー（Domain / Infrastructure / Application / Presentation）: 
 
 ## 依存・技術参照
-- 技術選定: `AI/architecture/technology_stack.md`
+- 技術選定: `AI/guides/technology_stack.md`
 - 主要ライブラリ（例）: Riverpod, GoRouter, Freezed, Build Runner
 
 ## ディレクトリ構造（予定）
@@ -93,7 +93,7 @@ lib/
 
 ## 実装順序（構造計画ベース）
 - ドメイン → インフラ → アプリケーション → プレゼンテーション
-- 詳細: `flutter-stage3-implementation` スキル → `flutter-layer-implementation` スキル
+- 詳細: `flutter-stage3-implementation` スキル（各層の `*_guide.md` を参照）
 
 ## 検証・合意
 - レビュー観点（網羅性／分割の妥当性／役割の過不足／解像度）
@@ -106,4 +106,4 @@ lib/
 
 ## 参考・関連
 - プロセス詳細（第二段階）: `flutter-stage2-structure` スキル
-- アーキテクチャ規約: `AI/architecture/lib/features/features_architecture.md`
+- アーキテクチャ規約: `AI/guides/lib/features/features_architecture.md`

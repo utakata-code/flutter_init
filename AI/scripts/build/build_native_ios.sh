@@ -2,7 +2,7 @@
 
 # ==========================================
 # iOS Framework Build Script
-# Location: AI/scripts/bash/build_native_ios.sh
+# Location: AI/scripts/build/build_native_ios.sh
 # ==========================================
 
 # 1. パス定義の自動解決

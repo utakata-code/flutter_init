@@ -11,7 +11,7 @@ description: プロジェクトの現在状態をチェックして表示
 // turbo
 1. ステータスチェックを実行
 ```bash
-./AI/scripts/bash/status.sh check
+./AI/scripts/status/check_status.sh
 ```
 
 ## チェック内容

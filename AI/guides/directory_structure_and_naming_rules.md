@@ -289,10 +289,10 @@ lib/features/{permission_level}/{feature_name}/
 
 ```bash
 # ディレクトリ構造とファイル命名規則を検証
-./AI/scripts/bash/validate_structure.sh
+./AI/scripts/validate/validate_structure.sh
 ```
 
-違反が見つかった場合は、`AI/logs/structure_violations.md` に記録されます。
+違反が見つかった場合は、`AI/snapshots/structure_violations.yaml` に記録されます。
 
 ### ワークフローから実行
 
@@ -306,26 +306,26 @@ lib/features/{permission_level}/{feature_name}/
 
 ### 詳細なガイドライン
 
-各層の詳細な実装ガイドラインは、以下のinstructionsファイルを参照:
+各層の詳細な実装ガイドラインは、以下のガイドファイルを参照:
 
-- [Domain - Entities](../architecture/lib/features/1_domain/1_entities/instructions.md)
-- [Domain - Repositories](../architecture/lib/features/1_domain/2_repositories/instructions.md)
-- [Domain - Usecases](../architecture/lib/features/1_domain/3_usecases/instructions.md)
-- [Infrastructure - Models](../architecture/lib/features/2_infrastructure/1_models/instructions.md)
-- [Infrastructure - Data Sources](../architecture/lib/features/2_infrastructure/2_data_sources/1_local/instructions.md)
-- [Infrastructure - Repositories](../architecture/lib/features/2_infrastructure/3_repositories/instructions.md)
-- [Application - States](../architecture/lib/features/3_application/1_states/instructions.md)
-- [Application - Providers](../architecture/lib/features/3_application/2_providers/instructions.md)
-- [Application - Notifiers](../architecture/lib/features/3_application/3_notifiers/instructions.md)
-- [Presentation - Atoms](../architecture/lib/features/4_presentation/1_widgets/1_atoms/instructions.md)
-- [Presentation - Molecules](../architecture/lib/features/4_presentation/1_widgets/2_molecules/instructions.md)
-- [Presentation - Organisms](../architecture/lib/features/4_presentation/1_widgets/3_organisms/instructions.md)
-- [Presentation - Pages](../architecture/lib/features/4_presentation/2_pages/instructions.md)
+- [Domain - Entities](../guides/lib/features/1_domain/1_entities/entity_guide.md)
+- [Domain - Repositories](../guides/lib/features/1_domain/2_repositories/repository_guide.md)
+- [Domain - Usecases](../guides/lib/features/1_domain/3_usecases/usecase_guide.md)
+- [Infrastructure - Models](../guides/lib/features/2_infrastructure/1_models/model_guide.md)
+- [Infrastructure - Data Sources](../guides/lib/features/2_infrastructure/2_data_sources/1_local/local_data_source_guide.md)
+- [Infrastructure - Repositories](../guides/lib/features/2_infrastructure/3_repositories/repository_impl_guide.md)
+- [Application - States](../guides/lib/features/3_application/1_states/state_guide.md)
+- [Application - Providers](../guides/lib/features/3_application/2_providers/provider_guide.md)
+- [Application - Notifiers](../guides/lib/features/3_application/3_notifiers/notifier_guide.md)
+- [Presentation - Atoms](../guides/lib/features/4_presentation/1_widgets/1_atoms/atom_guide.md)
+- [Presentation - Molecules](../guides/lib/features/4_presentation/1_widgets/2_molecules/molecule_guide.md)
+- [Presentation - Organisms](../guides/lib/features/4_presentation/1_widgets/3_organisms/organism_guide.md)
+- [Presentation - Pages](../guides/lib/features/4_presentation/2_pages/page_guide.md)
 
 ### 構造定義
 
-- [Features Architecture](../architecture/lib/features/features_architecture.md)
-- [Core Architecture](../architecture/lib/core/core_architecture.md)
+- [Features Architecture](../guides/lib/features/features_architecture.md)
+- [Core Architecture](../guides/lib/core/core_architecture.md)
 
 ---
 
@@ -379,6 +379,6 @@ lib/features/auth/
 - ✅ **厳密な構造**: 定義されたディレクトリ構造に従う
 - ✅ **一貫した命名**: 役割ごとのサフィックスを使用
 - ✅ **自動検証**: `validate_structure.sh` で違反を検出
-- ✅ **ドキュメント参照**: 詳細は各 instructions.md を確認
+- ✅ **ドキュメント参照**: 詳細は各 `*_guide.md` を確認
 
 この構造と命名規則を守ることで、**AIとの協働における精度と再現性が大幅に向上**します。

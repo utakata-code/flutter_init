@@ -6,7 +6,7 @@
 # このスクリプトは、Flutterプロジェクトのルートディレクトリで実行してください。
 # 対話形式でフィーチャー名と権限レベルを尋ね、
 # 定義されたクリーンアーキテクチャに基づいてディレクトリ構造を自動生成します。
-# Core の生成は AI/scripts/bash/generate_core.sh に分割されました。
+# Core の生成は AI/scripts/generate/generate_core.sh に分割されました。
 #
 
 # --- 初期設定 ---
@@ -25,7 +25,7 @@ usage() {
   echo "  -y, --yes                     Skip confirmation prompt (non-interactive)."
   echo "  -h, --help                    Show this help."
   echo ""
-  echo "Note: Core scaffolding is now in AI/scripts/bash/generate_core.sh"
+  echo "Note: Core scaffolding is now in AI/scripts/generate/generate_core.sh"
   exit 0
 }
 

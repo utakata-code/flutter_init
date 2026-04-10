@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 # validate_structure.sh
 # lib/以下のディレクトリ構造が定義に準拠しているか検証するスクリプト
-# 違反があれば AI/logs/structure_violations.md に記録します
+# 違反があれば AI/snapshots/structure_violations.yaml に記録します
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -11,9 +11,13 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
+# 環境設定（macOS homebrew 対応）
+export PATH="/opt/homebrew/bin:$PATH"
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-VIOLATIONS_FILE="$PROJECT_ROOT/AI/logs/structure_violations.md"
+VIOLATIONS_FILE="$PROJECT_ROOT/AI/snapshots/structure_violations.yaml"
+OUTPUT_MD="$PROJECT_ROOT/AI/snapshots/preview/structure_violations.md"
 
 usage() {
   echo "Usage: $0 [options]"
@@ -39,25 +43,9 @@ done
 
 echo -e "${BLUE}🔍 ディレクトリ構造を検証中...${NC}\n"
 
-# 許可されたパターンを定義
-declare -A ALLOWED_PATTERNS
-
-# lib/直下
-ALLOWED_PATTERNS["lib/core"]=1
-ALLOWED_PATTERNS["lib/features"]=1
-ALLOWED_PATTERNS["lib/main.dart"]=1
-ALLOWED_PATTERNS["lib/app.dart"]=1
-
-# lib/core/配下
-ALLOWED_PATTERNS["lib/core/routing"]=1
-ALLOWED_PATTERNS["lib/core/routing/path"]=1
-ALLOWED_PATTERNS["lib/core/theme"]=1
-ALLOWED_PATTERNS["lib/core/api"]=1
-ALLOWED_PATTERNS["lib/core/env"]=1
-ALLOWED_PATTERNS["lib/core/database"]=1
-ALLOWED_PATTERNS["lib/core/database/table"]=1
-ALLOWED_PATTERNS["lib/core/database/migration"]=1
-ALLOWED_PATTERNS["lib/core/exceptions"]=1
+# 許可されたパターンを定義（スペース区切り文字列 — bash 3.x 互換）
+ALLOWED_LIB="lib/core lib/features lib/main.dart lib/app.dart"
+ALLOWED_CORE="lib/core/routing lib/core/routing/path lib/core/theme lib/core/api lib/core/env lib/core/database lib/core/database/table lib/core/database/migration lib/core/exceptions"
 
 # lib/features/ のパターン（動的にチェック）
 # 許可される層とサブディレクトリ
@@ -106,9 +94,30 @@ VALID_WIDGETS=(
 # 違反を記録する配列（空で初期化）
 VIOLATIONS=()
 
-# libディレクトリが存在しない場合はスキップ
+# libディレクトリが存在しない場合は空のレポートを生成
 if [ ! -d "$PROJECT_ROOT/lib" ]; then
-  echo -e "${YELLOW}⚠ lib/ ディレクトリが存在しません${NC}"
+  echo -e "${YELLOW}⚠️ lib/ ディレクトリが存在しません${NC}"
+  CURRENT_TIME=$(date '+%Y-%m-%dT%H:%M:%S%z')
+  {
+    echo "# structure_violations.yaml"
+    echo "# 自動生成 — 手動編集しないでください"
+    echo "# 生成日時: $CURRENT_TIME"
+    echo ""
+    echo "last_checked: \"$CURRENT_TIME\""
+    echo "violation_count: 0"
+    echo "violations: []"
+    echo "note: \"lib/ ディレクトリが存在しません\""
+  } > "$VIOLATIONS_FILE"
+  {
+    echo "# 構造違反レポート"
+    echo ""
+    echo "> 自動生成 — 手動編集しないでください"
+    echo "> 検証日時: $CURRENT_TIME"
+    echo ""
+    echo "⚠️ lib/ ディレクトリが存在しないため検証をスキップしました。"
+  } > "$OUTPUT_MD"
+  echo -e "${GREEN}✅ YAML: ${VIOLATIONS_FILE}${NC}"
+  echo -e "${GREEN}✅ MD:   ${OUTPUT_MD}${NC}"
   exit 0
 fi
 
@@ -119,7 +128,7 @@ for item in "$PROJECT_ROOT/lib"/*; do
   rel_path="lib/$(basename "$item")"
   
   # main.dart, app.dart, core/, features/ 以外は違反
-  if [[ ! -v ALLOWED_PATTERNS["$rel_path"] ]]; then
+  if [[ ! " $ALLOWED_LIB " =~ " $rel_path " ]]; then
     VIOLATIONS+=("lib/ 直下に不正な項目: $rel_path")
   fi
 done
@@ -131,7 +140,7 @@ if [ -d "$PROJECT_ROOT/lib/core" ]; then
     
     rel_path="lib/core/$(basename "$item")"
     
-    if [[ ! -v ALLOWED_PATTERNS["$rel_path"] ]]; then
+    if [[ ! " $ALLOWED_CORE " =~ " $rel_path " ]]; then
       VIOLATIONS+=("lib/core/ 配下に不正なディレクトリ: $rel_path")
     fi
   done
@@ -437,68 +446,88 @@ if [ -d "$PROJECT_ROOT/lib/features" ]; then
   done
 fi
 
+# ========================================
 # 結果表示
+# ========================================
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}📊 検証結果${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
 VIOLATION_COUNT=${#VIOLATIONS[@]}
+CURRENT_TIME=$(date '+%Y-%m-%dT%H:%M:%S%z')
+
 if [ "$VIOLATION_COUNT" -eq 0 ]; then
   echo -e "${GREEN}✅ 違反は見つかりませんでした${NC}"
-  echo ""
-  
-  if [ "$CLEAR_VIOLATIONS" = true ]; then
-    # 違反ログをクリア（テンプレートを保持）
-    echo -e "${YELLOW}📝 違反ログをクリアしています...${NC}"
-    # ここでは何もしない（違反がないため）
-  fi
 else
-  echo -e "${RED}❌ ${#VIOLATIONS[@]} 件の違反が見つかりました:${NC}"
+  echo -e "${RED}❌ ${VIOLATION_COUNT} 件の違反が見つかりました:${NC}"
   echo ""
-  
   for violation in "${VIOLATIONS[@]}"; do
     echo -e "${RED}  • $violation${NC}"
   done
-  
+fi
+
+# ========================================
+# YAML 出力
+# ========================================
+{
+  echo "# structure_violations.yaml"
+  echo "# 自動生成 — 手動編集しないでください"
+  echo "# 生成日時: $CURRENT_TIME"
   echo ""
-  echo -e "${YELLOW}📝 違反を structure_violations.md に記録しています...${NC}"
-  
-  # 現在時刻
-  CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-  
-  # violations.mdに追記
-  {
-    echo ""
-    echo "## [$CURRENT_TIME] 違反検出"
-    echo ""
-    echo "### 🔴 検出された違反 (${#VIOLATIONS[@]} 件)"
-    echo ""
+  echo "last_checked: \"$CURRENT_TIME\""
+  echo "violation_count: $VIOLATION_COUNT"
+
+  if [ "$VIOLATION_COUNT" -eq 0 ]; then
+    echo "violations: []"
+  else
+    echo "violations:"
     for violation in "${VIOLATIONS[@]}"; do
-      echo "- **$violation**"
+      # 違反メッセージをパースしてtype/path/messageに分解
+      echo "  - message: \"$violation\""
+    done
+  fi
+} > "$VIOLATIONS_FILE"
+
+echo ""
+echo -e "${GREEN}✅ YAML 生成完了: ${VIOLATIONS_FILE}${NC}"
+
+# ========================================
+# Preview MD 出力
+# ========================================
+{
+  echo "# 構造違反レポート"
+  echo ""
+  echo "> 自動生成 — 手動編集しないでください"
+  echo "> 検証日時: $CURRENT_TIME"
+  echo ""
+  echo "## 結果: ${VIOLATION_COUNT} 件の違反"
+  echo ""
+
+  if [ "$VIOLATION_COUNT" -eq 0 ]; then
+    echo "✅ 違反はありません。"
+  else
+    echo "| # | 違反内容 |"
+    echo "|---|--------|"
+    local_idx=1
+    for violation in "${VIOLATIONS[@]}"; do
+      echo "| $local_idx | $violation |"
+      local_idx=$((local_idx + 1))
     done
     echo ""
-    echo "### 推奨アクション"
+    echo "## 推奨アクション"
     echo ""
     echo "1. 上記の不正なディレクトリ/ファイルを確認"
     echo "2. 定義された構造に従って正しい場所に移動"
-    echo "3. または削除して再作成"
-    echo "4. 構造計画書を確認: \`AI/document/structure_plan.md\`"
-    echo "5. Features アーキテクチャを参照: \`AI/architecture/lib/features/features_architecture.md\`"
-    echo ""
-    echo "### 修正後の確認"
-    echo ""
-    echo "\`\`\`bash"
-    echo "./AI/scripts/bash/validate_structure.sh"
-    echo "\`\`\`"
-    echo ""
-    echo "---"
-  } >> "$VIOLATIONS_FILE"
-  
-  echo -e "${GREEN}✅ 記録完了: $VIOLATIONS_FILE${NC}"
-fi
+    echo "3. 構造計画書を確認: \`AI/specs/structure_plan.md\`"
+    echo "4. 修正後に再検証: \`./AI/scripts/validate/validate_structure.sh\`"
+  fi
+} > "$OUTPUT_MD"
 
+echo -e "${GREEN}✅ プレビュー MD 生成完了: ${OUTPUT_MD}${NC}"
 echo ""
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}🎉 生成完了！${NC}"
+echo -e "  YAML: ${VIOLATIONS_FILE}"
+echo -e "  MD:   ${OUTPUT_MD}"
 
 exit 0

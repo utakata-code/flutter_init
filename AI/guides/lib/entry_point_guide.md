@@ -125,11 +125,11 @@ class App extends ConsumerWidget {
 - 統合：Deep Link／ガード動作のシナリオテスト（モックプロバイダを使用）
 
 ## 関連ドキュメント
-- `AI/architecture/lib/core_architecture.md`
-- `AI/architecture/lib/core/routing/instructions.md`
-- `AI/architecture/lib/core/routing/path/instructions.md`
-- `AI/architecture/lib/core/theme/instructions.md`
-- `AI/architecture/lib/core/api/instructions.md`
-- `AI/architecture/lib/core/database/instructions.md`
-- `AI/architecture/lib/core/database/table/instructions.md`
-- 例外設計：`AI/architecture/lib/core/exceptions/instructions.md`（`AI/scripts/bash/init_core_exceptions.sh` 参照）
+- `AI/guides/lib/core_architecture.md`
+- `AI/guides/lib/core/routing/routing_guide.md`
+- `AI/guides/lib/core/routing/path/path_guide.md`
+- `AI/guides/lib/core/theme/theme_guide.md`
+- `AI/guides/lib/core/api/api_guide.md`
+- `AI/guides/lib/core/database/database_guide.md`
+- `AI/guides/lib/core/database/table/table_guide.md`
+- 例外設計：`AI/guides/lib/core/exceptions/exceptions_guide.md`（`AI/scripts/generate/init_core_exceptions.sh` 参照）

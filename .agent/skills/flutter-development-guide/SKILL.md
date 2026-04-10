@@ -16,8 +16,8 @@ description: |
 | モード | 対象 | 参照 |
 |-------|------|------|
 | **モード1**: 新規アプリ開発 | ゼロから構築 | `flutter-development-guide` → 各Stage Skill |
-| **モード2**: 既存アプリ（ルール使用中） | 本テンプレート準拠の既存コード | `AI/instructions/existing_app/with_rules/` |
-| **モード3**: 既存アプリ（ルール未使用） | 本テンプレート非準拠の既存コード | `AI/instructions/existing_app/without_rules/` |
+| **モード2**: 既存アプリ（ルール使用中） | 本テンプレート準拠の既存コード | TODO（将来実装予定） |
+| **モード3**: 既存アプリ（ルール未使用） | 本テンプレート非準拠の既存コード | TODO（将来実装予定） |
 
 ### モード選択の宣言
 ```
@@ -34,12 +34,12 @@ description: |
 
 ### Stage 1: 仕様策定
 - **目的**: 要件の明確化
-- **成果物**: `AI/document/application_specification.md`
+- **成果物**: `AI/specs/application_specification.md`
 - **ステップ**: ヒアリング → 草案 → 深掘り → 完成
 
 ### Stage 2: 構造計画
 - **目的**: ファイル構成の計画
-- **成果物**: `AI/document/structure_plan.md`
+- **成果物**: `AI/specs/structure_plan.md`
 - **ステップ**: ルール確認 → 草案 → レビュー → 完成
 
 ### Stage 3: 実装
@@ -53,12 +53,7 @@ description: |
 |-------|------|
 | `flutter-stage1-specification` | Stage 1 詳細 |
 | `flutter-stage2-structure` | Stage 2 詳細 |
-| `flutter-stage3-implementation` | Stage 3 詳細 |
-| `flutter-feature-generator` | フィーチャー生成 |
-| `flutter-structure-validator` | 構造検証 |
-| `flutter-code-reviewer` | コードレビュー |
-| `flutter-project-status` | ステータス管理 |
-| `flutter-layer-implementation` | レイヤー別実装 |
+| `flutter-stage3-implementation` | Stage 3 詳細（各層の `*_guide.md` を直接参照） |
 
 ## よくある質問
 
@@ -71,7 +66,7 @@ description: |
 前のStageに戻って、ドキュメントを更新してから進みます。
 
 ### Q: 実装順序は？
-Domain → Infrastructure → Application → Presentation の順で実装します。
+1_domain → 2_infrastructure → 3_application → 4_presentation の順で実装します。
 
 ## 運用ルール
 

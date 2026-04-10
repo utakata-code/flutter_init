@@ -19,20 +19,18 @@ trigger: always_on
    - 参照: `flutter-development-guide` スキル
    - Stage別: `flutter-stage1-specification` / `flutter-stage2-structure` / `flutter-stage3-implementation`
 
-2. 既存アプリ開発モード（このリポジトリの構造ルール使用中）
+2. 既存アプリ開発モード（このリポジトリの構造ルール使用中）— **TODO（将来実装予定）**
    - 対象: 既に本リポジトリの構造規約（lib/core, lib/features/...の4層）で作られている既存コード
    - 進行: 現在のコードから仕様書と構造計画書を「逆算生成」し、以降の機能追加/修正で両ドキュメントを同期更新
-   - 参照: `AI/instructions/existing_app/with_rules/index.md`
 
-3. 既存アプリ開発モード（このリポジトリの構造ルール未使用）
+3. 既存アプリ開発モード（このリポジトリの構造ルール未使用）— **TODO（将来実装予定）**
    - 対象: 既存コードが本テンプレートの構造規約に従っていないケース
    - 進行: 段階的リファクタリング計画を作成し、影響を局所化しながら本リポジトリのルールへ移行
-   - 参照: `AI/instructions/existing_app/without_rules/index.md`
 
 ## 運用ルール（重要）
 
 - コンテキスト分離: 選択中のモード以外の指示ファイルは参照しない。モード変更が必要な場合は「モード変更」を宣言してから再選択する。
-- ドリフト防止: コード変更に伴い `AI/document/application_specification.md` と `AI/document/structure_plan.md` を必ず更新する。更新なしでのコード変更は不可。
+- ドリフト防止: コード変更に伴い `AI/specs/application_specification.md` と `AI/specs/structure_plan.md` を必ず更新する。更新なしでのコード変更は不可。
 
 
 ## モード選択の宣言（例）
