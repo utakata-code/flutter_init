@@ -1,4 +1,25 @@
-# flutter_init
+# flutter_init_2.0
+
+---
+
+> ## 🚀 このリポジトリのテンプレートは、公式 CLI ツール **utakata** に生まれ変わりました！
+>
+> このスターターテンプレートの構造・スクリプト・AIガイドが、インストール一発で使える **Dart CLI ツール「utakata」** として生まれ変わりました。
+> 手動でリポジトリをクローンする手間は**もう不要**です。
+>
+> ```sh
+> dart pub global activate utakata
+> utakata create my_app
+> ```
+>
+> **Clean Architecture 4層構造 × AI エージェント連携の Flutter プロジェクト**が、たった2行で完成します。
+>
+> [![pub.dev](https://img.shields.io/pub/v/utakata?label=pub.dev%20%7C%20utakata&color=blue)](https://pub.dev/packages/utakata)
+> [![GitHub](https://img.shields.io/badge/GitHub-utakata--code%2Futakata-black?logo=github)](https://github.com/utakata-code/utakata)
+>
+> 👉 **[pub.dev/packages/utakata](https://pub.dev/packages/utakata)** | **[utakata-code.com](https://utakata-code.com/)** | **[@code_utakata](https://x.com/code_utakata)**
+
+---
 
 テンプレートと AI スキルを組み合わせ、クリーンアーキテクチャ構成の Flutter アプリを段階的に構築するための、スタータープロジェクトです。`.agent/skills` のスキルシステムにより、仕様策定 → 構造計画 → 実装の 3 フェーズで AI エージェントが開発をガイドします。
 
