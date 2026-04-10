@@ -2,21 +2,21 @@
 name: flutter-stage1-specification
 description: |
   新規Flutterアプリの仕様策定フェーズ（第一段階）。ユーザーとの対話で要件をヒアリングし、
-  アプリケーション仕様書（AI/document/application_specification.md）を作成・完成させる。
+  アプリケーション仕様書（AI/specs/application_specification.md）を作成・完成させる。
   「アプリを作りたい」「仕様を決めたい」「新規開発を始めたい」「要件定義して」時に使用。
 ---
 
 # 🎯 Flutter 仕様策定スキル（Stage 1）
 
 > **目的**: アプリケーションの要件を明確化し、詳細な仕様書を作成する  
-> **成果物**: アプリケーション仕様書（`AI/document/application_specification.md`）
+> **成果物**: アプリケーション仕様書（`AI/specs/application_specification.md`）
 
 ## 実行手順
 
 ### ステップ1: プロセス開始とヒアリング
 
 1. **事前準備**
-   - `AI/document/application_specification.md` のテンプレートを確認
+   - `AI/specs/application_specification.md` のテンプレートを確認
    - メタ情報（最終更新日・作成者など）を暫定入力
    - 以降の仕様記述は同ファイルへドラフトとして追記
 
@@ -54,14 +54,14 @@ description: |
      ✅ 画面遷移
      ✅ データ要件
      ✅ エッジケース
-     ✅ 技術選定（AI/architecture/technology_stack.md優先）
+     ✅ 技術選定（AI/guides/technology_stack.md優先）
      ```
 
 2. **仕様書への追記・修正**
    - 質問回答・合意内容を仕様書に反映
    - スコープ定義/ユースケース/非機能要件の精度を向上
 
-> ⚠️ **重要**: 技術選定は `AI/architecture/technology_stack.md` の内容を最優先で反映
+> ⚠️ **重要**: 技術選定は `AI/guides/technology_stack.md` の内容を最優先で反映
 
 ### ステップ4: 仕様書完成とフェーズ完了
 
@@ -81,11 +81,11 @@ description: |
 
 ## 参照ドキュメント
 
-- 仕様書テンプレート: `AI/document/application_specification.md`
-- 技術スタック: `AI/architecture/technology_stack.md`
+- 仕様書テンプレート: `AI/specs/application_specification.md`
+- 技術スタック: `AI/guides/technology_stack.md`
 
 ## 制約事項
 
-- 仕様書への変更は必ず `AI/document/application_specification.md` に反映
-- 技術選定は `AI/architecture/technology_stack.md` を最優先
+- 仕様書への変更は必ず `AI/specs/application_specification.md` に反映
+- 技術選定は `AI/guides/technology_stack.md` を最優先
 - ステップを飛ばさず順番に進行

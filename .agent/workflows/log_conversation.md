@@ -69,6 +69,6 @@ description: 会話ログを記録して次回へ引き継ぐ
 ## 関連ファイル
 
 - `AI/logs/conversation_log.md` - 会話ログ本体
-- `AI/document/application_specification.md` - 仕様書
-- `AI/document/structure_plan.md` - 構造計画書
-- `AI/document/project_status.md` - プロジェクトステータス
+- `AI/specs/application_specification.md` - 仕様書
+- `AI/specs/structure_plan.md` - 構造計画書
+- `AI/specs/project_status.md` - プロジェクトステータス

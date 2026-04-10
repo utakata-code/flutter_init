@@ -1,4 +1,25 @@
-# flutter_init
+# flutter_init_2.0
+
+---
+
+> ## 🚀 このリポジトリのテンプレートは、公式 CLI ツール **utakata** に生まれ変わりました！
+>
+> このスターターテンプレートの構造・スクリプト・AIガイドが、インストール一発で使える **Dart CLI ツール「utakata」** として生まれ変わりました。
+> 手動でリポジトリをクローンする手間は**もう不要**です。
+>
+> ```sh
+> dart pub global activate utakata
+> utakata create my_app
+> ```
+>
+> **Clean Architecture 4層構造 × AI エージェント連携の Flutter プロジェクト**が、たった2行で完成します。
+>
+> [![pub.dev](https://img.shields.io/pub/v/utakata?label=pub.dev%20%7C%20utakata&color=blue)](https://pub.dev/packages/utakata)
+> [![GitHub](https://img.shields.io/badge/GitHub-utakata--code%2Futakata-black?logo=github)](https://github.com/utakata-code/utakata)
+>
+> 👉 **[pub.dev/packages/utakata](https://pub.dev/packages/utakata)** | **[utakata-code.com](https://utakata-code.com/)** | **[@code_utakata](https://x.com/code_utakata)**
+
+---
 
 テンプレートと AI スキルを組み合わせ、クリーンアーキテクチャ構成の Flutter アプリを段階的に構築するための、スタータープロジェクトです。`.agent/skills` のスキルシステムにより、仕様策定 → 構造計画 → 実装の 3 フェーズで AI エージェントが開発をガイドします。
 
@@ -18,43 +39,38 @@
 | モード | 対象 | 参照 |
 | --- | --- | --- |
 | **モード1**: 新規アプリ開発 | ゼロから構築 | `flutter-development-guide` → 各Stage Skill |
-| **モード2**: 既存アプリ（ルール使用中） | 本テンプレート準拠の既存コード | `AI/instructions/existing_app/with_rules/` |
-| **モード3**: 既存アプリ（ルール未使用） | 本テンプレート非準拠の既存コード | `AI/instructions/existing_app/without_rules/` |
+| **モード2**: 既存アプリ（ルール使用中） | 本テンプレート準拠の既存コード | TODO（将来実装予定） |
+| **モード3**: 既存アプリ（ルール未使用） | 本テンプレート非準拠の既存コード | TODO（将来実装予定） |
 
 ### 3フェーズ開発
 
 1. **仕様策定（Stage1）**
-   - 目的、ターゲット、機能、ユースケースをヒアリングし `AI/document/application_specification.md` を更新します。
-   - 技術選定は `AI/architecture/technology_stack.md` に従います。
+   - 目的、ターゲット、機能、ユースケースをヒアリングし `AI/specs/application_specification.md` を更新します。
+   - 技術選定は `AI/guides/technology_stack.md` に従います。
    - スキル: `flutter-stage1-specification`
 
 2. **構造計画（Stage2）**
-   - 仕様を反映したファイル一覧を整理し、`AI/document/structure_plan.md` に記載します。
-   - クリーンアーキテクチャのフォルダ構成（`AI/architecture/lib/features/features_architecture.md`）を厳守し、新規ディレクトリの追加は禁止です。
+   - 仕様を反映したファイル一覧を整理し、`AI/specs/structure_plan.md` に記載します。
+   - クリーンアーキテクチャのフォルダ構成（`AI/guides/lib/features/features_architecture.md`）を厳守し、新規ディレクトリの追加は禁止です。
    - スキル: `flutter-stage2-structure`
 
 3. **実装（Stage3）**
    - `generate_core.sh` / `init_core_exceptions.sh` により Core 基盤を生成し、機能単位は `generate_feature.sh` でテンプレート化します。
    - Domain → Infrastructure → Application → Presentation の順に各層を実装し、各層完了時に `flutter analyze` を実行します。
-   - スキル: `flutter-stage3-implementation`, `flutter-layer-implementation`
+   - スキル: `flutter-stage3-implementation`
 
 フェーズ間で仕様変更が発生した場合は、前段階に戻って合意・記録を更新してください。
 
 ## AIスキル
 
-`.agent/skills/` に配置された9つの専門スキルが、AIエージェントの開発ガイドとして機能します。
+`.agent/skills/` に配置された4つのプロセス制御スキルが、AIエージェントの開発ガイドとして機能します。
 
 | スキル | 説明 |
 | --- | --- |
 | `flutter-development-guide` | 全体フローと3フェーズ開発プロセスのガイド |
 | `flutter-stage1-specification` | Stage1: 仕様策定フェーズ |
 | `flutter-stage2-structure` | Stage2: 構造計画フェーズ |
-| `flutter-stage3-implementation` | Stage3: 実装フェーズ |
-| `flutter-feature-generator` | フィーチャーディレクトリとクリーンアーキテクチャ構造の自動生成 |
-| `flutter-layer-implementation` | Domain / Infrastructure / Application / Presentation 各層の実装ガイド |
-| `flutter-code-reviewer` | コード品質・安全性・可読性チェック |
-| `flutter-structure-validator` | ディレクトリ構造の準拠検証 |
-| `flutter-project-status` | プロジェクト状態の確認・更新 |
+| `flutter-stage3-implementation` | Stage3: 実装フェーズ（各層の `*_guide.md` を直接参照） |
 
 ## ワークフロー（スラッシュコマンド）
 
@@ -75,33 +91,32 @@ AI エージェントに相談する際は、まず `/status_report` を実行�
 
 ## プロジェクトステータス管理
 
-AI エージェントとの開発で重要なのは**現在の進行状況を可視化すること**です。`AI/logs/` でステータスと会話履歴を管理します。
+AI エージェントとの開発で重要なのは**現在の進行状況を可視化すること**です。`AI/snapshots/` で状態をYAML管理し、`AI/logs/` で会話履歴を記録します。
 
 ### ステータスファイル
 
 | ファイル | 役割 |
 | --- | --- |
-| `AI/logs/project_status.md` | プロジェクトの現在状態を一元管理（ステージ進捗、実装済みファイル、問題点など）|
-| `AI/logs/conversation_log.md` | AI エージェントとの会話履歴を時系列で記録（決定事項、解決方法、引き継ぎ事項など）|
-| `AI/logs/structure_violations.md` | ディレクトリ構造と命名規則の違反を記録 |
-| `AI/logs/change_history.md` | ファイルの変更履歴を時系列で記録 |
-| `AI/architecture/directory_structure_and_naming_rules.md` | ディレクトリ構造とファイル命名規則の完全なリファレンス（静的） |
-| `AI/document/current_structure.md` | 現在のプロジェクト構造のスナップショット（動的・自動生成） |
+| `AI/snapshots/project_status.yaml` | プロジェクトの現在状態を一元管理 |
+| `AI/snapshots/structure_violations.yaml` | ディレクトリ構造と命名規則の違反を記録 |
+| `AI/snapshots/change_history.yaml` | ファイルの変更履歴を時系列で記録 |
+| `AI/logs/conversation_log.md` | AI エージェントとの会話履歴を記録 |
+| `AI/guides/directory_structure_and_naming_rules.md` | ディレクトリ構造とファイル命名規則の完全なリファレンス（静的） |
 
 ### CLIからの直接実行
 
 ```bash
 # 現在のプロジェクト状態をチェック
-./AI/scripts/bash/status.sh check
+./AI/scripts/status/check_status.sh
 
 # project_status.md を現在の状態で自動更新
-./AI/scripts/bash/status.sh update
+./AI/scripts/status/update_status.sh
 
 # current_structure.md にスナップショット出力
-./AI/scripts/bash/status.sh snapshot
+./AI/scripts/status/snapshot.sh
 
 # すべて実行（推奨）
-./AI/scripts/bash/status.sh report
+./AI/scripts/status/check_status.sh && AI/scripts/status/update_status.sh -y && AI/scripts/status/snapshot.sh
 ```
 
 ## リポジトリ構成
@@ -111,23 +126,24 @@ AI エージェントとの開発で重要なのは**現在の進行状況を可
 ├── .agent/
 │   ├── rules/                      # AIエージェント向けルール
 │   │   └── flutter.md              #   開発モード選択・運用ルール
-│   ├── skills/                     # 9つの専門スキル
+│   ├── skills/                     # 4つのプロセス制御スキル
 │   │   ├── flutter-development-guide/
 │   │   ├── flutter-stage1-specification/
 │   │   ├── flutter-stage2-structure/
-│   │   ├── flutter-stage3-implementation/
-│   │   ├── flutter-feature-generator/
-│   │   ├── flutter-layer-implementation/
-│   │   ├── flutter-code-reviewer/
-│   │   ├── flutter-structure-validator/
-│   │   └── flutter-project-status/
+│   │   └── flutter-stage3-implementation/
 │   └── workflows/                  # スラッシュコマンド定義
 ├── AI/
-│   ├── architecture/               # 各層の詳細ガイドと技術スタック
-│   ├── document/                   # 仕様書・構造計画書テンプレート
-│   ├── instructions/               # 3フェーズの運用ルール
-│   ├── logs/                       # プロジェクトステータスと会話履歴
-│   └── scripts/bash/               # シェルスクリプト群
+│   ├── guides/                    # 各層の詳細ガイド（*_guide.md）と技術スタック
+│   ├── specs/                     # 仕様書・構造計画書（Stage成果物）
+│   ├── snapshots/                 # 状態スナップショット（全てYAML）
+│   │   └── preview/              #   人間用プレビュー（YAML→MD自動生成）
+│   ├── logs/                      # 会話記録
+│   └── scripts/                   # シェルスクリプト群
+│       ├── setup/                 #   プロジェクト初期化
+│       ├── generate/              #   コード生成
+│       ├── status/                #   ステータス管理
+│       ├── validate/              #   品質検証
+│       └── build/                 #   ビルド
 ├── .gitignore
 ├── LICENSE
 └── README.md
@@ -135,27 +151,30 @@ AI エージェントとの開発で重要なのは**現在の進行状況を可
 
 ## スクリプト一覧
 
-| スクリプト | 説明 |
-| --- | --- |
-| `init_project.sh` | `flutter create .` や初期設定を自動化（`--yes` で非対話実行） |
-| `add_dependencies.sh` | `technology_stack.md` 推奨依存を追加 |
-| `generate_core.sh` | `lib/core` の基盤構造を生成 |
-| `init_core_exceptions.sh` | 共通例外クラスを生成 |
-| `generate_feature.sh` | フィーチャーディレクトリと雛形ファイルを生成 |
-| `generate_native.sh` | ネイティブプラットフォーム関連のファイルを生成 |
-| `build_native_ios.sh` | iOS ネイティブビルドを実行 |
-| `status.sh` | プロジェクトステータス管理（check / update / snapshot / report） |
-| `validate_structure.sh` | ディレクトリ構造とファイル命名規則の違反を検出 |
-| `detect_changes.sh` | ファイルの変更を検出して `change_history.md` に記録 |
+| カテゴリ | スクリプト | 説明 |
+| --- | --- | --- |
+| **setup/** | `init_project.sh` | `flutter create .` や初期設定を自動化 |
+| | `add_dependencies.sh` | `technology_stack.md` 推奨依存を追加 |
+| **generate/** | `generate_core.sh` | `lib/core` の基盤構造を生成 |
+| | `init_core_exceptions.sh` | 共通例外クラスを生成 |
+| | `generate_feature.sh` | フィーチャーディレクトリと雛形ファイルを生成 |
+| | `generate_native.sh` | ネイティブプラットフォーム関連のファイルを生成 |
+| **status/** | `check_status.sh` | プロジェクト状態をチェックして表示 |
+| | `update_status.sh` | `project_status.md` を現在の状態で更新 |
+| | `snapshot.sh` | `current_structure.md` にスナップショット出力 |
+| | `detect_changes.sh` | ファイルの変更を検出して記録 |
+| **validate/** | `validate_structure.sh` | ディレクトリ構造と命名規則の違反を検出 |
+| | `find_unused_files.sh` | 未使用ファイルを検出 |
+| **build/** | `build_native_ios.sh` | iOS ネイティブビルドを実行 |
 
 `generate_feature.sh` は `-n` でフィーチャー名、`-p` で配置パス（`admin/user/shared/direct`）を指定できます。
 
 ```bash
 # ユーザー機能としてUserProfileフィーチャーを作成
-./AI/scripts/bash/generate_feature.sh -n UserProfile -p user -y
+./AI/scripts/generate/generate_feature.sh -n UserProfile -p user -y
 
 # 共有機能としてAuthフィーチャーを作成
-./AI/scripts/bash/generate_feature.sh -n Auth -p shared -y
+./AI/scripts/generate/generate_feature.sh -n Auth -p shared -y
 ```
 
 ## 実装ガイドライン
@@ -208,17 +227,17 @@ git push -u origin main
 
 ```bash
 # Flutter プロジェクト初期化（既存の lib/ を上書きする場合は注意）
-./AI/scripts/bash/init_project.sh --yes
+./AI/scripts/setup/init_project.sh --yes
 
 # 推奨依存を追加
-./AI/scripts/bash/add_dependencies.sh --yes
+./AI/scripts/setup/add_dependencies.sh --yes
 
 # Core 基盤を生成（未生成の場合）
-./AI/scripts/bash/generate_core.sh --yes
-./AI/scripts/bash/init_core_exceptions.sh --yes
+./AI/scripts/generate/generate_core.sh --yes
+./AI/scripts/generate/init_core_exceptions.sh --yes
 
 # 機能テンプレートを生成
-./AI/scripts/bash/generate_feature.sh -n Sample -p shared -y
+./AI/scripts/generate/generate_feature.sh -n Sample -p shared -y
 ```
 
 > **Windows の場合**: Git Bash を使用してスクリプトを実行してください。

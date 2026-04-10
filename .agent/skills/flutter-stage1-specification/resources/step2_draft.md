@@ -10,7 +10,7 @@
 ### 2. 仕様書セクションへの記入
 
 #### 記入対象ファイル
-`AI/document/application_specification.md`
+`AI/specs/application_specification.md`
 
 #### 必須セクション
 1. **メタ情報**: プロジェクト名、バージョン、更新日、作成者

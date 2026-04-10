@@ -16,7 +16,7 @@ AI エージェントとの対話を開始する前に `/status_report` を実�
 // turbo
 1. フルレポートを実行
 ```bash
-./AI/scripts/bash/status.sh report
+./AI/scripts/status/check_status.sh && ./AI/scripts/status/update_status.sh -y && ./AI/scripts/status/snapshot.sh
 ```
 
 ## 使用タイミング

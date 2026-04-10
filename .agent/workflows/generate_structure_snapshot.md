@@ -4,7 +4,7 @@ description: 現在のプロジェクト構造のスナップショットを生�
 
 # プロジェクト構造スナップショットの生成
 
-このワークフローは、現在の`lib/`構造をスナップショットとして `AI/document/current_structure.md` に出力します。
+このワークフローは、現在の`lib/`構造をスナップショットとして `AI/specs/current_structure.md` に出力します。
 AIエージェントが現在の実際の構造を把握するのに役立ちます。
 
 ## 手順
@@ -12,7 +12,7 @@ AIエージェントが現在の実際の構造を把握するのに役立ちま
 // turbo
 1. 構造スナップショット生成
 ```bash
-./AI/scripts/bash/status.sh snapshot
+./AI/scripts/status/snapshot.sh
 ```
 
 ## 出力内容
@@ -31,7 +31,7 @@ AIエージェントが現在の実際の構造を把握するのに役立ちま
 
 ## 出力先
 
-`AI/document/current_structure.md` (自動上書き)
+`AI/specs/current_structure.md` (自動上書き)
 
 ## 関連コマンド
 

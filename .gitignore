@@ -4,6 +4,7 @@
 .pub-cache/
 .pub/
 build/
+!AI/scripts/build/
 coverage/
 
 # Flutter プラグイン生成ファイル（自動生成）

@@ -12,12 +12,12 @@
 - Stage 1/2/3 に厳密準拠
 - 仕様策定 → 構造計画 → 実装 の順で進行
 
-**参照ファイル**
+**参照スキル**
 ```
-AI/instructions/new_app/index.md
-AI/instructions/new_app/001/  (Stage 1)
-AI/instructions/new_app/002/  (Stage 2)
-AI/instructions/new_app/003/  (Stage 3)
+flutter-development-guide → 全体フロー
+flutter-stage1-specification → Stage 1
+flutter-stage2-structure → Stage 2
+flutter-stage3-implementation → Stage 3（各層の *_guide.md を直接参照）
 ```
 
 **宣言例**
@@ -27,7 +27,9 @@ AI/instructions/new_app/003/  (Stage 3)
 
 ---
 
-### モード2: 既存アプリ開発（このリポジトリの構造ルール使用中）
+### モード2: 既存アプリ開発（このリポジトリの構造ルール使用中）— TODO
+
+> ⚠️ このモードは将来実装予定です。現在はモード1のみサポートしています。
 
 **対象**
 - 既に本リポジトリの構造規約で作られている既存コード
@@ -37,11 +39,6 @@ AI/instructions/new_app/003/  (Stage 3)
 - 現在のコードから仕様書と構造計画書を「逆算生成」
 - 以降の機能追加/修正で両ドキュメントを同期更新
 
-**参照ファイル**
-```
-AI/instructions/existing_app/with_rules/index.md
-```
-
 **宣言例**
 ```
 「モード2（既存アプリ・ルール使用中）を選択」
@@ -49,7 +46,9 @@ AI/instructions/existing_app/with_rules/index.md
 
 ---
 
-### モード3: 既存アプリ開発（このリポジトリの構造ルール未使用）
+### モード3: 既存アプリ開発（このリポジトリの構造ルール未使用）— TODO
+
+> ⚠️ このモードは将来実装予定です。現在はモード1のみサポートしています。
 
 **対象**
 - 既存コードが本テンプレートの構造規約に従っていないケース
@@ -58,11 +57,6 @@ AI/instructions/existing_app/with_rules/index.md
 **進行**
 - 段階的リファクタリング計画を作成
 - 影響を局所化しながら本リポジトリのルールへ移行
-
-**参照ファイル**
-```
-AI/instructions/existing_app/without_rules/index.md
-```
 
 **宣言例**
 ```
@@ -80,10 +74,10 @@ AI/instructions/existing_app/without_rules/index.md
   │   └─ Yes → モード1（新規アプリ開発）
   │
   ├─ 既にlib/features/の4層構造を使用？
-  │   └─ Yes → モード2（既存・ルール使用中）
+  │   └─ Yes → モード2（既存・ルール使用中）— TODO
   │
   └─ それ以外
-      └─ モード3（既存・ルール未使用）
+      └─ モード3（既存・ルール未使用）— TODO
 ```
 
 ## 運用ルール
