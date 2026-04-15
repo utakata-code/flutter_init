@@ -1,0 +1,24 @@
+# 推奨スタック: バージョン構成
+#
+# ユーザーの要望に応じて必要な機能がある場合に追加する推奨パッケージです。
+# コメントアウトを外して add_dependencies.sh --file で追加できます。
+#
+# 使い方:
+#   ./AI/scripts/setup/add_dependencies.sh --file AI/guides/dependencies/recommended.yaml
+
+dependencies:
+  # HTTP クライアント（外部API通信用）
+  dio: ^5.7.0
+
+  # アイコン・UI拡張
+  font_awesome_flutter: ^10.8.0
+  cached_network_image: ^3.4.1
+
+  # ローカリゼーション・多言語対応
+  # ※ flutter_localizations は sdk 依存のため手動で pubspec.yaml に追加してください
+  intl: ^0.19.0
+
+  # デバイス情報・ネイティブ機能（必要時コメントを外す）
+  # shared_preferences: ^2.3.2
+  # device_info_plus: ^11.1.0
+  # package_info_plus: ^8.1.0
