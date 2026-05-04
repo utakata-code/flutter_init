@@ -1,0 +1,68 @@
+import 'package:args/command_runner.dart';
+
+import '../../1_domain/messages/cli_messages.dart';
+import '../1_commands/check_command.dart';
+import '../1_commands/create_command.dart';
+import '../1_commands/diff_command.dart';
+import '../1_commands/feature_command.dart';
+import '../1_commands/plan_command.dart';
+import '../1_commands/scan_command.dart';
+import '../1_commands/status_command.dart';
+import '../1_commands/validate_command.dart';
+
+const _version = '0.3.0';
+
+/// utakata コマンドランナー
+///
+/// 全コマンドを登録して実行する。
+/// DI（依存注入）は bin/utakata.dart で行い、ここではコマンドを受け取るだけ。
+class UtakataCommandRunner extends CommandRunner<int> {
+  UtakataCommandRunner({
+    required CliMessages msg,
+    required CreateCommand createCommand,
+    required FeatureCommand featureCommand,
+    required PlanCommand planCommand,
+    required ScanCommand scanCommand,
+    required DiffCommand diffCommand,
+    required CheckCommand checkCommand,
+    required StatusCommand statusCommand,
+    required ValidateCommand validateCommand,
+  }) : super(
+          'utakata',
+          msg.cmdRunnerDesc,
+        ) {
+    // グローバルオプション
+    argParser.addFlag(
+      'version',
+      abbr: 'v',
+      negatable: false,
+      help: msg.versionHelp,
+    );
+
+    // コマンド登録
+    addCommand(createCommand);
+    addCommand(featureCommand);
+    addCommand(planCommand);
+    addCommand(scanCommand);
+    addCommand(diffCommand);
+    addCommand(checkCommand);
+    addCommand(statusCommand);
+    addCommand(validateCommand);
+  }
+
+  @override
+  Future<int?> run(Iterable<String> args) async {
+    try {
+      final results = parse(args);
+      if (results['version'] == true) {
+        print('utakata version $_version');
+        return 0;
+      }
+      return await runCommand(results) ?? 0;
+    } on UsageException catch (e) {
+      print(e.message);
+      print(e.usage);
+      return 64; // EX_USAGE
+    }
+  }
+}

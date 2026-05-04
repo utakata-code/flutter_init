@@ -10,9 +10,9 @@ AIエージェントが現在の実際の構造を把握するのに役立ちま
 ## 手順
 
 // turbo
-1. 構造スナップショット生成
+1. 現在の構造をスキャン
 ```bash
-./AI/scripts/status/snapshot.sh
+utakata scan
 ```
 
 ## 出力内容
@@ -31,7 +31,7 @@ AIエージェントが現在の実際の構造を把握するのに役立ちま
 
 ## 出力先
 
-`AI/specs/current_structure.md` (自動上書き)
+`AI/snapshots/current_structure.yaml` (utakata が自動生成)
 
 ## 関連コマンド
 

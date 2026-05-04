@@ -1,0 +1,109 @@
+# アーキテクチャ定義: Clean Architecture (4-layer)
+#
+# この定義ファイルが utakata feature add / feature init が生成する
+# ディレクトリ構造と命名規則を決定する。
+# generate_feature.sh の mkdir -p 一覧に相当する。
+#
+# 新しいアーキテクチャを追加する際は、
+# templates/architectures/{arch_id}/arch_definition.yaml を追加するだけでよい。
+
+id: clean_architecture
+displayName: "Clean Architecture (4-layer)"
+# プロジェクト内の対応ガイドへのパス（utakata validate が違反時に案内する）
+guides_path: "AI/guides/architectures/clean_architecture"
+
+
+layers:
+  - name: 1_domain
+    dirs:
+      - 1_entities
+      - 2_repositories
+      - 3_usecases
+      - exceptions
+
+  - name: 2_infrastructure
+    dirs:
+      - 1_models
+      - 2_data_sources/1_local
+      - 2_data_sources/1_local/exceptions
+      - 2_data_sources/2_remote
+      - 2_data_sources/2_remote/exceptions
+      - 3_repositories
+
+  - name: 3_application
+    dirs:
+      - 1_states
+      - 2_providers
+      - 3_notifiers
+
+  - name: 4_presentation
+    dirs:
+      - 1_widgets/1_atoms
+      - 1_widgets/2_molecules
+      - 1_widgets/3_organisms
+      - 2_pages
+
+# 命名規則定義
+# dir_pattern : features/{perm}/{name}/ 以下のパスに対する部分一致
+# file_pattern: ファイル名に適用する正規表現（.dart のみ対象）
+# description : エラー時に表示するパターン説明
+naming_rules:
+  - dir_pattern: "1_domain/1_entities"
+    file_pattern: "^.+_entity\\.dart$"
+    description: "{name}_entity.dart"
+
+  - dir_pattern: "1_domain/2_repositories"
+    file_pattern: "^.+_repository\\.dart$"
+    description: "{name}_repository.dart"
+
+  - dir_pattern: "1_domain/3_usecases"
+    file_pattern: "^.+_usecase\\.dart$"
+    description: "{verb}_{name}_usecase.dart"
+
+  - dir_pattern: "1_domain/exceptions"
+    file_pattern: "^.+_exceptions?\\.dart$|^domain_exceptions\\.dart$"
+    description: "{name}_exceptions.dart or domain_exceptions.dart"
+
+  - dir_pattern: "2_infrastructure/1_models"
+    file_pattern: "^.+_model\\.dart$"
+    description: "{name}_model.dart"
+
+  - dir_pattern: "2_infrastructure/2_data_sources/1_local"
+    file_pattern: "^.+_local_data_source\\.dart$"
+    description: "{name}_local_data_source.dart"
+
+  - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
+    file_pattern: "^.+_remote_data_source\\.dart$"
+    description: "{name}_remote_data_source.dart"
+
+  - dir_pattern: "2_infrastructure/3_repositories"
+    file_pattern: "^.+_repository_impl\\.dart$"
+    description: "{name}_repository_impl.dart"
+
+  - dir_pattern: "3_application/1_states"
+    file_pattern: "^.+_state\\.dart$"
+    description: "{name}_state.dart"
+
+  - dir_pattern: "3_application/2_providers"
+    file_pattern: "^.+_providers?\\.dart$"
+    description: "{name}_providers.dart"
+
+  - dir_pattern: "3_application/3_notifiers"
+    file_pattern: "^.+_notifier\\.dart$"
+    description: "{name}_notifier.dart"
+
+  - dir_pattern: "4_presentation/1_widgets/1_atoms"
+    file_pattern: "^.+_atom\\.dart$"
+    description: "{name}_atom.dart"
+
+  - dir_pattern: "4_presentation/1_widgets/2_molecules"
+    file_pattern: "^.+_molecule\\.dart$"
+    description: "{name}_molecule.dart"
+
+  - dir_pattern: "4_presentation/1_widgets/3_organisms"
+    file_pattern: "^.+_organism\\.dart$"
+    description: "{name}_organism.dart"
+
+  - dir_pattern: "4_presentation/2_pages"
+    file_pattern: "^.+_page\\.dart$"
+    description: "{name}_page.dart"
