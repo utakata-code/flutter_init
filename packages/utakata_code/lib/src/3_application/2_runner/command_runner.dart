@@ -10,7 +10,7 @@ import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/validate_command.dart';
 
-const _version = '0.3.2';
+const _version = '0.3.3';
 
 // ANSIカラーコード
 const _reset = '\x1B[0m';
@@ -19,12 +19,22 @@ const _cyan = '\x1B[96m'; // bright cyan（明るい水色）
 const _dim = '\x1B[2m';
 
 /// 起動時のブランドヘッダー（引数なしのとき表示）
-String _brandHeader() => '''
-$_bold$_cyan
-  █  █ ▀█▀ ▄▀█ █▄▀ ▄▀█ ▀█▀ ▄▀█   █▀▀ █▀█ █▀▄ █▀▀
-  █▄▄  █  █▀█ █ █ █▀█  █  █▀█   █▄▄ █▄█ █▄▀ ██▄
-$_reset$_dim  spec-driven Flutter development — v$_version$_reset
-''';
+String _brandHeader() => '$_bold$_cyan' r'''
+██╗   ██╗████████╗ █████╗ ██╗  ██╗ █████╗ ████████╗ █████╗ 
+██║   ██║╚══██╔══╝██╔══██╗██║ ██╔╝██╔══██╗╚══██╔══╝██╔══██╗
+██║   ██║   ██║   ███████║█████╔╝ ███████║   ██║   ███████║
+██║   ██║   ██║   ██╔══██║██╔═██╗ ██╔══██║   ██║   ██╔══██║
+╚██████╔╝   ██║   ██║  ██║██║  ██╗██║  ██║   ██║   ██║  ██║
+ ╚═════╝    ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝
+                                                           
+ ██████╗ ██████╗ ██████╗ ███████╗                          
+██╔════╝██╔═══██╗██╔══██╗██╔════╝                          
+██║     ██║   ██║██║  ██║█████╗                            
+██║     ██║   ██║██║  ██║██╔══╝                            
+╚██████╗╚██████╔╝██████╔╝███████╗                          
+ ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝                          '''
+      '\n$_reset$_dim  spec-driven Flutter development — v$_version$_reset\n';
+
 
 /// utakata コマンドランナー
 ///
