@@ -24,7 +24,7 @@
 
 ### 5. 技術選定
 
-> ⚠️ 参照必須: `utakata/guides/technology_stack.md`
+> ⚠️ 参照必須: `AI/guides/technology_stack.md`
 
 | カテゴリ | ライブラリ |
 |---------|-----------|

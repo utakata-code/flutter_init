@@ -25,8 +25,8 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-OUTPUT_YAML="$PROJECT_ROOT/utakata/snapshots/change_history.yaml"
-OUTPUT_MD="$PROJECT_ROOT/utakata/snapshots/preview/change_history.md"
+OUTPUT_YAML="$PROJECT_ROOT/AI/snapshots/change_history.yaml"
+OUTPUT_MD="$PROJECT_ROOT/AI/snapshots/preview/change_history.md"
 SNAPSHOT_FILE="$PROJECT_ROOT/.agent/.file_snapshot"
 
 # ========================================

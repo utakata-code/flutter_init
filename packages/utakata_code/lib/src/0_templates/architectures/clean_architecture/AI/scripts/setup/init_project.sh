@@ -9,7 +9,7 @@ set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 # プロジェクトのルートは scripts ディレクトリから3階層上（リポジトリ直下）を想定
-# 例: <repo_root>/utakata/scripts/bash -> <repo_root>
+# 例: <repo_root>/AI/scripts/bash -> <repo_root>
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
 
 ORG="com.example"
@@ -46,8 +46,8 @@ Options:
 
 Note:
   このスクリプトはプロジェクト作成のみを行います。
-  依存関係の追加は utakata/scripts/setup/add_dependencies.sh を、
-  共通例外ファイルの生成は utakata/scripts/generate/init_core_exceptions.sh を使用してください。
+  依存関係の追加は AI/scripts/setup/add_dependencies.sh を、
+  共通例外ファイルの生成は AI/scripts/generate/init_core_exceptions.sh を使用してください。
 
 Examples:
   $0 --org com.acme --platforms android,ios,web --description "ACME App" --yes
@@ -132,7 +132,7 @@ flutter create "${CREATE_FLAGS[@]}" .
 
 
 echo "\n[done] Initialization complete."
-echo "- Add dependencies: utakata/scripts/setup/add_dependencies.sh --yes"
-echo "- Init core exceptions: utakata/scripts/generate/init_core_exceptions.sh --yes"
-echo "- Run feature generator: utakata/scripts/generate/generate_feature.sh"
+echo "- Add dependencies: AI/scripts/setup/add_dependencies.sh --yes"
+echo "- Init core exceptions: AI/scripts/generate/init_core_exceptions.sh --yes"
+echo "- Run feature generator: AI/scripts/generate/generate_feature.sh"
 echo "- Build codegen: flutter pub run build_runner build --delete-conflicting-outputs"

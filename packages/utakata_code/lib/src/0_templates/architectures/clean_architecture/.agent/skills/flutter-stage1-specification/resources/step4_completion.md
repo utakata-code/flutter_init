@@ -17,7 +17,7 @@
 - [ ] 修正事項があれば反映した
 
 ### ドキュメント更新
-- [ ] `utakata/specs/application_specification.md` を最終版に更新
+- [ ] `AI/specs/application_specification.md` を最終版に更新
 - [ ] バージョン番号を更新（例: v1.0）
 - [ ] 最終更新日を更新
 - [ ] 更新履歴セクションに記録
@@ -28,7 +28,7 @@
 ## 🎉 第一段階（仕様策定）完了
 
 以下の仕様書が完成しました：
-- ファイル: `utakata/specs/application_specification.md`
+- ファイル: `AI/specs/application_specification.md`
 - バージョン: v1.0
 - 最終更新: [日付]
 
@@ -44,6 +44,6 @@
 ## 次のフェーズへの引き継ぎ
 
 第二段階（構造計画）では以下を参照：
-- 仕様書: `utakata/specs/application_specification.md`
-- アーキテクチャ: `utakata/guides/lib/features/features_architecture.md`
-- 技術スタック: `utakata/guides/technology_stack.md`
+- 仕様書: `AI/specs/application_specification.md`
+- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
+- 技術スタック: `AI/guides/technology_stack.md`

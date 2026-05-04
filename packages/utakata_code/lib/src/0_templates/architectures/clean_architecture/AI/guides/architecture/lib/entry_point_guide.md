@@ -125,11 +125,11 @@ class App extends ConsumerWidget {
 - 統合：Deep Link／ガード動作のシナリオテスト（モックプロバイダを使用）
 
 ## 関連ドキュメント
-- `utakata/guides/lib/core_architecture.md`
-- `utakata/guides/lib/core/routing/routing_guide.md`
-- `utakata/guides/lib/core/routing/path/path_guide.md`
-- `utakata/guides/lib/core/theme/theme_guide.md`
-- `utakata/guides/lib/core/api/api_guide.md`
-- `utakata/guides/lib/core/database/database_guide.md`
-- `utakata/guides/lib/core/database/table/table_guide.md`
-- 例外設計：`utakata/guides/lib/core/exceptions/exceptions_guide.md`（`utakata/scripts/generate/init_core_exceptions.sh` 参照）
+- `AI/guides/lib/core_architecture.md`
+- `AI/guides/lib/core/routing/routing_guide.md`
+- `AI/guides/lib/core/routing/path/path_guide.md`
+- `AI/guides/lib/core/theme/theme_guide.md`
+- `AI/guides/lib/core/api/api_guide.md`
+- `AI/guides/lib/core/database/database_guide.md`
+- `AI/guides/lib/core/database/table/table_guide.md`
+- 例外設計：`AI/guides/lib/core/exceptions/exceptions_guide.md`（`AI/scripts/generate/init_core_exceptions.sh` 参照）

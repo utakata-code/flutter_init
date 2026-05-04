@@ -5,13 +5,13 @@ set -Eeuo pipefail
 # YAMLファイルから依存関係を読み取り pubspec.yaml に追加するユーティリティ
 #
 # ワークフロー:
-#   1. utakata/guides/dependencies/core_stack.yaml を編集
+#   1. AI/guides/dependencies/core_stack.yaml を編集
 #   2. このスクリプトを実行
 #   3. pubspec.yaml に依存関係が追加されます
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
-DEPS_DIR="${ROOT_DIR}/utakata/guides/dependencies"
+DEPS_DIR="${ROOT_DIR}/AI/guides/dependencies"
 
 YAML_FILE="${DEPS_DIR}/core_stack.yaml"
 YES=false
@@ -22,12 +22,12 @@ Usage: $0 [options]
 
 Options:
   --file <path>  依存関係YAMLファイルのパス
-                 (デフォルト: utakata/guides/dependencies/core_stack.yaml)
+                 (デフォルト: AI/guides/dependencies/core_stack.yaml)
   --yes          確認なしで実行（非対話）
   -h, --help     このヘルプを表示
 
 Workflow:
-  1. utakata/guides/dependencies/core_stack.yaml を編集
+  1. AI/guides/dependencies/core_stack.yaml を編集
   2. このスクリプトを実行
   3. pubspec.yaml に依存関係が追加されます
 USAGE

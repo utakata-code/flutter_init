@@ -12,7 +12,7 @@ import '../2_data_sources/1_local/filesystem_data_source.dart';
 /// すべてのリソースがアーキテクチャ単位でまとまっている:
 ///   architectures/{archId}/
 ///     .agent/      — 汎用 AI エージェント設定
-///     utakata/     — utakata 固有リソース
+///     AI/          — AI ガイド・テンプレート・仕様書
 ///       arch_definition.yaml
 ///       features/  — フィーチャー用 .tmpl テンプレート
 ///       guides/    — アーキテクチャ・共通ガイド
@@ -25,12 +25,12 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
   const TemplateRepositoryImpl(this._fs);
 
-  // TODO: ローカル優先読み込み — プロジェクトの utakata/features/ が存在すれば
+  // TODO: ローカル優先読み込み — プロジェクトの AI/features/ が存在すれば
   //       パッケージのテンプレートより優先して使用する機能を実装する
   @override
   Future<List<TemplateFileEntity>> getFeatureTemplates(String architectureId) async {
     final basePath = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'utakata', 'features'),
+      p.join('architectures', architectureId, 'AI', 'features'),
     );
     return _loadTemplates(basePath, tmplOnly: true);
   }
@@ -43,12 +43,12 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
     final results = <TemplateFileEntity>[];
 
-    // utakata/ ディレクトリ全体（プレフィックス付きで展開: utakata/guides/... のように）
-    // features/*.tmpl は .tmpl 拡張子を除去して展開される
-    final utakataDir = Directory(p.join(archBasePath, 'utakata'));
-    if (utakataDir.existsSync()) {
+    // AI/ ディレクトリ全体（プレフィックス付きで展開: AI/guides/... のように）
+    // features/*.tmpl は .tmpl 拡張子をそのまま保持して展開される
+    final aiDir = Directory(p.join(archBasePath, 'AI'));
+    if (aiDir.existsSync()) {
       results.addAll(await _loadTemplates(
-        utakataDir.path,
+        aiDir.path,
         addBaseDirPrefix: true,
       ));
     }

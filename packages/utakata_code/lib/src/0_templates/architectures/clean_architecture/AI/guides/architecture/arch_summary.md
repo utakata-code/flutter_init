@@ -5,7 +5,7 @@ trigger: always_on
 # アーキテクチャ要約 — Clean Architecture（4層）
 
 > このファイルはAIエージェントが**常時参照**するアーキテクチャ最小仕様です。
-> 詳細なガイドは `utakata/guides/architecture/lib/` を参照してください。
+> 詳細なガイドは `AI/guides/architecture/lib/` を参照してください。
 
 ---
 
@@ -40,7 +40,7 @@ lib/features/{permission}/{feature_name}/
 - `1_domain/` にUIロジック（`BuildContext` 等）を書かない
 - `4_presentation/` にビジネスロジックを書かない
 - `4_presentation/` から Repository を直接呼ばない（必ず Notifier 経由）
-- コード変更時に `utakata/specs/application_specification.md` の更新を省略しない
+- コード変更時に `AI/specs/application_specification.md` の更新を省略しない
 
 ---
 
@@ -86,7 +86,7 @@ utakata scan
 
 ## 詳細ガイドの場所
 
-- 各層の実装ルール: `utakata/guides/architecture/lib/`
-- ディレクトリ構造・命名規則の完全版: `utakata/guides/architecture/directory_structure_and_naming_rules.md`
-- 推奨パッケージ: `utakata/guides/architecture/dependencies/`
-- 協作ルール: `utakata/guides/common/collaboration.md`
+- 各層の実装ルール: `AI/guides/architecture/lib/`
+- ディレクトリ構造・命名規則の完全版: `AI/guides/architecture/directory_structure_and_naming_rules.md`
+- 推奨パッケージ: `AI/guides/architecture/dependencies/`
+- 協作ルール: `AI/guides/common/collaboration.md`

@@ -19,11 +19,11 @@ trigger: always_on
 - **対象**: 新規で Flutter アプリを開始するケース
 - **進行**: Stage1（仕様策定）→ Stage2（構造計画）→ Stage3（実装）
 - **スキル参照**: `flutter-development-guide` > `flutter-stage1-specification` > `flutter-stage2-structure` > `flutter-stage3-implementation`
-- **アーキテクチャ**: `utakata/guides/architectures/` から選択
+- **アーキテクチャ**: `AI/guides/architectures/` から選択
 
 ### 2. 既存アプリ開発モード（utakata の構造ルール使用中）
 - **対象**: 既に utakata で作成されたプロジェクト
-- **進行**: `utakata/specs/` から現在の仕様を読み込み、以降の機能追加/修正で仕様書を同期更新
+- **進行**: `AI/specs/` から現在の仕様を読み込み、以降の機能追加/修正で仕様書を同期更新
 - **確認**: `utakata status` で現在の状態を確認してから着手
 
 ### 3. 既存アプリ開発モード（構造ルール未使用） — TODO
@@ -35,19 +35,19 @@ trigger: always_on
 ## 運用ルール（重要）
 
 ### ドリフト防止
-- コード変更に伴い `utakata/specs/application_specification.md` と `utakata/specs/structure_plan.md` を**必ず更新**する
+- コード変更に伴い `AI/specs/application_specification.md` と `AI/specs/structure_plan.md` を**必ず更新**する
 - 更新なしでのコード変更は不可
 
 ### アーキテクチャ規約
 - 使用アーキテクチャは `arch_definition.yaml` で定義されている
-- ガイドは `utakata/guides/architecture/` を参照
-- 詳細な常時注入ルールは `utakata/guides/architecture/arch_summary.md` を確認
+- ガイドは `AI/guides/architecture/` を参照
+- 詳細な常時注入ルールは `AI/guides/architecture/arch_summary.md` を確認
 
 ### 命名規則の確認
 - コード変更後は必ず `utakata validate` を実行してゼロ違反を維持する
 
 ### 協作ルール
-- `utakata/guides/common/collaboration.md` を参照すること（複数人/複数AI共同作業）
+- `AI/guides/common/collaboration.md` を参照すること（複数人/複数AI共同作業）
 
 ---
 

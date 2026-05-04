@@ -203,7 +203,7 @@ if [ -d "ios" ]; then
         echo "✅ pod install completed successfully."
     else
         echo "⚠️  pod install finished with errors (Likely because framework is not built yet)."
-        echo "   This is normal! Please run 'utakata/scripts/build/build_native_ios.sh' next."
+        echo "   This is normal! Please run 'AI/scripts/build/build_native_ios.sh' next."
     fi
 else
     echo "⚠️  'ios' directory not found. Skipping pod install."
@@ -212,6 +212,6 @@ fi
 echo "🎉 Setup complete!"
 echo "---------------------------------------------------"
 echo "NEXT STEPS:"
-echo "1. Run Build Script: ./utakata/scripts/build/build_native_ios.sh"
+echo "1. Run Build Script: ./AI/scripts/build/build_native_ios.sh"
 echo "2. Run Flutter:      flutter run"
 echo "---------------------------------------------------"

@@ -36,5 +36,5 @@ utakata validate
 ## 関連ガイド
 
 - 命名規則の定義: `arch_definition.yaml` の `naming_rules:` セクション
-- 詳細ガイド: `utakata/guides/architecture/arch_summary.md`
+- 詳細ガイド: `AI/guides/architecture/arch_summary.md`
 

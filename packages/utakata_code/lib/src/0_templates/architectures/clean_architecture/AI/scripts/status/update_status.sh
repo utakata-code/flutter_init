@@ -24,8 +24,8 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 
-OUTPUT_YAML="$PROJECT_ROOT/utakata/snapshots/project_status.yaml"
-OUTPUT_MD="$PROJECT_ROOT/utakata/snapshots/preview/project_status.md"
+OUTPUT_YAML="$PROJECT_ROOT/AI/snapshots/project_status.yaml"
+OUTPUT_MD="$PROJECT_ROOT/AI/snapshots/preview/project_status.md"
 
 # ========================================
 # yq の存在確認
@@ -118,8 +118,8 @@ MAIN_DART=$(check_bool "$PROJECT_ROOT/lib/main.dart")
 APP_DART=$(check_bool "$PROJECT_ROOT/lib/app.dart")
 
 # ドキュメント
-SPEC_STATUS=$(get_document_status "$PROJECT_ROOT/utakata/specs/application_specification.md")
-PLAN_STATUS=$(get_document_status "$PROJECT_ROOT/utakata/specs/structure_plan.md")
+SPEC_STATUS=$(get_document_status "$PROJECT_ROOT/AI/specs/application_specification.md")
+PLAN_STATUS=$(get_document_status "$PROJECT_ROOT/AI/specs/structure_plan.md")
 
 # フィーチャー
 FEATURES_COUNT=0

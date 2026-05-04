@@ -1,10 +1,10 @@
 # feature_request.yaml
 # AI書き込み用 — フィーチャーの要件定義のみを記載する
-# utakata/scripts/generate/generate_plan.sh に渡すと utakata/snapshots/plan_architecture.yaml が生成される
+# AI/scripts/generate/generate_plan.sh に渡すと AI/snapshots/plan_architecture.yaml が生成される
 #
 # 使い方:
 #   1. AIがこのファイルにフィーチャー情報を記載する
-#   2. ./utakata/scripts/generate/generate_plan.sh を実行する
+#   2. ./AI/scripts/generate/generate_plan.sh を実行する
 #   3. バリデーション通過後、plan_architecture.yaml が自動生成される
 
 # ── プロジェクト情報 ──

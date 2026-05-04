@@ -4,7 +4,7 @@ description: ファイルの変更を検出して記録
 
 # ファイル変更の検出
 
-このワークフローは、プロジェクト内のファイル変更を検出して `utakata/snapshots/change_history.yaml` に記録します。
+このワークフローは、プロジェクト内のファイル変更を検出して `AI/snapshots/change_history.yaml` に記録します。
 AIエージェントは前回からの変更を即座に把握できます。
 
 ## 手順
@@ -12,7 +12,7 @@ AIエージェントは前回からの変更を即座に把握できます。
 / / turbo
 1. 変更検出スクリプトを実行
 ```bash
-./utakata/scripts/status/detect_changes.sh
+./AI/scripts/status/detect_changes.sh
 ```
 
 ## 検出内容
@@ -33,21 +33,21 @@ AIエージェントは前回からの変更を即座に把握できます。
 
 ```bash
 # 最新の変更を表示
-head -n 100 utakata/snapshots/change_history.yaml
+head -n 100 AI/snapshots/change_history.yaml
 
 # すべての変更を表示
-cat utakata/snapshots/change_history.yaml
+cat AI/snapshots/change_history.yaml
 ```
 
 ## オプション
 
 ### 履歴をクリア (注意)
 ```bash
-./utakata/scripts/status/detect_changes.sh --clear-history
+./AI/scripts/status/detect_changes.sh --clear-history
 ```
 
 ### 古い履歴をアーカイブ
 ```bash
 # 30日以上前の変更をアーカイブ
-./utakata/scripts/status/detect_changes.sh --archive-old 30
+./AI/scripts/status/detect_changes.sh --archive-old 30
 ```

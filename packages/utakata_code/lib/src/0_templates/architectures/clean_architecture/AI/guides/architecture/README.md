@@ -72,7 +72,7 @@ clean_architecture/
 ```yaml
 # arch_definition.yaml
 id: clean_architecture
-guides_path: "utakata/guides/architectures/clean_architecture"
+guides_path: "AI/guides/architectures/clean_architecture"
 ```
 
 `utakata validate` が命名規則違反を検出した際、このガイドのパスを案内します。
@@ -81,11 +81,11 @@ guides_path: "utakata/guides/architectures/clean_architecture"
 
 ## 別アーキテクチャを追加する場合
 
-`utakata/guides/architectures/` 直下に新しいディレクトリを作成し、
+`AI/guides/architectures/` 直下に新しいディレクトリを作成し、
 同じ構成（`README.md` + `arch_summary.md`）で追加してください。
 
 ```bash
-utakata/guides/architectures/
+AI/guides/architectures/
 ├── clean_architecture/  ← 公式推奨
 └── mvvm/               ← ユーザー追加例
     ├── README.md

@@ -34,12 +34,12 @@ description: |
 
 ### Stage 1: 仕様策定
 - **目的**: 要件の明確化
-- **成果物**: `utakata/specs/application_specification.md`
+- **成果物**: `AI/specs/application_specification.md`
 - **ステップ**: ヒアリング → 草案 → 深掘り → 完成
 
 ### Stage 2: 構造計画
 - **目的**: ファイル構成の計画
-- **成果物**: `utakata/specs/structure_plan.md`
+- **成果物**: `AI/specs/structure_plan.md`
 - **ステップ**: ルール確認 → 草案 → レビュー → 完成
 
 ### Stage 3: 実装

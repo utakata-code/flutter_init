@@ -4,7 +4,7 @@ description: 会話ログを記録して次回へ引き継ぐ
 
 # 会話ログの記録
 
-このワークフローは、AIエージェントとの会話内容を `utakata/logs/conversation_log.md` に記録し、次回の会話でスムーズに引き継げるようにします。
+このワークフローは、AIエージェントとの会話内容を `AI/logs/conversation_log.md` に記録し、次回の会話でスムーズに引き継げるようにします。
 
 ## 使用タイミング
 
@@ -15,7 +15,7 @@ description: 会話ログを記録して次回へ引き継ぐ
 
 ## 手順
 
-1. `utakata/logs/conversation_log.md` を開く
+1. `AI/logs/conversation_log.md` を開く
 
 2. 以下のテンプレートを「会話履歴」セクションの最上部に追加（最新が上）:
 
@@ -68,7 +68,7 @@ description: 会話ログを記録して次回へ引き継ぐ
 
 ## 関連ファイル
 
-- `utakata/logs/conversation_log.md` - 会話ログ本体
-- `utakata/specs/application_specification.md` - 仕様書
-- `utakata/specs/structure_plan.md` - 構造計画書
-- `utakata/specs/project_status.md` - プロジェクトステータス
+- `AI/logs/conversation_log.md` - 会話ログ本体
+- `AI/specs/application_specification.md` - 仕様書
+- `AI/specs/structure_plan.md` - 構造計画書
+- `AI/specs/project_status.md` - プロジェクトステータス

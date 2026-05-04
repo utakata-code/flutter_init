@@ -2,11 +2,11 @@
 
 # ==========================================
 # iOS Framework Build Script
-# Location: utakata/scripts/build/build_native_ios.sh
+# Location: AI/scripts/build/build_native_ios.sh
 # ==========================================
 
 # 1. パス定義の自動解決
-# このスクリプトがあるディレクトリ (utakata/scripts/bash)
+# このスクリプトがあるディレクトリ (AI/scripts/bash)
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # プロジェクトルートへのパス (3階層上: bash -> scripts -> AI -> root)

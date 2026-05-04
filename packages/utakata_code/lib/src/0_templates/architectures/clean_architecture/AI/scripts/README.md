@@ -1,4 +1,4 @@
-# utakata/scripts — utakata CLI への移行ガイド
+# AI/scripts — utakata CLI への移行ガイド
 
 > このディレクトリのシェルスクリプトは **非推奨** です。
 > 代わりに `utakata` CLI を使用してください。

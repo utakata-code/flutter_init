@@ -4,7 +4,7 @@
 # コメントアウトを外して add_dependencies.sh --file で追加できます。
 #
 # 使い方:
-#   ./utakata/scripts/setup/add_dependencies.sh --file utakata/guides/dependencies/recommended.yaml
+#   ./AI/scripts/setup/add_dependencies.sh --file AI/guides/dependencies/recommended.yaml
 
 dependencies:
   # HTTP クライアント（外部API通信用）
