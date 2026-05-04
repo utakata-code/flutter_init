@@ -47,6 +47,7 @@ abstract interface class CliMessages {
   String get missingAppName;
   String get missingFeatureName;
   String confirmGenerate(String path);
+  String projectCreated(String name);
 
   // ─── plan ───
   String get planMissingFeaturesKey;

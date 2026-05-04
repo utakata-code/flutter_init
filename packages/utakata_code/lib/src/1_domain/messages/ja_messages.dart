@@ -78,7 +78,9 @@ class JaMessages implements CliMessages {
   String get missingFeatureName =>
       'フィーチャー名を指定してください。例: utakata feature add memo';
   @override
-  String confirmGenerate(String path) => '$path を生成しますか？ (y/n): ';
+  String confirmGenerate(String path) => '"$path" に生成しますか？ (y/N)';
+  @override
+  String projectCreated(String name) => '✅ プロジェクト "$name" を生成しました！';
 
   // ─── plan ───
   @override

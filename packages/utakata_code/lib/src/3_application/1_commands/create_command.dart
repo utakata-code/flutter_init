@@ -55,7 +55,7 @@ class CreateCommand extends BaseCommand {
     );
 
     await _usecase.execute(spec);
-    Logger.success(_msg.featureAddDone(appName));
+    Logger.success(_msg.projectCreated(appName));
     return 0;
   }
 

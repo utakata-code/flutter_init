@@ -85,7 +85,9 @@ class EnMessages implements CliMessages {
   String get missingFeatureName =>
       'Please specify a feature name. Example: utakata feature add memo';
   @override
-  String confirmGenerate(String path) => 'Generate $path? (y/n): ';
+  String confirmGenerate(String path) => 'Are you sure you want to generate in "$path"? (y/N)';
+  @override
+  String projectCreated(String name) => '✅ Project "$name" has been generated!';
 
   // ─── plan ───
   @override

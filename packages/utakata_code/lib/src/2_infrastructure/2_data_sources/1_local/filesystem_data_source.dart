@@ -73,7 +73,7 @@ class FilesystemDataSource {
   /// グローバルインストール時やローカル実行時に関わらず確実にパスを解決する。
   Future<String> resolvePackageTemplatePath(String relativePath) async {
     final uri = await Isolate.resolvePackageUri(
-        Uri.parse('package:utakata/src/templates/$relativePath'));
+        Uri.parse('package:utakata/src/0_templates/$relativePath'));
     if (uri != null) {
       return uri.toFilePath();
     }

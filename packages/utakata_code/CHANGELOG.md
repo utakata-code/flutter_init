@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.5
+
+* **fix**: Added missing `.agent/` and `AI/` template files to `lib/src/templates/architectures/clean_architecture/` so they correctly generate in new projects.
+* **fix**: Fixed the success message of `utakata create` command.
+
 ## 0.3.4
 
 * **fix**: Fixed `ArchitectureNotFoundException` when running from a global pub activation. Switched to `Isolate.resolvePackageUri` for robust template path resolution instead of relying on `Platform.script` which varies between Dart versions.
