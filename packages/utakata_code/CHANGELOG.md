@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+* **feat(template)**: Restructured `AI/` directory — introduced `AI/architecture/` to consolidate all architecture-specific resources (guides, features, core, arch_definition.yaml)
+* **feat(template)**: Unified GUIDE.md and `.tmpl` templates — each layer directory now contains both the implementation guide and code template side by side
+* **feat(template)**: Moved `arch_definition.yaml` and `features/` into `AI/architecture/` for cleaner separation of architecture-dependent vs generic resources
+* **feat(create)**: Use `flutter create --empty` for clean project generation without boilerplate comments
+* **refactor(template)**: Flattened `guides/architectures/clean_architecture/` → `architecture/guides/` to eliminate redundant nesting
+* **chore**: Cleared legacy `change_history.yaml` template data
+
 ## 0.3.5
 
 * **fix**: Added missing `.agent/` and `AI/` template files to `lib/src/templates/architectures/clean_architecture/` so they correctly generate in new projects.
