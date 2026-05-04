@@ -8,22 +8,29 @@ import '../2_data_sources/1_local/filesystem_data_source.dart';
 
 /// テンプレートリポジトリの実装
 ///
-/// lib/src/templates/architectures/{archId}/ 配下のテンプレートを読み込む。
+/// lib/src/0_templates/architectures/{archId}/ 配下のテンプレートを読み込む。
 /// すべてのリソースがアーキテクチャ単位でまとまっている:
 ///   architectures/{archId}/
-///     arch_definition.yaml
-///     .agent/     — AI エージェント設定
-///     AI/         — AI ガイド・スクリプト
-///     features/   — フィーチャー用 .tmpl テンプレート
+///     .agent/      — 汎用 AI エージェント設定
+///     utakata/     — utakata 固有リソース
+///       arch_definition.yaml
+///       features/  — フィーチャー用 .tmpl テンプレート
+///       guides/    — アーキテクチャ・共通ガイド
+///       scripts/   — ユーティリティスクリプト
+///       specs/     — 仕様書テンプレート
+///       snapshots/ — スナップショットテンプレート
+///       logs/      — ログテンプレート
 class TemplateRepositoryImpl implements TemplateRepository {
   final FilesystemDataSource _fs;
 
   const TemplateRepositoryImpl(this._fs);
 
+  // TODO: ローカル優先読み込み — プロジェクトの utakata/features/ が存在すれば
+  //       パッケージのテンプレートより優先して使用する機能を実装する
   @override
   Future<List<TemplateFileEntity>> getFeatureTemplates(String architectureId) async {
     final basePath = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'features'),
+      p.join('architectures', architectureId, 'utakata', 'features'),
     );
     return _loadTemplates(basePath, tmplOnly: true);
   }
@@ -36,11 +43,12 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
     final results = <TemplateFileEntity>[];
 
-    // AI/ ディレクトリ（プレフィックス付きで展開: AI/guides/... のように）
-    final aiDir = Directory(p.join(archBasePath, 'AI'));
-    if (aiDir.existsSync()) {
+    // utakata/ ディレクトリ全体（プレフィックス付きで展開: utakata/guides/... のように）
+    // features/*.tmpl は .tmpl 拡張子を除去して展開される
+    final utakataDir = Directory(p.join(archBasePath, 'utakata'));
+    if (utakataDir.existsSync()) {
       results.addAll(await _loadTemplates(
-        aiDir.path,
+        utakataDir.path,
         addBaseDirPrefix: true,
       ));
     }
@@ -62,7 +70,7 @@ class TemplateRepositoryImpl implements TemplateRepository {
   /// [tmplOnly] が true の場合は .tmpl ファイルのみ対象とし、
   /// 拡張子を除去して展開する。false の場合はすべてのファイルを対象とする。
   /// [addBaseDirPrefix] が true の場合、ベースディレクトリ名をパスに付与する
-  /// （AI/guides/... や .agent/rules/... のように展開するため）
+  /// （utakata/guides/... や .agent/rules/... のように展開するため）
   Future<List<TemplateFileEntity>> _loadTemplates(
     String dirPath, {
     String? excludePattern,
@@ -89,8 +97,9 @@ class TemplateRepositoryImpl implements TemplateRepository {
       // テンプレートのパスをベースディレクトリからの相対パスにする
       String relativePath = p.relative(entity.path, from: dirPath);
 
-      // .tmpl 拡張子がある場合は除去して本来のファイル名にする
-      if (relativePath.endsWith('.tmpl')) {
+      // .tmpl 拡張子は tmplOnly モード（コード生成時）のみ除去する
+      // プロジェクトテンプレートとしてコピーする場合は .tmpl をそのまま保持
+      if (tmplOnly && relativePath.endsWith('.tmpl')) {
         relativePath = relativePath.substring(
           0,
           relativePath.length - '.tmpl'.length,
