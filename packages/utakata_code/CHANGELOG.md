@@ -1,6 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+* **fix**: Resolve correct package template path when installed via `dart pub global activate` (was failing with `ArchitectureNotFoundException` due to `snapshots/` directory in `Platform.script`)
+
 ## 0.3.1
+
 
 * **feat(ux)**: Display `utakata code` brand header (ASCII art, bright cyan) on startup when no command is specified
 

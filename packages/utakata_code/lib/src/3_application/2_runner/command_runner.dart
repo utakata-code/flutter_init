@@ -10,7 +10,7 @@ import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/validate_command.dart';
 
-const _version = '0.3.1';
+const _version = '0.3.2';
 
 // ANSIカラーコード
 const _reset = '\x1B[0m';

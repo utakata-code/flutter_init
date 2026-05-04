@@ -68,12 +68,17 @@ class FilesystemDataSource {
 
   /// パッケージに同梱されたテンプレートディレクトリのパスを返す
   ///
-  /// Dart 実行ファイル基準でパスを解決する
+  /// Dart 実行ファイル基準でパスを解決する。
+  /// - `dart run`: Platform.script = bin/utakata.dart → 1段上がり package root
+  /// - `dart pub global activate`: Platform.script = bin/snapshots/*.snapshot → 2段上がり package root
   String resolvePackageTemplatePath(String relativePath) {
-    // dart pub global activate / dart pub run 時の両方に対応
     final scriptDir = p.dirname(Platform.script.toFilePath());
-    // bin/ の隣に lib/ があることを前提とする
-    final packageRoot = p.normalize(p.join(scriptDir, '..'));
+
+    // snapshots/ 配下の場合は 2段、bin/ の場合は 1段上がる
+    final packageRoot = p.basename(scriptDir) == 'snapshots'
+        ? p.normalize(p.join(scriptDir, '..', '..'))
+        : p.normalize(p.join(scriptDir, '..'));
+
     return p.join(packageRoot, 'lib', 'src', 'templates', relativePath);
   }
 }
