@@ -10,7 +10,7 @@
 id: clean_architecture
 displayName: "Clean Architecture (4-layer)"
 # プロジェクト内の対応ガイドへのパス（utakata validate が違反時に案内する）
-guides_path: "AI/guides/architectures/clean_architecture"
+guides_path: "AI/architecture/guides"
 
 
 layers:

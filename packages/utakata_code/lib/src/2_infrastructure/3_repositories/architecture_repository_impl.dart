@@ -10,19 +10,19 @@ import '../2_data_sources/1_local/yaml_data_source.dart';
 
 /// アーキテクチャ定義リポジトリの実装
 ///
-/// lib/src/0_templates/architectures/{id}/AI/arch_definition.yaml を読み込む。
+/// lib/src/0_templates/architectures/{id}/AI/architecture/arch_definition.yaml を読み込む。
 class ArchitectureRepositoryImpl implements ArchitectureRepository {
   final FilesystemDataSource _fs;
   final YamlDataSource _yaml;
 
   const ArchitectureRepositoryImpl(this._fs, this._yaml);
 
-  // TODO: ローカル優先読み込み — プロジェクトの AI/arch_definition.yaml が
+  // TODO: ローカル優先読み込み — プロジェクトの AI/architecture/arch_definition.yaml が
   //       存在すればそちらを優先して使用する機能を実装する
   @override
   Future<ArchitectureDefinitionEntity> getById(String architectureId) async {
     final templateBase = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'AI', 'arch_definition.yaml'),
+      p.join('architectures', architectureId, 'AI', 'architecture', 'arch_definition.yaml'),
     );
 
     final content = await _fs.readFile(templateBase);

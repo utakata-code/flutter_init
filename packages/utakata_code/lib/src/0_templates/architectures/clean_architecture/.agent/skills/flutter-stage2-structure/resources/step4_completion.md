@@ -47,7 +47,7 @@
 第三段階（実装）では以下を参照：
 - 仕様書: `AI/specs/application_specification.md`
 - 構造計画書: `AI/specs/structure_plan.md`
-- 技術スタック: `AI/guides/technology_stack.md`
+- 技術スタック: `AI/architecture/guides/common/technology_stack.md`
 
 ### 実装前の準備コマンド
 ```bash

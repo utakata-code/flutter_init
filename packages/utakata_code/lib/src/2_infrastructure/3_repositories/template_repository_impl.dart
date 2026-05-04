@@ -11,26 +11,28 @@ import '../2_data_sources/1_local/filesystem_data_source.dart';
 /// lib/src/0_templates/architectures/{archId}/ 配下のテンプレートを読み込む。
 /// すべてのリソースがアーキテクチャ単位でまとまっている:
 ///   architectures/{archId}/
-///     .agent/      — 汎用 AI エージェント設定
-///     AI/          — AI ガイド・テンプレート・仕様書
-///       arch_definition.yaml
-///       features/  — フィーチャー用 .tmpl テンプレート
-///       guides/    — アーキテクチャ・共通ガイド
-///       scripts/   — ユーティリティスクリプト
-///       specs/     — 仕様書テンプレート
-///       snapshots/ — スナップショットテンプレート
-///       logs/      — ログテンプレート
+///     .agent/         — 汎用 AI エージェント設定
+///     AI/             — AI ガイド・テンプレート・仕様書
+///       architecture/  — アーキテクチャ固有リソース
+///         arch_definition.yaml
+///         features/    — フィーチャー用 .tmpl + GUIDE.md
+///         guides/      — アーキテクチャガイド
+///         core/        — Core 層ガイド
+///       specs/         — 仕様書テンプレート
+///       scripts/       — ユーティリティスクリプト
+///       snapshots/     — スナップショット
+///       logs/          — ログ
 class TemplateRepositoryImpl implements TemplateRepository {
   final FilesystemDataSource _fs;
 
   const TemplateRepositoryImpl(this._fs);
 
-  // TODO: ローカル優先読み込み — プロジェクトの AI/features/ が存在すれば
+  // TODO: ローカル優先読み込み — プロジェクトの AI/architecture/features/ が存在すれば
   //       パッケージのテンプレートより優先して使用する機能を実装する
   @override
   Future<List<TemplateFileEntity>> getFeatureTemplates(String architectureId) async {
     final basePath = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'AI', 'features'),
+      p.join('architectures', architectureId, 'AI', 'architecture', 'features'),
     );
     return _loadTemplates(basePath, tmplOnly: true);
   }

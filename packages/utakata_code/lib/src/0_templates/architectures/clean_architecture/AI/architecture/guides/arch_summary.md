@@ -5,7 +5,7 @@ trigger: always_on
 # アーキテクチャ要約 — Clean Architecture（4層）
 
 > このファイルはAIエージェントが**常時参照**するアーキテクチャ最小仕様です。
-> 詳細なガイドは `AI/guides/architecture/lib/` を参照してください。
+> 詳細なガイドは `AI/architecture/guides/lib/` を参照してください。
 
 ---
 
@@ -86,7 +86,7 @@ utakata scan
 
 ## 詳細ガイドの場所
 
-- 各層の実装ルール: `AI/guides/architecture/lib/`
-- ディレクトリ構造・命名規則の完全版: `AI/guides/architecture/directory_structure_and_naming_rules.md`
-- 推奨パッケージ: `AI/guides/architecture/dependencies/`
-- 協作ルール: `AI/guides/common/collaboration.md`
+- 各層の実装ルール: `AI/architecture/guides/lib/`
+- ディレクトリ構造・命名規則の完全版: `AI/architecture/guides/directory_structure_and_naming_rules.md`
+- 推奨パッケージ: `AI/architecture/guides/dependencies/`
+- 協作ルール: `AI/architecture/guides/common/collaboration.md`

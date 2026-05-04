@@ -45,5 +45,5 @@
 
 第二段階（構造計画）では以下を参照：
 - 仕様書: `AI/specs/application_specification.md`
-- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
-- 技術スタック: `AI/guides/technology_stack.md`
+- アーキテクチャ: `AI/architecture/features/ARCHITECTURE.md`
+- 技術スタック: `AI/architecture/guides/common/technology_stack.md`

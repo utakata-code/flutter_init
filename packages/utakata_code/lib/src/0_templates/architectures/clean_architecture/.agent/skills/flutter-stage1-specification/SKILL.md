@@ -54,14 +54,14 @@ description: |
      ✅ 画面遷移
      ✅ データ要件
      ✅ エッジケース
-     ✅ 技術選定（AI/guides/technology_stack.md優先）
+     ✅ 技術選定（AI/architecture/guides/common/technology_stack.md優先）
      ```
 
 2. **仕様書への追記・修正**
    - 質問回答・合意内容を仕様書に反映
    - スコープ定義/ユースケース/非機能要件の精度を向上
 
-> ⚠️ **重要**: 技術選定は `AI/guides/technology_stack.md` の内容を最優先で反映
+> ⚠️ **重要**: 技術選定は `AI/architecture/guides/common/technology_stack.md` の内容を最優先で反映
 
 ### ステップ4: 仕様書完成とフェーズ完了
 
@@ -82,10 +82,10 @@ description: |
 ## 参照ドキュメント
 
 - 仕様書テンプレート: `AI/specs/application_specification.md`
-- 技術スタック: `AI/guides/technology_stack.md`
+- 技術スタック: `AI/architecture/guides/common/technology_stack.md`
 
 ## 制約事項
 
 - 仕様書への変更は必ず `AI/specs/application_specification.md` に反映
-- 技術選定は `AI/guides/technology_stack.md` を最優先
+- 技術選定は `AI/architecture/guides/common/technology_stack.md` を最優先
 - ステップを飛ばさず順番に進行

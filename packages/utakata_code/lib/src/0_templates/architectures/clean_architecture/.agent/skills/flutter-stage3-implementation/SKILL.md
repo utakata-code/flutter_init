@@ -57,10 +57,10 @@ description: |
 
 #### 3-1: Domain層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/1_domain/1_entities/entity_guide.md` — Freezedエンティティ定義
-- `AI/guides/lib/features/1_domain/2_repositories/repository_guide.md` — リポジトリI/F
-- `AI/guides/lib/features/1_domain/3_usecases/usecase_guide.md` — ユースケース実装
-- `AI/guides/lib/features/1_domain/exceptions/domain_exception_guide.md` — ドメイン例外
+- `AI/architecture/features/1_domain/1_entities/GUIDE.md` — Freezedエンティティ定義
+- `AI/architecture/features/1_domain/2_repositories/GUIDE.md` — リポジトリI/F
+- `AI/architecture/features/1_domain/3_usecases/GUIDE.md` — ユースケース実装
+- `AI/architecture/features/1_domain/exceptions/GUIDE.md` — ドメイン例外
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -71,10 +71,10 @@ description: |
 
 #### 3-2: Infrastructure層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/2_infrastructure/1_models/model_guide.md` — Driftモデル定義
-- `AI/guides/lib/features/2_infrastructure/2_data_sources/1_local/local_data_source_guide.md` — ローカルDS
-- `AI/guides/lib/features/2_infrastructure/2_data_sources/2_remote/remote_data_source_guide.md` — リモートDS
-- `AI/guides/lib/features/2_infrastructure/3_repositories/repository_impl_guide.md` — リポジトリ実装
+- `AI/architecture/features/2_infrastructure/1_models/GUIDE.md` — Driftモデル定義
+- `AI/architecture/features/2_infrastructure/2_data_sources/1_local/GUIDE.md` — ローカルDS
+- `AI/architecture/features/2_infrastructure/2_data_sources/2_remote/GUIDE.md` — リモートDS
+- `AI/architecture/features/2_infrastructure/3_repositories/GUIDE.md` — リポジトリ実装
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -85,9 +85,9 @@ description: |
 
 #### 3-3: Application層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/3_application/1_states/state_guide.md` — 状態クラス定義
-- `AI/guides/lib/features/3_application/2_providers/provider_guide.md` — DI設定
-- `AI/guides/lib/features/3_application/3_notifiers/notifier_guide.md` — 状態管理
+- `AI/architecture/features/3_application/1_states/GUIDE.md` — 状態クラス定義
+- `AI/architecture/features/3_application/2_providers/GUIDE.md` — DI設定
+- `AI/architecture/features/3_application/3_notifiers/GUIDE.md` — 状態管理
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -111,10 +111,10 @@ Provider (2_providers/):
 
 #### 3-4: Presentation層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/4_presentation/2_pages/page_guide.md` — ページ定義
-- `AI/guides/lib/features/4_presentation/1_widgets/1_atoms/atom_guide.md` — 原子コンポーネント
-- `AI/guides/lib/features/4_presentation/1_widgets/2_molecules/molecule_guide.md` — 分子コンポーネント
-- `AI/guides/lib/features/4_presentation/1_widgets/3_organisms/organism_guide.md` — 有機体コンポーネント
+- `AI/architecture/features/4_presentation/2_pages/GUIDE.md` — ページ定義
+- `AI/architecture/features/4_presentation/1_widgets/1_atoms/GUIDE.md` — 原子コンポーネント
+- `AI/architecture/features/4_presentation/1_widgets/2_molecules/GUIDE.md` — 分子コンポーネント
+- `AI/architecture/features/4_presentation/1_widgets/3_organisms/GUIDE.md` — 有機体コンポーネント
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -157,8 +157,8 @@ Provider (2_providers/):
 ```
 ✅ 仕様書の要件
 ✅ 構造計画書の役割
-✅ AI/guides/technology_stack.md のライブラリ
-✅ AI/guides/lib/features/features_architecture.md のアーキテクチャ・命名規則
+✅ AI/architecture/guides/common/technology_stack.md のライブラリ
+✅ AI/architecture/features/ARCHITECTURE.md のアーキテクチャ・命名規則
 ✅ Notifier は @riverpod アノテーションを使用
 ✅ Presentation層は StatelessWidget / HookWidget / HookConsumerWidget / ConsumerWidget を使用（StatefulWidget禁止）
 ```
@@ -167,6 +167,6 @@ Provider (2_providers/):
 
 - 仕様書: `AI/specs/application_specification.md`
 - 構造計画書: `AI/specs/structure_plan.md`
-- 技術スタック: `AI/guides/technology_stack.md`
-- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
-- 命名規則: `AI/guides/directory_structure_and_naming_rules.md`
+- 技術スタック: `AI/architecture/guides/common/technology_stack.md`
+- アーキテクチャ: `AI/architecture/features/ARCHITECTURE.md`
+- 命名規則: `AI/architecture/guides/directory_structure_and_naming_rules.md`

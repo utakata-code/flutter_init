@@ -5,8 +5,8 @@
 ```
 ✅ 仕様書の要件に準拠
 ✅ 構造計画書の役割定義に準拠
-✅ AI/guides/technology_stack.md のライブラリを使用
-✅ AI/guides/lib/features/features_architecture.md のアーキテクチャ・命名規則に準拠
+✅ AI/architecture/guides/common/technology_stack.md のライブラリを使用
+✅ AI/architecture/features/ARCHITECTURE.md のアーキテクチャ・命名規則に準拠
 ✅ Notifier は @riverpod アノテーションを使用
 ✅ Presentation層は HookWidget / HookConsumerWidget を使用
 ❌ StatefulWidget の使用禁止

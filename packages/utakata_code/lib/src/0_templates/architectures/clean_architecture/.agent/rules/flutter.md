@@ -19,7 +19,7 @@ trigger: always_on
 - **対象**: 新規で Flutter アプリを開始するケース
 - **進行**: Stage1（仕様策定）→ Stage2（構造計画）→ Stage3（実装）
 - **スキル参照**: `flutter-development-guide` > `flutter-stage1-specification` > `flutter-stage2-structure` > `flutter-stage3-implementation`
-- **アーキテクチャ**: `AI/guides/architectures/` から選択
+- **アーキテクチャ**: `AI/architecture/guides/` から選択
 
 ### 2. 既存アプリ開発モード（utakata の構造ルール使用中）
 - **対象**: 既に utakata で作成されたプロジェクト
@@ -40,14 +40,14 @@ trigger: always_on
 
 ### アーキテクチャ規約
 - 使用アーキテクチャは `arch_definition.yaml` で定義されている
-- ガイドは `AI/guides/architecture/` を参照
-- 詳細な常時注入ルールは `AI/guides/architecture/arch_summary.md` を確認
+- ガイドは `AI/architecture/guides/` を参照
+- 詳細な常時注入ルールは `AI/architecture/guides/arch_summary.md` を確認
 
 ### 命名規則の確認
 - コード変更後は必ず `utakata validate` を実行してゼロ違反を維持する
 
 ### 協作ルール
-- `AI/guides/common/collaboration.md` を参照すること（複数人/複数AI共同作業）
+- `AI/architecture/guides/common/collaboration.md` を参照すること（複数人/複数AI共同作業）
 
 ---
 

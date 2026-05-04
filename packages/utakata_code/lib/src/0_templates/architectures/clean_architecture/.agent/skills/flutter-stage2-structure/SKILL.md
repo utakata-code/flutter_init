@@ -15,7 +15,7 @@ description: |
 
 ```
 ⚠️ アーキテクチャルール（厳守）:
-✅ AI/guides/lib/features/features_architecture.md のクリーンアーキテクチャ構造を厳格遵守
+✅ AI/architecture/features/ARCHITECTURE.md のクリーンアーキテクチャ構造を厳格遵守
 ❌ 新しいフォルダ（ディレクトリ）の作成禁止
 ✅ 定義済みフォルダ内への必要ファイル配置のみ許可
 ```
@@ -72,7 +72,7 @@ description: |
    ```
 
 2. **修正点の反映**
-   - `AI/guides/lib/features/features_architecture.md` との整合性確認
+   - `AI/architecture/features/ARCHITECTURE.md` との整合性確認
    - 計画の解像度向上
 
 ### ステップ4: 構造計画書完成とフェーズ完了
@@ -135,8 +135,8 @@ lib/
 
 - 構造計画書テンプレート: `AI/specs/structure_plan.md`
 - 仕様書: `AI/specs/application_specification.md`
-- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
-- 命名規則: `AI/guides/directory_structure_and_naming_rules.md`
+- アーキテクチャ: `AI/architecture/features/ARCHITECTURE.md`
+- 命名規則: `AI/architecture/guides/directory_structure_and_naming_rules.md`
 
 ## 制約事項
 

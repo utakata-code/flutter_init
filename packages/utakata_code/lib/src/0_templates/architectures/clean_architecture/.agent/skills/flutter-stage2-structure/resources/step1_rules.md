@@ -4,7 +4,7 @@
 
 ```
 ⚠️ 厳守事項:
-✅ AI/guides/lib/features/features_architecture.md のクリーンアーキテクチャ構造を厳格遵守
+✅ AI/architecture/features/ARCHITECTURE.md のクリーンアーキテクチャ構造を厳格遵守
 ❌ 新しいフォルダ（ディレクトリ）の作成禁止
 ✅ 定義済みフォルダ内への必要ファイル配置のみ許可
 ```

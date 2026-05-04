@@ -25,7 +25,7 @@ lib/core/
 ```
 
 補足:
-- 共通例外の詳細は `AI/guides/lib/core/exceptions/exceptions_guide.md` を参照してください。
+- 共通例外の詳細は `AI/architecture/core/exceptions/exceptions_guide.md` を参照してください。
 - 例外ファイルの生成は `AI/scripts/generate/init_core_exceptions.sh` で自動化できます。
 
 ## 役割と責務（ディレクトリ別）
