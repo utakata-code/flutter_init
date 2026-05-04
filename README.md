@@ -73,7 +73,7 @@ AI/
 
 ---
 
-## 📦 utakata CLI
+## 📦 utakata code CLI
 
 ```bash
 # インストール
