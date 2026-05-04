@@ -1,5 +1,5 @@
 ---
-# AI/guides/README.md
+# utakata/guides/README.md
 # このファイルはAIエージェントと人間の両方が参照する入口ドキュメントです
 ---
 
@@ -14,7 +14,7 @@
 ## ディレクトリ構成
 
 ```
-AI/guides/
+utakata/guides/
 ├── architectures/           # アーキテクチャ別ガイド（公式推奨 + ユーザー追加）
 │   └── clean_architecture/  # 公式推奨: Clean Architecture
 └── common/                  # アーキテクチャ非依存の共通ガイド
@@ -31,7 +31,7 @@ AI/guides/
 
 ```bash
 # 現在のアーキテクチャを確認
-cat AI/specs/feature_request.yaml | grep arch
+cat utakata/specs/feature_request.yaml | grep arch
 ```
 
 ### 公式推奨: Clean Architecture
@@ -61,11 +61,11 @@ cat AI/specs/feature_request.yaml | grep arch
 
 ---
 
-## AI/ディレクトリの役割分担
+## utakata/ディレクトリの役割分担
 
 | ディレクトリ | 性質 | 内容 |
 |---|---|---|
-| `AI/guides/` | **変わりにくい** | アーキテクチャルール・命名規則（合意が必要） |
-| `AI/specs/` | **変わる** | アプリ要件・フィーチャー定義（開発に応じて更新） |
-| `AI/snapshots/` | **自動更新** | 現在の状態（utakata が更新する） |
-| `AI/logs/` | **記録** | 会話ログ・変更履歴 |
+| `utakata/guides/` | **変わりにくい** | アーキテクチャルール・命名規則（合意が必要） |
+| `utakata/specs/` | **変わる** | アプリ要件・フィーチャー定義（開発に応じて更新） |
+| `utakata/snapshots/` | **自動更新** | 現在の状態（utakata が更新する） |
+| `utakata/logs/` | **記録** | 会話ログ・変更履歴 |

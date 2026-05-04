@@ -2,20 +2,20 @@
 name: flutter-stage2-structure
 description: |
   Flutterアプリの構造計画フェーズ（第二段階）。仕様書に基づいてアプリケーション全体の
-  ファイル構成を計画し、構造計画書（AI/specs/structure_plan.md）を作成する。
+  ファイル構成を計画し、構造計画書（utakata/specs/structure_plan.md）を作成する。
   「構造計画を作成して」「ファイル構成を決めて」「Stage2に進む」時に使用。
 ---
 
 # 🏗️ Flutter 構造計画スキル（Stage 2）
 
 > **目的**: アプリケーション全体のファイル構成を計画し、構造計画書を作成する  
-> **成果物**: 構造計画書（`AI/specs/structure_plan.md`）
+> **成果物**: 構造計画書（`utakata/specs/structure_plan.md`）
 
 ## ⚠️ 重要制約
 
 ```
 ⚠️ アーキテクチャルール（厳守）:
-✅ AI/guides/lib/features/features_architecture.md のクリーンアーキテクチャ構造を厳格遵守
+✅ utakata/guides/lib/features/features_architecture.md のクリーンアーキテクチャ構造を厳格遵守
 ❌ 新しいフォルダ（ディレクトリ）の作成禁止
 ✅ 定義済みフォルダ内への必要ファイル配置のみ許可
 ```
@@ -25,9 +25,9 @@ description: |
 ### ステップ1: プロセス開始とルール確認
 
 1. **事前準備**
-   - `AI/specs/structure_plan.md` のテンプレートを確認
+   - `utakata/specs/structure_plan.md` のテンプレートを確認
    - メタ情報を暫定入力
-   - 仕様書 `AI/specs/application_specification.md` を確認
+   - 仕様書 `utakata/specs/application_specification.md` を確認
 
 2. **アーキテクチャルールの説明と合意**
    - クリーンアーキテクチャ構造の説明
@@ -72,7 +72,7 @@ description: |
    ```
 
 2. **修正点の反映**
-   - `AI/guides/lib/features/features_architecture.md` との整合性確認
+   - `utakata/guides/lib/features/features_architecture.md` との整合性確認
    - 計画の解像度向上
 
 ### ステップ4: 構造計画書完成とフェーズ完了
@@ -133,10 +133,10 @@ lib/
 
 ## 参照ドキュメント
 
-- 構造計画書テンプレート: `AI/specs/structure_plan.md`
-- 仕様書: `AI/specs/application_specification.md`
-- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
-- 命名規則: `AI/guides/directory_structure_and_naming_rules.md`
+- 構造計画書テンプレート: `utakata/specs/structure_plan.md`
+- 仕様書: `utakata/specs/application_specification.md`
+- アーキテクチャ: `utakata/guides/lib/features/features_architecture.md`
+- 命名規則: `utakata/guides/directory_structure_and_naming_rules.md`
 
 ## 制約事項
 

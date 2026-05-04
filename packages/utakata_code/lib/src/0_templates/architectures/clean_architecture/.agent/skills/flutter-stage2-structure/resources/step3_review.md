@@ -43,6 +43,6 @@
 
 ## 修正反映のポイント
 
-- 修正は必ず `AI/specs/structure_plan.md` に反映
+- 修正は必ず `utakata/specs/structure_plan.md` に反映
 - 更新履歴セクションに記録
 - 最終更新日を更新

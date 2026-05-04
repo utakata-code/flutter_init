@@ -5,7 +5,7 @@
 #
 # ワークフロー:
 #   1. このファイルを編集（パッケージの追加・削除・バージョン変更）
-#   2. AI/scripts/setup/add_dependencies.sh を実行
+#   2. utakata/scripts/setup/add_dependencies.sh を実行
 #   3. pubspec.yaml に依存関係が追加されます
 #
 # 書式:

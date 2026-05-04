@@ -3,14 +3,14 @@
 ## 草案作成の手順
 
 ### 1. 仕様書の分析
-- `AI/specs/application_specification.md` を確認
+- `utakata/specs/application_specification.md` を確認
 - 機能要件から必要なファイルを洗い出し
 - データ要件からエンティティを特定
 
 ### 2. ファイル定義表の作成
 
 #### 記入対象ファイル
-`AI/specs/structure_plan.md`
+`utakata/specs/structure_plan.md`
 
 #### ファイル定義項目
 | 項目 | 説明 |
@@ -52,7 +52,7 @@ lib/features/user/<feature_name>/
 
 ```bash
 # フィーチャー構造の自動生成
-./AI/scripts/generate/generate_feature.sh -n FeatureName -p user -y
+./utakata/scripts/generate/generate_feature.sh -n FeatureName -p user -y
 ```
 
 ## 草案提示テンプレート

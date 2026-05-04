@@ -18,7 +18,7 @@
 - [ ] 依存方向が正しい
 
 ### ドキュメント更新
-- [ ] `AI/specs/structure_plan.md` を最終版に更新
+- [ ] `utakata/specs/structure_plan.md` を最終版に更新
 - [ ] バージョン番号を更新（例: v1.0）
 - [ ] 最終更新日を更新
 - [ ] 更新履歴セクションに記録
@@ -29,7 +29,7 @@
 ## 🎉 第二段階（構造計画）完了
 
 以下の構造計画書が完成しました：
-- ファイル: `AI/specs/structure_plan.md`
+- ファイル: `utakata/specs/structure_plan.md`
 - バージョン: v1.0
 - 最終更新: [日付]
 
@@ -45,15 +45,15 @@
 ## 次のフェーズへの引き継ぎ
 
 第三段階（実装）では以下を参照：
-- 仕様書: `AI/specs/application_specification.md`
-- 構造計画書: `AI/specs/structure_plan.md`
-- 技術スタック: `AI/guides/technology_stack.md`
+- 仕様書: `utakata/specs/application_specification.md`
+- 構造計画書: `utakata/specs/structure_plan.md`
+- 技術スタック: `utakata/guides/technology_stack.md`
 
 ### 実装前の準備コマンド
 ```bash
-./AI/scripts/setup/init_project.sh --yes
-./AI/scripts/setup/add_dependencies.sh --yes
-./AI/scripts/generate/generate_core.sh --yes
-./AI/scripts/generate/init_core_exceptions.sh --yes
-./AI/scripts/generate/generate_feature.sh -n FeatureName -p user -y
+./utakata/scripts/setup/init_project.sh --yes
+./utakata/scripts/setup/add_dependencies.sh --yes
+./utakata/scripts/generate/generate_core.sh --yes
+./utakata/scripts/generate/init_core_exceptions.sh --yes
+./utakata/scripts/generate/generate_feature.sh -n FeatureName -p user -y
 ```

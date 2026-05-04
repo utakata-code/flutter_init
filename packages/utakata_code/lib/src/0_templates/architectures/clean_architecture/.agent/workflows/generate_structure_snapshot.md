@@ -4,7 +4,7 @@ description: 現在のプロジェクト構造のスナップショットを生�
 
 # プロジェクト構造スナップショットの生成
 
-このワークフローは、現在の`lib/`構造をスナップショットとして `AI/specs/current_structure.md` に出力します。
+このワークフローは、現在の`lib/`構造をスナップショットとして `utakata/specs/current_structure.md` に出力します。
 AIエージェントが現在の実際の構造を把握するのに役立ちます。
 
 ## 手順
@@ -31,7 +31,7 @@ utakata scan
 
 ## 出力先
 
-`AI/snapshots/current_structure.yaml` (utakata が自動生成)
+`utakata/snapshots/current_structure.yaml` (utakata が自動生成)
 
 ## 関連コマンド
 

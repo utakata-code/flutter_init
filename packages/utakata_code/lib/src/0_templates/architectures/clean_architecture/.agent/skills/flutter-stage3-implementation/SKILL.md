@@ -24,19 +24,19 @@ description: |
 ### プロジェクト初期化コマンド
 ```bash
 # プロジェクト初期化
-./AI/scripts/setup/init_project.sh --yes
+./utakata/scripts/setup/init_project.sh --yes
 
 # 依存パッケージ追加
-./AI/scripts/setup/add_dependencies.sh --yes
+./utakata/scripts/setup/add_dependencies.sh --yes
 
 # Core構造生成
-./AI/scripts/generate/generate_core.sh --yes
+./utakata/scripts/generate/generate_core.sh --yes
 
 # 共通例外クラス生成
-./AI/scripts/generate/init_core_exceptions.sh --yes
+./utakata/scripts/generate/init_core_exceptions.sh --yes
 
 # フィーチャー構造生成
-./AI/scripts/generate/generate_feature.sh -n FeatureName -p user -y
+./utakata/scripts/generate/generate_feature.sh -n FeatureName -p user -y
 ```
 
 ## 実装順序
@@ -57,10 +57,10 @@ description: |
 
 #### 3-1: Domain層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/1_domain/1_entities/entity_guide.md` — Freezedエンティティ定義
-- `AI/guides/lib/features/1_domain/2_repositories/repository_guide.md` — リポジトリI/F
-- `AI/guides/lib/features/1_domain/3_usecases/usecase_guide.md` — ユースケース実装
-- `AI/guides/lib/features/1_domain/exceptions/domain_exception_guide.md` — ドメイン例外
+- `utakata/guides/lib/features/1_domain/1_entities/entity_guide.md` — Freezedエンティティ定義
+- `utakata/guides/lib/features/1_domain/2_repositories/repository_guide.md` — リポジトリI/F
+- `utakata/guides/lib/features/1_domain/3_usecases/usecase_guide.md` — ユースケース実装
+- `utakata/guides/lib/features/1_domain/exceptions/domain_exception_guide.md` — ドメイン例外
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -71,10 +71,10 @@ description: |
 
 #### 3-2: Infrastructure層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/2_infrastructure/1_models/model_guide.md` — Driftモデル定義
-- `AI/guides/lib/features/2_infrastructure/2_data_sources/1_local/local_data_source_guide.md` — ローカルDS
-- `AI/guides/lib/features/2_infrastructure/2_data_sources/2_remote/remote_data_source_guide.md` — リモートDS
-- `AI/guides/lib/features/2_infrastructure/3_repositories/repository_impl_guide.md` — リポジトリ実装
+- `utakata/guides/lib/features/2_infrastructure/1_models/model_guide.md` — Driftモデル定義
+- `utakata/guides/lib/features/2_infrastructure/2_data_sources/1_local/local_data_source_guide.md` — ローカルDS
+- `utakata/guides/lib/features/2_infrastructure/2_data_sources/2_remote/remote_data_source_guide.md` — リモートDS
+- `utakata/guides/lib/features/2_infrastructure/3_repositories/repository_impl_guide.md` — リポジトリ実装
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -85,9 +85,9 @@ description: |
 
 #### 3-3: Application層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/3_application/1_states/state_guide.md` — 状態クラス定義
-- `AI/guides/lib/features/3_application/2_providers/provider_guide.md` — DI設定
-- `AI/guides/lib/features/3_application/3_notifiers/notifier_guide.md` — 状態管理
+- `utakata/guides/lib/features/3_application/1_states/state_guide.md` — 状態クラス定義
+- `utakata/guides/lib/features/3_application/2_providers/provider_guide.md` — DI設定
+- `utakata/guides/lib/features/3_application/3_notifiers/notifier_guide.md` — 状態管理
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -111,10 +111,10 @@ Provider (2_providers/):
 
 #### 3-4: Presentation層
 **実装前に以下のガイドを必ず読むこと:**
-- `AI/guides/lib/features/4_presentation/2_pages/page_guide.md` — ページ定義
-- `AI/guides/lib/features/4_presentation/1_widgets/1_atoms/atom_guide.md` — 原子コンポーネント
-- `AI/guides/lib/features/4_presentation/1_widgets/2_molecules/molecule_guide.md` — 分子コンポーネント
-- `AI/guides/lib/features/4_presentation/1_widgets/3_organisms/organism_guide.md` — 有機体コンポーネント
+- `utakata/guides/lib/features/4_presentation/2_pages/page_guide.md` — ページ定義
+- `utakata/guides/lib/features/4_presentation/1_widgets/1_atoms/atom_guide.md` — 原子コンポーネント
+- `utakata/guides/lib/features/4_presentation/1_widgets/2_molecules/molecule_guide.md` — 分子コンポーネント
+- `utakata/guides/lib/features/4_presentation/1_widgets/3_organisms/organism_guide.md` — 有機体コンポーネント
 
 | ディレクトリ | 責務 | 使用技術 |
 |------------|------|---------|
@@ -157,16 +157,16 @@ Provider (2_providers/):
 ```
 ✅ 仕様書の要件
 ✅ 構造計画書の役割
-✅ AI/guides/technology_stack.md のライブラリ
-✅ AI/guides/lib/features/features_architecture.md のアーキテクチャ・命名規則
+✅ utakata/guides/technology_stack.md のライブラリ
+✅ utakata/guides/lib/features/features_architecture.md のアーキテクチャ・命名規則
 ✅ Notifier は @riverpod アノテーションを使用
 ✅ Presentation層は StatelessWidget / HookWidget / HookConsumerWidget / ConsumerWidget を使用（StatefulWidget禁止）
 ```
 
 ## 参照ドキュメント
 
-- 仕様書: `AI/specs/application_specification.md`
-- 構造計画書: `AI/specs/structure_plan.md`
-- 技術スタック: `AI/guides/technology_stack.md`
-- アーキテクチャ: `AI/guides/lib/features/features_architecture.md`
-- 命名規則: `AI/guides/directory_structure_and_naming_rules.md`
+- 仕様書: `utakata/specs/application_specification.md`
+- 構造計画書: `utakata/specs/structure_plan.md`
+- 技術スタック: `utakata/guides/technology_stack.md`
+- アーキテクチャ: `utakata/guides/lib/features/features_architecture.md`
+- 命名規則: `utakata/guides/directory_structure_and_naming_rules.md`

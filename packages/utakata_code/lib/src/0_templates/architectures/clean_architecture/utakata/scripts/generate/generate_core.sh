@@ -16,7 +16,7 @@ usage() {
   echo "  -y, --yes     Skip confirmation prompt (non-interactive)."
   echo "  -h, --help    Show this help."
   echo ""
-  echo "Note: 共通例外ファイルの生成は AI/scripts/generate/init_core_exceptions.sh を使用してください。"
+  echo "Note: 共通例外ファイルの生成は utakata/scripts/generate/init_core_exceptions.sh を使用してください。"
   exit 0
 }
 

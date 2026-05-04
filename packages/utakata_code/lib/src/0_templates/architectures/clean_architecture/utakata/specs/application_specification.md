@@ -50,7 +50,7 @@
 - アクセシビリティ: 
 
 ## 技術選定（参照）
-- 参照ドキュメント: `AI/guides/technology_stack.md`
+- 参照ドキュメント: `utakata/guides/technology_stack.md`
 - 採用技術（言語／フレームワーク／主要ライブラリ）: 
 
 ## リスク・前提・制約
@@ -78,4 +78,4 @@
 
 ## 参考・関連
 - プロセス詳細（第一段階）: `flutter-stage1-specification` スキル
-- アーキテクチャ規約: `AI/guides/lib/features/features_architecture.md`
+- アーキテクチャ規約: `utakata/guides/lib/features/features_architecture.md`

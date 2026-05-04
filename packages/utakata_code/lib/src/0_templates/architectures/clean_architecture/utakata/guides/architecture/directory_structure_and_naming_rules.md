@@ -289,10 +289,10 @@ lib/features/{permission_level}/{feature_name}/
 
 ```bash
 # ディレクトリ構造とファイル命名規則を検証
-./AI/scripts/validate/validate_structure.sh
+./utakata/scripts/validate/validate_structure.sh
 ```
 
-違反が見つかった場合は、`AI/snapshots/structure_violations.yaml` に記録されます。
+違反が見つかった場合は、`utakata/snapshots/structure_violations.yaml` に記録されます。
 
 ### ワークフローから実行
 
