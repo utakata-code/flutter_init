@@ -71,6 +71,7 @@ class ProcessDataSource {
       _flutterExe,
       [
         'create',
+        '--empty',
         '--project-name=$projectName',
         '--org=$org',
         '--description=$description',
