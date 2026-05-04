@@ -1,6 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+* **feat(ux)**: Display `utakata code` brand header (ASCII art, bright cyan) on startup when no command is specified
+
 ## 0.3.0
+
 
 * **breaking**: Rebranded from `utakata` (v0.2.0) to the `utakata` package under the **utakata code** brand
 * **feat**: Architecture-agnostic design — no longer hardcoded to Clean Architecture; architecture is defined by `arch_definition.yaml`

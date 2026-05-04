@@ -10,7 +10,21 @@ import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/validate_command.dart';
 
-const _version = '0.3.0';
+const _version = '0.3.1';
+
+// ANSIカラーコード
+const _reset = '\x1B[0m';
+const _bold = '\x1B[1m';
+const _cyan = '\x1B[96m'; // bright cyan（明るい水色）
+const _dim = '\x1B[2m';
+
+/// 起動時のブランドヘッダー（引数なしのとき表示）
+String _brandHeader() => '''
+$_bold$_cyan
+  █  █ ▀█▀ ▄▀█ █▄▀ ▄▀█ ▀█▀ ▄▀█   █▀▀ █▀█ █▀▄ █▀▀
+  █▄▄  █  █▀█ █ █ █▀█  █  █▀█   █▄▄ █▄█ █▄▀ ██▄
+$_reset$_dim  spec-driven Flutter development — v$_version$_reset
+''';
 
 /// utakata コマンドランナー
 ///
@@ -57,6 +71,10 @@ class UtakataCommandRunner extends CommandRunner<int> {
       if (results['version'] == true) {
         print('utakata version $_version');
         return 0;
+      }
+      // 引数なしのとき: ブランドヘッダー + ヘルプを表示
+      if (results.command == null) {
+        print(_brandHeader());
       }
       return await runCommand(results) ?? 0;
     } on UsageException catch (e) {
