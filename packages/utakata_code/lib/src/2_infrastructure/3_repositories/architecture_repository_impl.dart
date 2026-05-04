@@ -19,7 +19,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
 
   @override
   Future<ArchitectureDefinitionEntity> getById(String architectureId) async {
-    final templateBase = _fs.resolvePackageTemplatePath(
+    final templateBase = await _fs.resolvePackageTemplatePath(
       p.join('architectures', architectureId, 'arch_definition.yaml'),
     );
 
@@ -38,7 +38,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
 
   @override
   Future<List<ArchitectureDefinitionEntity>> getAll() async {
-    final archsDir = _fs.resolvePackageTemplatePath('architectures');
+    final archsDir = await _fs.resolvePackageTemplatePath('architectures');
     final dir = Directory(archsDir);
     if (!dir.existsSync()) return [];
 

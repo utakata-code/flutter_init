@@ -16,7 +16,7 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
   @override
   Future<List<TemplateFileEntity>> getFeatureTemplates(String architectureId) async {
-    final basePath = _fs.resolvePackageTemplatePath(
+    final basePath = await _fs.resolvePackageTemplatePath(
       p.join('features', architectureId),
     );
     return _loadTemplates(basePath);
@@ -24,7 +24,7 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
   @override
   Future<List<TemplateFileEntity>> getProjectTemplates(String architectureId) async {
-    final basePath = _fs.resolvePackageTemplatePath(
+    final basePath = await _fs.resolvePackageTemplatePath(
       p.join('architectures', architectureId),
     );
     // arch_definition.yaml を除くすべてのファイルをテンプレートとして扱う

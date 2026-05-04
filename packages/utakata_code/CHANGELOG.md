@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.4
+
+* **fix**: Fixed `ArchitectureNotFoundException` when running from a global pub activation. Switched to `Isolate.resolvePackageUri` for robust template path resolution instead of relying on `Platform.script` which varies between Dart versions.
+
 ## 0.3.3
 
 * **feat(ux)**: Replaced the CLI brand header with a high-quality 3D ASCII art logo (ANSI Shadow font) for better cross-terminal rendering without distortions.

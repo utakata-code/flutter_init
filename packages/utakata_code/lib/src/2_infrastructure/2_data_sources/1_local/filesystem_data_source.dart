@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
@@ -68,17 +69,14 @@ class FilesystemDataSource {
 
   /// パッケージに同梱されたテンプレートディレクトリのパスを返す
   ///
-  /// Dart 実行ファイル基準でパスを解決する。
-  /// - `dart run`: Platform.script = bin/utakata.dart → 1段上がり package root
-  /// - `dart pub global activate`: Platform.script = bin/snapshots/*.snapshot → 2段上がり package root
-  String resolvePackageTemplatePath(String relativePath) {
-    final scriptDir = p.dirname(Platform.script.toFilePath());
-
-    // snapshots/ 配下の場合は 2段、bin/ の場合は 1段上がる
-    final packageRoot = p.basename(scriptDir) == 'snapshots'
-        ? p.normalize(p.join(scriptDir, '..', '..'))
-        : p.normalize(p.join(scriptDir, '..'));
-
-    return p.join(packageRoot, 'lib', 'src', 'templates', relativePath);
+  /// `dart:isolate` の `Isolate.resolvePackageUri` を使用して、
+  /// グローバルインストール時やローカル実行時に関わらず確実にパスを解決する。
+  Future<String> resolvePackageTemplatePath(String relativePath) async {
+    final uri = await Isolate.resolvePackageUri(
+        Uri.parse('package:utakata/src/templates/$relativePath'));
+    if (uri != null) {
+      return uri.toFilePath();
+    }
+    throw Exception('Failed to resolve package template path: $relativePath');
   }
 }
