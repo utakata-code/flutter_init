@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+* **feat(ux)**: Replaced the CLI brand header with a high-quality 3D ASCII art logo (ANSI Shadow font) for better cross-terminal rendering without distortions.
+
 ## 0.3.2
 
 * **fix**: Resolve correct package template path when installed via `dart pub global activate` (was failing with `ArchitectureNotFoundException` due to `snapshots/` directory in `Platform.script`)
