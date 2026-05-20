@@ -105,6 +105,49 @@ class ProcessDataSource {
     return true;
   }
 
+  /// build_runner を実行する
+  ///
+  /// 成功時は true を返す
+  Future<bool> flutterPubRunBuildRunner({
+    required String appName,
+    String? workingDir,
+  }) async {
+    final targetDir = workingDir ?? p.join(Directory.current.path, appName);
+
+    // 依存関係を解決するために flutter pub get を実行
+    final getResult = await Process.run(
+      _flutterExe,
+      ['pub', 'get'],
+      workingDirectory: targetDir,
+      runInShell: Platform.isWindows,
+    );
+    stdout.write(getResult.stdout);
+    if (getResult.exitCode != 0) {
+      stderr.write(getResult.stderr);
+      return false;
+    }
+
+    final result = await Process.run(
+      _flutterExe,
+      [
+        'pub',
+        'run',
+        'build_runner',
+        'build',
+        '--delete-conflicting-outputs',
+      ],
+      workingDirectory: targetDir,
+      runInShell: Platform.isWindows,
+    );
+
+    stdout.write(result.stdout);
+    if (result.exitCode != 0) {
+      stderr.write(result.stderr);
+      return false;
+    }
+    return true;
+  }
+
   /// flutter analyze を実行してその出力を返す
   Future<String> flutterAnalyze(String projectDir) async {
     final result = await Process.run(

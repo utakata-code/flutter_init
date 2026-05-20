@@ -29,6 +29,7 @@
 | arch_definition.yaml の配置が不適切 | `AI/architecture/arch_definition.yaml` に移動 |
 | ガイドのネストが深すぎた | `guides/architectures/clean_architecture/` → `architecture/guides/` にフラット化 |
 | flutter create のボイラープレート | `--empty` フラグ追加 |
+| テンプレート・定義のカスタマイズ手段がない | プロジェクトローカル (`AI/architecture/`) の定義やテンプレートの優先読み込みを先行実装 (v0.4.1) |
 
 ### 🔲 残課題（utakata_studio で解決）
 
@@ -37,7 +38,7 @@
 | `project_status.yaml` の `core:` セクションがアーキテクチャ依存 | arch_definition.yaml からステータス項目を動的生成 |
 | GUIDE.md が268行の静的ファイル | Dart コード駆動でガイドをレンダリング |
 | アーキテクチャの追加が手動コピー＆編集のみ | `utakata arch create` コマンドで対話的に生成 |
-| テンプレートのカスタマイズ手段がない | ローカル優先読み込み + studio での編集 UI |
+| テンプレートのUIでの編集手段がない | studio でのビジュアル編集 UI の提供 |
 
 ---
 
@@ -54,9 +55,9 @@ utakata arch export <id> <path>      # アーキテクチャ定義をエクス�
 
 ### やること
 
-- [ ] `ArchCommand` の実装（list / show）
-- [ ] arch_definition.yaml からの層構造・命名規則の可視化
-- [ ] 既存テンプレートの一覧表示
+- [x] `ArchCommand` の実装（list / show / export / create）
+- [x] arch_definition.yaml からの層構造・命名規則の可視化
+- [x] 既存テンプレート・定義の管理機能（エクスポート、ボイラープレート作成）
 
 ---
 
@@ -108,11 +109,10 @@ class CleanArchitectureGuideSet implements ArchitectureGuideSet {
 
 ### やること
 
-- [ ] `GuideEntity` の設計
-- [ ] `ArchitectureGuideSet` インターフェース
-- [ ] `CleanArchitectureGuideSet` の実装
-- [ ] `GUIDE.md` レンダラー
-- [ ] `arch_definition.yaml` との統合
+- [x] `GuideEntity` の設計 (`guide_entity.dart` にて実装)
+- [x] `GUIDE.md` 動的レンダラーの実装 (`GuideEntity.render`)
+- [x] `arch_definition.yaml` との統合（YAML駆動の動的ガイド生成システムの完成）
+- [x] 静的な GuideSet クラス群を廃止し、柔軟で汎用的な YAML 駆動設計へ昇華・全面移行
 
 ---
 
@@ -146,13 +146,15 @@ core_modules:
 
 ### やること
 
-- [ ] `arch_definition.yaml` に `core_modules:` セクション追加
-- [ ] `update_status.sh` をモジュールリストから動的生成に変更
-- [ ] `project_status.yaml` テンプレートの汎用化
+- [x] `arch_definition.yaml` に `core_modules:` セクション追加
+- [x] `update_status.sh` をモジュールリストから動的生成に変更
+- [x] `project_status.yaml` テンプレートの汎用化
+- [x] `utakata create` 時にアーキテクチャ定義の依存関係 (`dependencies`/`dev_dependencies`) を `pubspec.yaml` に自動マージするロジックの実装
+- [x] テンプレート・プロジェクト生成完了後に `build_runner` を自動実行する仕組みの統合
 
 ---
 
-## Phase 4: ローカル優先読み込み
+## Phase 4: ローカル優先読み込み (✅ v0.4.1 で完了)
 
 ### 概要
 
@@ -166,10 +168,10 @@ core_modules:
 
 ### やること
 
-- [ ] `TemplateRepository` にローカル優先ロジック追加
-- [ ] `ArchitectureRepository` にローカル優先ロジック追加
-- [ ] `utakata feature add` 時のテンプレート解決
-- [ ] `utakata validate` 時のルール解決
+- [x] `TemplateRepository` にローカル優先ロジック追加
+- [x] `ArchitectureRepository` にローカル優先ロジック追加
+- [x] `utakata feature add` 時のテンプレート解決
+- [x] `utakata validate` 時のルール解決
 
 ---
 
@@ -189,14 +191,22 @@ core_modules:
 - テンプレートのライブプレビュー
 - pub.dev へのアーキテクチャパッケージ公開
 
+### やること (立ち上げ期)
+
+- [ ] GUIのプラットフォーム形態 (Flutter Web / Flutter Desktop / TUI) の最終決定
+- [ ] プロジェクトの初期化 (`packages/utakata_studio` 内でのプロジェクト立ち上げ)
+- [ ] `utakata_code` (またはコアロジック) のAPI/パッケージ依存整理
+- [ ] アーキテクチャ定義 (YAML) をビジュアル編集するための状態管理およびデータフロー設計
+- [ ] UIプロトタイプ/モックアップの作成 (画面設計)
+
 ---
 
 ## 優先順位
 
 | 優先度 | Phase | 見積もり |
 |---|---|---|
-| 🔴 高 | Phase 1: `utakata arch` コマンド | v0.5.0 |
-| 🟡 中 | Phase 2: コード駆動ガイド生成 | v0.6.0 |
-| 🟡 中 | Phase 3: project_status 汎用化 | v0.6.0 |
-| 🟢 低 | Phase 4: ローカル優先読み込み | v0.7.0 |
+| ✅ 完了 | Phase 1: `utakata arch` コマンド | v0.5.0 |
+| ✅ 完了 | Phase 2: YAML/コード駆動ガイド動的生成 | v0.6.0 |
+| ✅ 完了 | Phase 3: project_status 汎用化 ＆ 依存関係自動マージ・自動ビルド実行 | v0.6.0 |
+| ✅ 完了 | Phase 4: ローカル優先読み込み | v0.4.1 (先行実装) |
 | 🔵 将来 | Phase 5: GUI (utakata_studio) | v1.0.0 |

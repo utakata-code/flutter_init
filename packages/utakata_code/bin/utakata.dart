@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:utakata/src/1_domain/messages/messages_resolver.dart';
 import 'package:utakata/src/1_domain/3_usecases/add_feature_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_structure_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/diff_architecture_usecase.dart';
@@ -24,6 +25,11 @@ import 'package:utakata/src/3_application/1_commands/scan_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
 import 'package:utakata/src/3_application/1_commands/validate_command.dart';
 import 'package:utakata/src/1_domain/3_usecases/validate_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/list_architectures_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/show_architecture_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/export_architecture_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/create_architecture_usecase.dart';
+import 'package:utakata/src/3_application/1_commands/arch_command.dart';
 import 'package:utakata/src/3_application/2_runner/command_runner.dart';
 
 /// utakata CLI エントリポイント
@@ -38,7 +44,7 @@ Future<void> main(List<String> arguments) async {
   const fs = FilesystemDataSource();
   const yaml = YamlDataSource();
 
-  // flutter 実行ファイルのパスを環境変数 / PATH から自動解決
+  // flutter 実行ファイルのパスを環境変数 / PATH から自动解決
   final ProcessDataSource process;
   try {
     process = await ProcessDataSource.create();
@@ -53,12 +59,20 @@ Future<void> main(List<String> arguments) async {
   final projectRepo = ProjectRepositoryImpl(fs, yaml);
 
   // ─── Domain UseCase の組み立て ───
+  final generateGuidesUsecase = GenerateGuidesUsecase(
+    readFile: fs.readFile,
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+    resolvePackageTemplatePath: fs.resolvePackageTemplatePath,
+  );
+
   final addFeatureUsecase = AddFeatureUsecase(
     archRepo: archRepo,
     templateRepo: templateRepo,
     msg: msg,
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
+    generateGuidesUsecase: generateGuidesUsecase,
   );
 
   final createProjectUsecase = CreateProjectUsecase(
@@ -79,6 +93,8 @@ Future<void> main(List<String> arguments) async {
       platforms: platforms,
       description: description,
     ),
+    runBuildRunner: ({required appName}) => process.flutterPubRunBuildRunner(appName: appName),
+    readFile: fs.readFile,
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
   );
@@ -123,6 +139,27 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final listArchitecturesUsecase = ListArchitecturesUsecase(
+    archRepo: archRepo,
+  );
+
+  final showArchitectureUsecase = ShowArchitectureUsecase(
+    archRepo: archRepo,
+  );
+
+  final exportArchitectureUsecase = ExportArchitectureUsecase(
+    archRepo: archRepo,
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+  );
+
+  final createArchitectureUsecase = CreateArchitectureUsecase(
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+    fileExists: fs.fileExists,
+    msg: msg,
+  );
+
   // ─── Application 層の組み立て ───
   final runner = UtakataCommandRunner(
     msg: msg,
@@ -134,6 +171,13 @@ Future<void> main(List<String> arguments) async {
     checkCommand: CheckCommand(checkUsecase, msg),
     statusCommand: StatusCommand(statusUsecase, msg),
     validateCommand: ValidateCommand(validateUsecase, msg),
+    archCommand: ArchCommand(
+      listArchitecturesUsecase,
+      showArchitectureUsecase,
+      exportArchitectureUsecase,
+      createArchitectureUsecase,
+      msg,
+    ),
   );
 
   // ─── 実行 ───

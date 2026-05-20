@@ -104,14 +104,7 @@ if [ -f "$PROJECT_ROOT/pubspec.yaml" ]; then
 fi
 
 # Core 基盤
-ROUTING=$(check_bool "$PROJECT_ROOT/lib/core/routing")
-ROUTING_PATH=$(check_bool "$PROJECT_ROOT/lib/core/routing/path")
-THEME=$(check_bool "$PROJECT_ROOT/lib/core/theme")
-API=$(check_bool "$PROJECT_ROOT/lib/core/api")
-ENV=$(check_bool "$PROJECT_ROOT/lib/core/env")
-DATABASE=$(check_bool "$PROJECT_ROOT/lib/core/database")
-DATABASE_TABLE=$(check_bool "$PROJECT_ROOT/lib/core/database/table")
-EXCEPTIONS=$(check_bool "$PROJECT_ROOT/lib/core/exceptions")
+{{core_modules_detection}}
 
 # エントリポイント
 MAIN_DART=$(check_bool "$PROJECT_ROOT/lib/main.dart")
@@ -158,14 +151,7 @@ fi
   echo "  initialized: $FLUTTER_INIT"
   echo ""
   echo "core:"
-  echo "  routing: $ROUTING"
-  echo "  routing_path: $ROUTING_PATH"
-  echo "  theme: $THEME"
-  echo "  api: $API"
-  echo "  env: $ENV"
-  echo "  database: $DATABASE"
-  echo "  database_table: $DATABASE_TABLE"
-  echo "  exceptions: $EXCEPTIONS"
+{{core_modules_yaml_output}}
   echo ""
   echo "entry_points:"
   echo "  main_dart: $MAIN_DART"
@@ -227,14 +213,7 @@ doc_to_label() {
   echo ""
   echo "| コンポーネント | 状態 |"
   echo "|-------------|------|"
-  echo "| routing/ | $(bool_to_icon $ROUTING) |"
-  echo "| routing/path/ | $(bool_to_icon $ROUTING_PATH) |"
-  echo "| theme/ | $(bool_to_icon $THEME) |"
-  echo "| api/ | $(bool_to_icon $API) |"
-  echo "| env/ | $(bool_to_icon $ENV) |"
-  echo "| database/ | $(bool_to_icon $DATABASE) |"
-  echo "| database/table/ | $(bool_to_icon $DATABASE_TABLE) |"
-  echo "| exceptions/ | $(bool_to_icon $EXCEPTIONS) |"
+{{core_modules_md_output}}
   echo ""
   echo "## ドキュメント"
   echo ""

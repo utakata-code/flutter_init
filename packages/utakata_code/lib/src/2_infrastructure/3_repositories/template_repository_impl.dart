@@ -27,10 +27,19 @@ class TemplateRepositoryImpl implements TemplateRepository {
 
   const TemplateRepositoryImpl(this._fs);
 
-  // TODO: ローカル優先読み込み — プロジェクトの AI/architecture/features/ が存在すれば
-  //       パッケージのテンプレートより優先して使用する機能を実装する
   @override
   Future<List<TemplateFileEntity>> getFeatureTemplates(String architectureId) async {
+    final localPath = p.join(
+      Directory.current.path,
+      'AI',
+      'architecture',
+      'features',
+    );
+
+    if (_fs.dirExists(localPath)) {
+      return _loadTemplates(localPath, tmplOnly: true);
+    }
+
     final basePath = await _fs.resolvePackageTemplatePath(
       p.join('architectures', architectureId, 'AI', 'architecture', 'features'),
     );

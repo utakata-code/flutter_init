@@ -4,6 +4,7 @@ import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/2_repositories/architecture_repository.dart';
 import '../../1_domain/2_repositories/template_repository.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import 'generate_guides_usecase.dart';
 
 /// フィーチャーを追加するユースケース
 class AddFeatureUsecase {
@@ -14,17 +15,21 @@ class AddFeatureUsecase {
   final Future<void> Function(String path, String content) _writeFile;
   final Future<void> Function(String path) _ensureDir;
 
+  final GenerateGuidesUsecase _generateGuidesUsecase;
+
   const AddFeatureUsecase({
     required ArchitectureRepository archRepo,
     required TemplateRepository templateRepo,
     required CliMessages msg,
     required Future<void> Function(String path, String content) writeFile,
     required Future<void> Function(String path) ensureDir,
+    required GenerateGuidesUsecase generateGuidesUsecase,
   })  : _archRepo = archRepo,
         _templateRepo = templateRepo,
         _msg = msg,
         _writeFile = writeFile,
-        _ensureDir = ensureDir;
+        _ensureDir = ensureDir,
+        _generateGuidesUsecase = generateGuidesUsecase;
 
   /// フィーチャーを生成する
   Future<void> execute(String projectDir, FeatureSpecEntity spec) async {
@@ -49,11 +54,29 @@ class AddFeatureUsecase {
 
     for (final template in templates) {
       final resolvedPath = template.resolvedPath(variables);
+      // 動的生成対象の GUIDE.md であれば、静的なコピー処理をスキップする
+      if (p.basename(resolvedPath) == 'GUIDE.md') {
+        continue;
+      }
+
       final targetPath = p.join(basePath, resolvedPath);
       try {
         await _writeFile(targetPath, template.resolvedContent(variables));
       } catch (e) {
         throw Exception(_msg.templateExpandFailed(targetPath));
+      }
+    }
+
+    // 動的ガイドの生成 (YAML に guides 定義があれば実行する)
+    if (arch.guides.isNotEmpty) {
+      try {
+        await _generateGuidesUsecase.execute(
+          projectDir: projectDir,
+          featureRelativePath: spec.relativePath,
+          archDefinition: arch,
+        );
+      } catch (e) {
+        throw Exception('ガイド生成に失敗しました: $e');
       }
     }
   }
@@ -79,3 +102,5 @@ class AddFeatureUsecase {
     return '${pascal[0].toLowerCase()}${pascal.substring(1)}';
   }
 }
+
+

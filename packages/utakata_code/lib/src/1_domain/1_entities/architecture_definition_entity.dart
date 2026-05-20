@@ -1,3 +1,6 @@
+import 'core_module_entity.dart';
+import 'guide_entity.dart';
+
 /// アーキテクチャ定義エンティティ
 ///
 /// arch_definition.yaml から読み込まれるアーキテクチャ構造の定義。
@@ -15,17 +18,35 @@ class ArchitectureDefinitionEntity {
   /// 命名規則リスト（arch_definition.yaml の naming_rules セクション）
   final List<NamingRuleEntity> namingRules;
 
+  /// ガイド定義リスト
+  final List<GuideEntity> guides;
+
+  /// 推奨される依存関係のマップ (パッケージ名 -> バージョン指定またはMap)
+  final Map<String, dynamic> dependencies;
+
+  /// 推奨される開発時依存関係のマップ (パッケージ名 -> バージョン指定またはMap)
+  final Map<String, dynamic> devDependencies;
+
+  /// コアモジュールの追跡定義リスト
+  final List<CoreModuleEntity> coreModules;
+
   const ArchitectureDefinitionEntity({
     required this.id,
     required this.displayName,
     required this.layers,
     this.namingRules = const [],
+    this.guides = const [],
+    this.dependencies = const {},
+    this.devDependencies = const {},
+    this.coreModules = const [],
   });
 
   @override
   String toString() =>
       'ArchitectureDefinitionEntity(id: $id, layers: ${layers.length}, '
-      'namingRules: ${namingRules.length})';
+      'namingRules: ${namingRules.length}, guides: ${guides.length}, '
+      'dependencies: ${dependencies.length}, devDependencies: ${devDependencies.length}, '
+      'coreModules: ${coreModules.length})';
 }
 
 /// 各層のディレクトリ定義エンティティ

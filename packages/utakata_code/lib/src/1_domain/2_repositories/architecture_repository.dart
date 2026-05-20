@@ -13,4 +13,10 @@ abstract interface class ArchitectureRepository {
 
   /// 利用可能なアーキテクチャ定義の一覧を取得する
   Future<List<ArchitectureDefinitionEntity>> getAll();
+
+  /// 指定した ID のアーキテクチャ定義の生 YAML テキストを取得する
+  ///
+  /// ローカル優先読み込みルールを適用する。
+  /// 該当する定義が存在しない場合は [ArchitectureNotFoundException] をスロー。
+  Future<String> getRawDefinition(String architectureId);
 }

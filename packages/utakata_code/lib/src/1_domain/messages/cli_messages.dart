@@ -93,6 +93,7 @@ abstract interface class CliMessages {
   String get flutterNotFound;
   String yamlParseFailed(String path);
   String get flutterCreateFailed;
+  String get buildRunnerFailed;
 
   // ─── add_feature_usecase ───
   String layerDirCreateFailed(String path);
@@ -108,4 +109,21 @@ abstract interface class CliMessages {
   String validateMissingDir(String path);
   String validateExtraDir(String path);
   String validateSummary(int naming, int missing, int extra);
+
+  // ─── arch subcommands ───
+  String get cmdArchDesc;
+  String get cmdArchListDesc;
+  String get cmdArchShowDesc;
+  String get cmdArchExportDesc;
+  String get cmdArchCreateDesc;
+  String get archListHeader;
+  String archShowHeader(String id, String name);
+  String get archShowLayers;
+  String get archShowNamingRules;
+  String archExportSuccess(String id, String path);
+  String archCreateSuccess(String id, String path);
+  String architectureAlreadyExists(String path);
+  String get missingArchitectureId;
+  String get missingOutputPath;
 }
+

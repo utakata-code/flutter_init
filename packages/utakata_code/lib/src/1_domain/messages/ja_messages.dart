@@ -165,6 +165,8 @@ class JaMessages implements CliMessages {
   String yamlParseFailed(String path) => '$path の YAML 解析に失敗しました。';
   @override
   String get flutterCreateFailed => 'flutter create に失敗しました。';
+  @override
+  String get buildRunnerFailed => 'build_runner の実行に失敗しました。';
 
   // ─── add_feature_usecase ───
   @override
@@ -194,4 +196,35 @@ class JaMessages implements CliMessages {
   @override
   String validateSummary(int naming, int missing, int extra) =>
       '命名違反: $naming 件 / Missing: $missing 件 / Extra: $extra 件';
+
+  // ─── arch subcommands ───
+  @override
+  String get cmdArchDesc => 'アーキテクチャの確認・エクスポート・カスタム作成を行う';
+  @override
+  String get cmdArchListDesc => '利用可能なアーキテクチャ定義の一覧を表示する';
+  @override
+  String get cmdArchShowDesc => '指定したアーキテクチャの定義、命名規則、および層構造のツリーを表示する';
+  @override
+  String get cmdArchExportDesc => '指定したアーキテクチャ定義の生 YAML ファイルをエクスポートする';
+  @override
+  String get cmdArchCreateDesc => 'プロジェクトのローカルにカスタムアーキテクチャ定義のボイラープレートを作成する';
+  @override
+  String get archListHeader => '利用可能なアーキテクチャ定義一覧:';
+  @override
+  String archShowHeader(String id, String name) => '🏛️ アーキテクチャ: $name ($id)';
+  @override
+  String get archShowLayers => '【レイヤー構造 (Layers)】';
+  @override
+  String get archShowNamingRules => '【命名規則 (Naming Rules)】';
+  @override
+  String archExportSuccess(String id, String path) => '✅ アーキテクチャ "$id" の定義を "$path" にエクスポートしました！';
+  @override
+  String archCreateSuccess(String id, String path) => '✅ ローカルアーキテクチャ定義のボイラープレートを "$path" に作成しました！';
+  @override
+  String architectureAlreadyExists(String path) => '❌ エラー: アーキテクチャ定義がすでに存在します: $path';
+  @override
+  String get missingArchitectureId => 'アーキテクチャ ID を指定してください。例: utakata arch show clean_architecture';
+  @override
+  String get missingOutputPath => 'エクスポート先のパスを指定してください。例: utakata arch export clean_architecture temp.yaml';
 }
+
