@@ -98,14 +98,20 @@ class CreateProjectUsecase {
 
     for (final template in templates) {
       var resolvedPath = template.resolvedPath(variables);
-      if (resolvedPath.endsWith('.tmpl')) {
+      // .tmpl 拡張子の除去判定:
+      // AI/architecture/features/ 配下はプロジェクトローカルのフィーチャーテンプレートなので
+      // .tmpl を維持する（utakata feature add 時に再利用するため）。
+      // それ以外のテンプレート（スクリプト、YAML等）は .tmpl を除去する。
+      final isFeatureTemplate = resolvedPath.contains('AI/architecture/features/') ||
+          resolvedPath.contains('AI\\architecture\\features\\');
+      if (resolvedPath.endsWith('.tmpl') && !isFeatureTemplate) {
         resolvedPath = resolvedPath.substring(0, resolvedPath.length - 5);
       }
       final targetPath = p.join(spec.appName, resolvedPath);
       await _ensureDir(p.dirname(targetPath));
 
       var content = template.resolvedContent(variables);
-      if (template.relativePath.endsWith('.tmpl')) {
+      if (template.relativePath.endsWith('.tmpl') && !isFeatureTemplate) {
         content = _replacePlaceholders(content, arch.coreModules);
       }
 

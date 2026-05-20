@@ -1,0 +1,24 @@
+// {{EntityName}} 例外定義
+//
+// ドメイン層の例外クラス。
+// {{EntityName}} に関するドメイン固有のエラーをここで定義する。
+
+sealed class {{EntityName}}Exception implements void Exception {
+  final String message;
+  const {{EntityName}}Exception(this.message);
+
+  @override
+  String toString() => '$runtimeType: $message';
+}
+
+/// {{EntityName}} が見つからない
+final class {{EntityName}}NotFoundException extends {{EntityName}}void Exception {
+  const {{EntityName}}NotFoundException(String id)
+      : super('{{EntityName}} not found: $id');
+}
+
+/// {{EntityName}} のデータが不正
+final class Invalid{{EntityName}}Exception extends {{EntityName}}void Exception {
+  const Invalid{{EntityName}}Exception(String reason)
+      : super('Invalid {{EntityName}}: $reason');
+}

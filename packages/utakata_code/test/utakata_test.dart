@@ -526,7 +526,7 @@ class DummyArchitectureRepositoryWithCoreModules implements ArchitectureReposito
       displayName: 'Clean',
       layers: [],
       coreModules: [
-        const CoreModuleEntity(
+        CoreModuleEntity(
           id: 'routing',
           path: 'lib/core/routing',
           displayName: 'routing/',

@@ -1,0 +1,21 @@
+// {{動詞}}{{EntityName}} ユースケース
+//
+// ドメイン層のユースケース。
+// UseCase は Repository を通じてデータを取得・操作する。
+// 外部依存（DB / API）を直接参照しない。
+
+import '../2_repositories/{{entity_name}}_repository.dart';
+
+class {{Verb}}{{EntityName}}void Usecase {
+  final {{EntityName}}Repository repository;
+
+  const {{Verb}}{{EntityName}}Usecase({
+    required {{EntityName}}Repository repository,
+  }) : repository = repository;
+
+  /// ユースケースを実行する
+  Future<void> execute() async {
+    // TODO: ビジネスロジックを実装してください
+    throw UnimplementedError();
+  }
+}

@@ -1,0 +1,20 @@
+// {{EntityName}} リモートデータソース
+//
+// インフラ層のリモートデータソース。
+// REST API / GraphQL / Firebase 等のリモートソースからデータを取得する。
+
+import '../../1_models/{{entity_name}}_model.dart';
+
+abstract interface class {{EntityName}}void RemoteDataSource {
+  /// ID で取得する
+  Future<{{EntityName}}Model?> findById(String id);
+
+  /// 全件取得する
+  Future<List<{{EntityName}}Model>> findAll();
+
+  /// 保存する
+  Future<void> save({{EntityName}}Model model);
+
+  /// 削除する
+  Future<void> delete(String id);
+}

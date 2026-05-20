@@ -1,0 +1,47 @@
+// {{EntityName}} データモデル
+//
+// インフラ層のデータモデル。
+// 外部データソース（API / DB）のデータ構造と
+// ドメインエンティティの間の変換を担当する。
+// ビジネスロジックは一切持たない。
+
+import 'package:json_annotation/json_annotation.dart';
+
+import '../../1_domain/1_entities/{{entity_name}}_entity.dart';
+
+part '{{entity_name}}_model.g.dart';
+
+@JsonSerializable()
+class {{EntityName}}Model {
+  final String id;
+  // TODO: フィールドを追加してください
+  // 例: @JsonKey(name: 'created_at')
+  //     final DateTime createdAt;
+
+  const {{EntityName}}Model({
+    required this.id,
+  });
+
+  /// JSON から {{EntityName}}Model を生成（json_serializable が自動生成）
+  factory {{EntityName}}Model.fromJson(Map<String, dynamic> json) =>
+      _${{EntityName}}ModelFromJson(json);
+
+  /// {{EntityName}}Model を JSON に変換（json_serializable が自動生成）
+  Map<String, dynamic> toJson() => _${{EntityName}}ModelToJson(this);
+
+  /// ドメインエンティティに変換
+  {{EntityName}}Entity toEntity() {
+    return {{EntityName}}Entity(
+      id: id,
+      // TODO: フィールドを追加してください
+    );
+  }
+
+  /// ドメインエンティティからモデルを生成
+  factory {{EntityName}}Model.fromEntity({{EntityName}}Entity entity) {
+    return {{EntityName}}Model(
+      id: entity.id,
+      // TODO: フィールドを追加してください
+    );
+  }
+}
