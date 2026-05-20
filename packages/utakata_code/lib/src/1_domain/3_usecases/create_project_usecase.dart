@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import '../1_entities/project_spec_entity.dart';
 import '../2_repositories/architecture_repository.dart';
 import '../2_repositories/template_repository.dart';
@@ -70,8 +72,8 @@ class CreateProjectUsecase {
 
     for (final template in templates) {
       final resolvedPath = template.resolvedPath(variables);
-      final targetPath = '${spec.appName}/$resolvedPath';
-      await _ensureDir(targetPath.substring(0, targetPath.lastIndexOf('/')));
+      final targetPath = p.join(spec.appName, resolvedPath);
+      await _ensureDir(p.dirname(targetPath));
       await _writeFile(targetPath, template.resolvedContent(variables));
     }
   }

@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/2_repositories/architecture_repository.dart';
 import '../../1_domain/2_repositories/template_repository.dart';
@@ -27,12 +29,12 @@ class AddFeatureUsecase {
   /// フィーチャーを生成する
   Future<void> execute(String projectDir, FeatureSpecEntity spec) async {
     final arch = await _archRepo.getById(spec.architectureId);
-    final basePath = '$projectDir/${spec.relativePath}';
+    final basePath = p.join(projectDir, spec.relativePath);
 
     // アーキテクチャ定義に基づいてディレクトリを生成
     for (final layer in arch.layers) {
       for (final dir in layer.dirs) {
-        final dirPath = '$basePath/${layer.name}/$dir';
+        final dirPath = p.join(basePath, layer.name, dir);
         try {
           await _ensureDir(dirPath);
         } catch (e) {
@@ -47,7 +49,7 @@ class AddFeatureUsecase {
 
     for (final template in templates) {
       final resolvedPath = template.resolvedPath(variables);
-      final targetPath = '$basePath/$resolvedPath';
+      final targetPath = p.join(basePath, resolvedPath);
       try {
         await _writeFile(targetPath, template.resolvedContent(variables));
       } catch (e) {
