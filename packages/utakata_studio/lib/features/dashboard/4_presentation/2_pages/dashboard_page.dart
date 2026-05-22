@@ -66,15 +66,18 @@ class _DashboardContentState extends State<_DashboardContent> {
   }
 
   Future<void> _refresh() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
       final result = await widget.onRefresh();
+      if (!mounted) return;
       setState(() {
         _result = result;
         _sections = _parseStatusOutput(result.stdout);
         _loading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _result = null;
         _sections = [];

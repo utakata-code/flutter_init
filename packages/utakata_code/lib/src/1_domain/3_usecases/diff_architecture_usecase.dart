@@ -52,6 +52,8 @@ class DiffArchitectureUsecase {
     if (expected is Map) {
       final actualMap = actual is Map ? actual : <String, dynamic>{};
       for (final key in expected.keys) {
+        // __files__ はファイルリストであり、ディレクトリではないのでスキップ
+        if (key == '__files__') continue;
         final currentPath = path.isEmpty ? '$key' : '$path/$key';
         if (!actualMap.containsKey(key)) {
           missing.add(currentPath);
