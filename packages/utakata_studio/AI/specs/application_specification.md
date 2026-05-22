@@ -4,7 +4,7 @@
 
 ## メタ情報
 - プロジェクト名: utakata studio
-- バージョン: 0.1.0
+- バージョン: 0.2.0
 - 最終更新日: 2026-05-22
 - 作成者: AI + haruma
 
@@ -98,12 +98,12 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
   - Desktop native（Windows / macOS / Linux）
   - Web（localhost サーバー）
 
-### In-Scope（v0.2.0 予定）
-- UC-06 〜 UC-08: plan / feature add / feature init の GUI 実行
-- UC-09 〜 UC-12: scan / validate / diff / check の GUI 実行 + 結果表示
-- UC-13: status ダッシュボード
-- UC-15: feature_request.yaml のビジュアルビューア
-- コマンド実行ログのリアルタイムストリーム表示
+### In-Scope（v0.2.0 予定 → 実装中）
+- UC-09 〜 UC-12: scan / validate / diff / check の GUI 実行 + 結果表示 ✅ **command_runner 実装済み**
+- コマンド実行ログのリアルタイムストリーム表示 ✅ **実装済み**
+- UC-15: feature_request.yaml のビジュアルビューア（プレースホルダー配置済み）
+- UC-13: status ダッシュボード（プレースホルダー配置済み）
+- UC-06 〜 UC-08: plan / feature add / feature init の GUI 実行（未着手）
 
 ### In-Scope（v0.3.0 予定 — ローコードエディタ）
 - **raw ↔ ビジュアルの切替 UI**
@@ -131,6 +131,12 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 - 受け入れ基準: 任意の utakata コマンドを非同期で実行でき、出力がストリームとして取得できること
 - 依存関係: dart:io (Process), utakata CLI がシステムにインストール済みであること
 - 設定: デフォルトでは PATH 上の `utakata` を使用するが、設定画面からフルパスでオーバーライド可能（例: `dart run /path/to/utakata_code/bin/utakata.dart`）。開発中や PATH 未登録の環境に対応
+- **実装済み機能（v0.2.0）**:
+  - `.dart` パス指定時の `dart <path>` 自動変換
+  - Flutter デスクトップアプリ向け `dart.exe` フルパス自動解決（`where.exe` → `dart-sdk/bin/dart.exe`）
+  - ANSI エスケープコード除去（`_stripAnsi()`）
+  - UTF-8 エンコーディング強制（`LANG=ja_JP.UTF-8` 環境変数）
+  - 同期実行（`run`）+ ストリーム実行（`runStream`）の両方をサポート
 
 ### F-02: アーキテクチャビューア
 - 説明: `AI/architecture/arch_definition.yaml` をロード・パースし、構造化されたビジュアル表示で閲覧する。raw YAML をそのまま表示するのではなく、セクション別（layers / naming_rules / core_modules / guides）にカード・リスト形式で描画する
@@ -160,12 +166,14 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 
 ## 画面設計（概要）
 
-### 主要画面（v0.1.0）
-- **StudioHomePage**: 3 ペイン構成のメイン画面
-  - 左ペイン（280px 固定）: サイドバー — ロゴ、ナビゲーション、バリデーションステータス、構造統計
-  - 中央ペイン（flex: 5）: **アーキテクチャビューア** — セクション別のカード・リスト表示（layers, naming_rules, core_modules, guides）
-  - 右ペイン（flex: 4）: **レイヤービジュアライザ** — レイヤー構造のグラフィカル描画
-
+### 主要画面（v0.1.0 → v0.2.0 進化）
+- **ShellLayoutPage**: サイドバー常時表示 + コンテンツ領域切り替え（ShellRoute パターン）
+  - 左ペイン（280px 固定）: サイドバー — ロゴ、ナビゲーション（5項目 + Settings）、バリデーションステータス、構造統計
+  - 右ペイン: ルートに応じたコンテンツ切り替え
+- **StudioHomePage** (`/`): Architecture ビューア + レイヤービジュアライザ（2ペイン）
+- **CommandRunnerPage** (`/health`): CLI コマンド実行 GUI + リアルタイムストリーム出力
+- **SettingsPage** (`/settings`): プロジェクトルート設定 + CLI パス設定 + 接続テスト
+- **PlaceholderPage** (`/features`, `/dashboard`): 未実装機能のプレースホルダー
 > **注意**: v0.1.0 では中央ペインは「閲覧専用ビューア」であり、raw YAML のテキスト編集機能は持たない。
 > raw YAML の編集は VSCode / Antigravity IDE 等の外部エディタで行い、ファイル変更検知で studio が自動更新する。
 
@@ -183,6 +191,8 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 - どちらのモードで編集しても、同じ YAML ファイルが更新される
 
 ### ナビゲーション原則
+- ShellRoute パターンでサイドバーは全画面で常時表示
+- サイドバーのナビゲーション項目がアクティブルートに応じてハイライト
 - 3 ペインの情報が常に連動（ファイル変更 → バリデーション更新 → ビジュアライザ更新）
 - CLI コマンドの実行結果はリアクティブに UI へ反映される
 - 人間が GUI で操作しても、AI が CLI で操作しても、同じファイルが更新され同じ結果が得られる
@@ -268,7 +278,7 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 - 2026-05-22: 仕様草案 v1 作成
 - 2026-05-22: v2 ブラッシュアップ — コンセプト再定義（全 CLI 操作の GUI 化）、Web 対応追加、utakata CLI 前提条件明記
 - 2026-05-22: v3 技術選定更新 — go_router を「不要」から「採用済み」へ移動、file_picker 追加
-
+- 2026-05-22: v4 v0.2.0 進捗反映 — command_runner 実装、ShellRoute 導入、CLI ブリッジ強化（dart.exe 自動解決 / ANSI 除去 / UTF-8 対応）、画面設計更新
 ## 参考・関連
 - プロセス詳細（第一段階）: `flutter-stage1-specification` スキル
 - アーキテクチャ規約: `AI/architecture/features/ARCHITECTURE.md`

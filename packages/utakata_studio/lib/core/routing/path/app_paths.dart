@@ -16,4 +16,12 @@ class AppPaths {
   // ── ヘルス（CLI コマンド実行） ──
   static const health = '/health';
   static const healthRouteName = 'health';
+
+  // ── フィーチャー ──
+  static const features = '/features';
+  static const featuresRouteName = 'features';
+
+  // ── ダッシュボード ──
+  static const dashboard = '/dashboard';
+  static const dashboardRouteName = 'dashboard';
 }

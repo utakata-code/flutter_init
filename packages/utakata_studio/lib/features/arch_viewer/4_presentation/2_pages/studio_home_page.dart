@@ -1,22 +1,16 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../core/routing/path/app_paths.dart';
 import '../../../../core/theme/studio_theme.dart';
 import '../../../layer_visualizer/3_application/1_states/layer_visualizer_state.dart';
 import '../../../layer_visualizer/3_application/3_notifiers/layer_visualizer_notifier.dart';
-import '../../../settings/3_application/3_notifiers/settings_notifier.dart';
 import '../../../validation/3_application/1_states/validation_state.dart';
 import '../../../validation/3_application/3_notifiers/validation_notifier.dart';
-import '../1_widgets/3_organisms/sidebar_organism.dart';
 import '../1_widgets/3_organisms/arch_definition_viewer_organism.dart';
 import '../../../layer_visualizer/4_presentation/1_widgets/3_organisms/layer_tree_visualizer_organism.dart';
 
-/// 3 ペイン構成のメインページ
+/// Architecture ビューア（コンテンツ領域のみ）
 ///
-/// 状態の監視とイベントディスパッチを担当。
-/// 描画ロジックは Organism に委譲する。
+/// サイドバーは ShellLayoutPage が担当するため、ここではコンテンツのみ。
 class StudioHomePage extends HookConsumerWidget {
   const StudioHomePage({super.key});
 
@@ -36,19 +30,10 @@ class StudioHomePage extends HookConsumerWidget {
       );
     });
 
-    return Scaffold(
-      backgroundColor: StudioTheme.darkBg,
-      body: Row(
+    return Container(
+      color: StudioTheme.darkBg,
+      child: Row(
         children: [
-          // ── 左ペイン: サイドバー ──
-          SidebarOrganism(
-            validationState: validationState,
-            callbacks: (
-              onSettingsTap: () => context.push(AppPaths.settings),
-              onHealthTap: () => context.push(AppPaths.health),
-              onOpenProject: () => _openProject(context, ref),
-            ),
-          ),
           // ── 中央ペイン: アーキテクチャビューア ──
           Expanded(
             flex: 5,
@@ -63,11 +48,6 @@ class StudioHomePage extends HookConsumerWidget {
                     Text('プロジェクトフォルダを開いてください',
                         style: TextStyle(
                             color: StudioTheme.textMuted, fontSize: 14)),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => _openProject(context, ref),
-                      child: const Text('Open Project'),
-                    ),
                   ],
                 ),
               ),
@@ -88,11 +68,6 @@ class StudioHomePage extends HookConsumerWidget {
                         style: const TextStyle(
                             color: StudioTheme.accentRed, fontSize: 13),
                         textAlign: TextAlign.center),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () => _openProject(context, ref),
-                      child: const Text('別のフォルダを開く'),
-                    ),
                   ],
                 ),
               ),
@@ -111,21 +86,5 @@ class StudioHomePage extends HookConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// プロジェクトフォルダを開く
-  Future<void> _openProject(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.getDirectoryPath(
-      dialogTitle: 'utakata プロジェクトフォルダを選択',
-    );
-    if (result == null) return; // キャンセル
-
-    // 設定に保存
-    await ref.read(settingsNotifierProvider.notifier).updateProjectRoot(result);
-
-    // バリデーション実行
-    ref
-        .read(validationNotifierProvider.notifier)
-        .loadAndValidate('$result/AI/architecture/arch_definition.yaml');
   }
 }

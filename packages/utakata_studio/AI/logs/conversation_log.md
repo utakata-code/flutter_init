@@ -65,6 +65,72 @@
 
 ---
 
+## [2026-05-22 14:19] CLI 接続修正 + ShellRoute サイドバー常時表示 + 文字化け修正
+
+**ステージ**: Stage 3 - 実装（v0.2.0 継続）
+**担当AIエージェント**: Antigravity (Google Deepmind)
+**会話ID**: c4922fea-2b05-47c8-a973-554da5571bbb
+
+### 🎯 目的・背景
+
+- Settings 画面で CLI 接続テストが失敗する問題の解決
+- COMMAND RUNNER 画面からダッシュボードに戻れない問題の解決
+- CLI 出力の日本語文字化け + ANSI エスケープコードの除去
+
+### 💬 会話の要点
+
+- CLI 接続が `ProcessException: %1 は有効な Win32 アプリケーションではありません` で失敗
+- `.dart` ファイルパス指定時に `dart run` ではなく `dart` で実行する必要がある
+- Flutter デスクトップアプリの `Process.run('dart', ...)` は PATH にアクセスできない
+- `where.exe` → `flutter/bin/cache/dart-sdk/bin/dart.exe` の解決パスを確立
+- サイドバーは ShellRoute で常時表示にすべき
+
+### ✅ 実施した作業
+
+| ファイル | 変更内容 |
+|---|---|
+| `cli_bridge.dart` | `_resolveCommand()` で `.dart` パスの自動判定、`_dartExecutable` で dart.exe フルパス解決、`_stripAnsi()` で ANSI コード除去、`LANG=ja_JP.UTF-8` 環境変数設定 |
+| `app_router.dart` | `ShellRoute` に変更。全ルートをシェル配下に |
+| `shell_layout_page.dart` | **[NEW]** サイドバー常時表示のシェルレイアウト |
+| `placeholder_page.dart` | **[NEW]** Features / Dashboard のプレースホルダー |
+| `studio_home_page.dart` | サイドバーを除去（シェルが担当） |
+| `command_runner_page.dart` | Scaffold 除去 |
+| `settings_page.dart` | Scaffold + AppBar 除去、ヘッダーバーに変更 |
+| `sidebar_organism.dart` | `activeRoute` 対応、`onHomeTap` / `onFeaturesTap` / `onDashboardTap` 追加 |
+| `app_paths.dart` | `/features` / `/dashboard` パス追加 |
+
+### 🔍 発見した問題
+
+| 問題 | 原因 | 解決策 |
+|---|---|---|
+| CLI 接続失敗 | `.dart` ファイルを直接実行できない | `_resolveCommand()` で自動判定 |
+| dart コマンド not found | Flutter デスクトップアプリは PATH が不完全 | `where.exe` → dart-sdk 実体のフルパス解決 |
+| `dart run` で file not found | `dart run` はパッケージスクリプト用 | `dart <path>` に変更 |
+| `where.exe` が返すパスが batch file | `flutter/bin/dart` はバッチラッパー | `flutter/bin/cache/dart-sdk/bin/dart.exe` に変換 |
+| COMMAND RUNNER から戻れない | 画面遷移でサイドバーが消える | ShellRoute で常時表示 |
+| 日本語文字化け + ANSI コード | Process 出力のエンコーディング | `_stripAnsi()` + `LANG` 環境変数 |
+
+### 💡 解決方法・決定事項
+
+- **dart.exe 解決の優先順位**: `where.exe` → dart-sdk 実体 → PATH 手動スキャン → フォールバック
+- **結果はキャッシュ**: `_cachedDartPath` で2回目以降はファイルチェック不要
+- **ShellRoute パターン**: go_router の ShellRoute で全画面にサイドバーを共有
+
+### 📊 影響範囲
+
+- **変更ファイル**: 9ファイル（新規2、修正7）
+- **flutter analyze**: No issues found ✅
+
+### 📝 次回への引き継ぎ事項
+
+- [x] **v0.2.0 残り**: Features 画面の実装（feature_request.yaml ビジュアルビューア） ✅
+- [x] **v0.2.0 残り**: Dashboard 画面の実装（status コマンド結果表示） ✅
+- [x] **文字化け確認**: ANSI 除去 + UTF-8 設定が実機で正しく動作するか検証 ✅
+- [ ] **utakata_code 側のバグ修正**: TODO.md に記載の 4件（保留）
+- [x] **仕様書更新**: v0.2.0 進捗に合わせて application_specification.md を更新 ✅
+
+---
+
 ## [2026-05-22 13:40] Clean Architecture 全層リファクタリング + Presentation 層修正 + 起動修正
 
 **ステージ**: Stage 3 - 実装

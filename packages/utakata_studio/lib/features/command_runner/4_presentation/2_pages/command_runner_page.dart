@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../../../../core/theme/studio_theme.dart';
 import '../../3_application/3_notifiers/command_runner_notifier.dart';
 import '../1_widgets/3_organisms/command_panel_organism.dart';
 
@@ -14,14 +13,11 @@ class CommandRunnerPage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(commandRunnerNotifierProvider);
 
-    return Scaffold(
-      backgroundColor: StudioTheme.darkBg,
-      body: CommandPanelOrganism(
-        state: state,
-        onExecute: (args) {
-          ref.read(commandRunnerNotifierProvider.notifier).execute(args);
-        },
-      ),
+    return CommandPanelOrganism(
+      state: state,
+      onExecute: (args) {
+        ref.read(commandRunnerNotifierProvider.notifier).execute(args);
+      },
     );
   }
 }

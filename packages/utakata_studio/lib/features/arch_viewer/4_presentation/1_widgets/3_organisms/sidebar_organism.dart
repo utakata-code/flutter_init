@@ -8,6 +8,9 @@ import '../1_atoms/status_badge_atom.dart';
 typedef SidebarCallbacks = ({
   VoidCallback onSettingsTap,
   VoidCallback onHealthTap,
+  VoidCallback onHomeTap,
+  VoidCallback onFeaturesTap,
+  VoidCallback onDashboardTap,
   VoidCallback onOpenProject,
 });
 
@@ -17,11 +20,13 @@ typedef SidebarCallbacks = ({
 class SidebarOrganism extends StatelessWidget {
   final ValidationState validationState;
   final SidebarCallbacks callbacks;
+  final String activeRoute;
 
   const SidebarOrganism({
     super.key,
     required this.validationState,
     required this.callbacks,
+    this.activeRoute = '/',
   });
 
   @override
@@ -120,29 +125,32 @@ class SidebarOrganism extends StatelessWidget {
         ),
         const Divider(),
         // ── ナビゲーション ──
-        const _NavItem(
-            icon: Icons.architecture, label: 'Architecture', isActive: true),
-        const _NavItem(
+        _NavItem(
+            icon: Icons.architecture,
+            label: 'Architecture',
+            isActive: activeRoute == '/',
+            onTap: callbacks.onHomeTap),
+        _NavItem(
             icon: Icons.featured_play_list_outlined,
             label: 'Features',
-            isActive: false,
-            badge: 'v0.2'),
+            isActive: activeRoute == '/features',
+            onTap: callbacks.onFeaturesTap),
         _NavItem(
             icon: Icons.health_and_safety_outlined,
             label: 'Health',
-            isActive: false,
+            isActive: activeRoute == '/health',
             onTap: callbacks.onHealthTap),
-        const _NavItem(
+        _NavItem(
             icon: Icons.dashboard_outlined,
             label: 'Dashboard',
-            isActive: false,
-            badge: 'v0.2'),
+            isActive: activeRoute == '/dashboard',
+            onTap: callbacks.onDashboardTap),
         const Spacer(),
         const Divider(),
         _NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
-            isActive: false,
+            isActive: activeRoute == '/settings',
             onTap: callbacks.onSettingsTap),
         const SizedBox(height: 8),
       ]),
@@ -163,6 +171,7 @@ class SidebarOrganism extends StatelessWidget {
   }
 }
 
+// ignore: unused_element_parameter
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -173,6 +182,7 @@ class _NavItem extends StatelessWidget {
       {required this.icon,
       required this.label,
       required this.isActive,
+      // ignore: unused_element_parameter
       this.badge,
       this.onTap});
 

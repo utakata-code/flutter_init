@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../core/cli_bridge/cli_bridge_provider.dart';
 import '../../../../core/theme/studio_theme.dart';
@@ -13,14 +14,50 @@ class SettingsPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(settingsNotifierProvider);
+    final cliPathController = useTextEditingController();
 
-    return Scaffold(
-      backgroundColor: StudioTheme.darkBg,
-      appBar: AppBar(
-        title: const Text('Settings'),
-        backgroundColor: StudioTheme.sidebarBg,
-      ),
-      body: state.when(
+    // loaded 時に controller を初期化（初回のみ）
+    ref.listen<SettingsState>(settingsNotifierProvider, (prev, next) {
+      next.mapOrNull(loaded: (s) {
+        if (cliPathController.text.isEmpty ||
+            prev?.mapOrNull(loaded: (p) => p.settings.utakataCliPath) !=
+                s.settings.utakataCliPath) {
+          cliPathController.text = s.settings.utakataCliPath;
+        }
+      });
+    });
+
+    // 初回ロード時にも反映
+    state.mapOrNull(loaded: (s) {
+      if (cliPathController.text.isEmpty) {
+        cliPathController.text = s.settings.utakataCliPath;
+      }
+    });
+
+    return Container(
+      color: StudioTheme.darkBg,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── ヘッダー ──
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: const BoxDecoration(
+              color: StudioTheme.sidebarBg,
+              border: Border(bottom: BorderSide(color: StudioTheme.borderColor)),
+            ),
+            child: Row(children: [
+              const Icon(Icons.settings, size: 16, color: StudioTheme.accentCyan),
+              const SizedBox(width: 8),
+              Text('SETTINGS',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: StudioTheme.accentCyan,
+                      letterSpacing: 1,
+                      fontWeight: FontWeight.w700)),
+            ]),
+          ),
+          Expanded(child: state.when(
         initial: () => const SizedBox.shrink(),
         loading: () => const Center(
           child: CircularProgressIndicator(color: StudioTheme.accentCyan),
@@ -82,19 +119,43 @@ class SettingsPage extends HookConsumerWidget {
               Text('utakata CLI Path',
                   style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              TextFormField(
-                initialValue: settings.utakataCliPath,
-                decoration: InputDecoration(
-                  hintText: 'utakata (default: PATH上のutakata)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: cliPathController,
+                      decoration: InputDecoration(
+                        hintText: 'utakata (default: PATH上のutakata)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                onFieldSubmitted: (value) {
-                  ref
-                      .read(settingsNotifierProvider.notifier)
-                      .updateCliPath(value);
-                },
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      ref
+                          .read(settingsNotifierProvider.notifier)
+                          .updateCliPath(cliPathController.text);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('✅ CLI パスを保存しました'),
+                          backgroundColor: StudioTheme.accentGreen,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.save, size: 16),
+                    label: const Text('保存'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: StudioTheme.accentGreen,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               Text(
@@ -119,7 +180,9 @@ class SettingsPage extends HookConsumerWidget {
             ],
           ),
         ),
-      ),
+      )),
+    ],
+    ),
     );
   }
 
