@@ -171,15 +171,15 @@ naming_rules:
 
   - dir_pattern: "3_application/1_states"
     file_pattern: "^.+_state\\.dart$"
-    description: "{name}_state.dart"
+    description: "{feature}_state.dart"
 
   - dir_pattern: "3_application/2_providers"
     file_pattern: "^.+_providers?\\.dart$"
-    description: "{name}_providers.dart"
+    description: "{feature}_providers.dart"
 
   - dir_pattern: "3_application/3_notifiers"
     file_pattern: "^.+_notifier\\.dart$"
-    description: "{name}_notifier.dart"
+    description: "{feature}_notifier.dart"
 
   - dir_pattern: "4_presentation/1_widgets/1_atoms"
     file_pattern: "^.+_atom\\.dart$"
@@ -195,7 +195,7 @@ naming_rules:
 
   - dir_pattern: "4_presentation/2_pages"
     file_pattern: "^.+_page\\.dart$"
-    description: "{name}_page.dart"
+    description: "{feature}_page.dart"
 
 guides:
   - title: "Entity Layer Instructions - エンティティ層"

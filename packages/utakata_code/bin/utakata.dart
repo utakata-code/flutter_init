@@ -101,6 +101,7 @@ Future<void> main(List<String> arguments) async {
 
   final planUsecase = PlanArchitectureUsecase(
     projectRepo: projectRepo,
+    archRepo: archRepo,
     msg: msg,
   );
 
@@ -170,7 +171,7 @@ Future<void> main(List<String> arguments) async {
     diffCommand: DiffCommand(diffUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
     statusCommand: StatusCommand(statusUsecase, msg),
-    validateCommand: ValidateCommand(validateUsecase, msg),
+    validateCommand: ValidateCommand(validateUsecase, projectRepo, msg),
     archCommand: ArchCommand(
       listArchitecturesUsecase,
       showArchitectureUsecase,

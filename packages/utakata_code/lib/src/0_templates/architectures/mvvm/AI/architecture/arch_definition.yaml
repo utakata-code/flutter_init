@@ -1,0 +1,146 @@
+# アーキテクチャ定義: MVVM (3-layer)
+#
+# Model-View-ViewModel パターン。
+# Flutter の状態管理を ViewModel 層に集約するシンプルなアーキテクチャ。
+# Clean Architecture より層が少なく、小〜中規模プロジェクト向け。
+
+id: mvvm
+displayName: "MVVM (3-layer)"
+guides_path: "AI/architecture/guides"
+
+# コアモジュール
+core_modules:
+  - id: routing
+    path: "lib/core/routing"
+    displayName: "routing/"
+  - id: theme
+    path: "lib/core/theme"
+    displayName: "theme/"
+  - id: di
+    path: "lib/core/di"
+    displayName: "di/"
+  - id: api
+    path: "lib/core/api"
+    displayName: "api/"
+
+# 推奨依存関係
+dependencies:
+  flutter:
+    sdk: flutter
+  hooks_riverpod: ^2.6.1
+  flutter_hooks: ^0.20.5
+  freezed_annotation: ^3.0.0
+  json_annotation: ^4.9.0
+  dio: ^5.4.0
+
+dev_dependencies:
+  build_runner: ^2.4.8
+  freezed: ^3.0.0
+  json_serializable: ^6.8.0
+
+# ─── レイヤー定義 ───
+# MVVM は 3層:
+#   1_model     : データモデル、リポジトリインターフェース、サービス
+#   2_viewmodel : 状態管理、ビジネスロジック
+#   3_view      : UI（Screen / Widget）
+layers:
+  - name: 1_model
+    dirs:
+      - 1_entities
+      - 2_repositories
+      - 3_services
+      - exceptions
+
+  - name: 2_viewmodel
+    dirs:
+      - 1_states
+      - 2_notifiers
+
+  - name: 3_view
+    dirs:
+      - 1_widgets
+      - 2_screens
+
+# ─── 命名規則 ───
+naming_rules:
+  - dir_pattern: "1_model/1_entities"
+    file_pattern: "^.+_entity\\.dart$"
+    description: "{name}_entity.dart"
+
+  - dir_pattern: "1_model/2_repositories"
+    file_pattern: "^.+_repository\\.dart$"
+    description: "{name}_repository.dart"
+
+  - dir_pattern: "1_model/3_services"
+    file_pattern: "^.+_service\\.dart$"
+    description: "{name}_service.dart"
+
+  - dir_pattern: "1_model/exceptions"
+    file_pattern: "^.+_exception\\.dart$"
+    description: "{name}_exception.dart"
+
+  - dir_pattern: "2_viewmodel/1_states"
+    file_pattern: "^.+_state\\.dart$"
+    description: "{feature}_state.dart"
+
+  - dir_pattern: "2_viewmodel/2_notifiers"
+    file_pattern: "^.+_notifier\\.dart$"
+    description: "{feature}_notifier.dart"
+
+  - dir_pattern: "3_view/1_widgets"
+    file_pattern: "^.+_widget\\.dart$"
+    description: "{name}_widget.dart"
+
+  - dir_pattern: "3_view/2_screens"
+    file_pattern: "^.+_screen\\.dart$"
+    description: "{feature}_screen.dart"
+
+# ─── ガイド定義 ───
+guides:
+  - title: "エンティティ"
+    layer_path: "1_model/1_entities"
+    detail_content_path: ""
+    rules:
+      - "不変オブジェクトとして定義する（freezed 推奨）"
+      - "ビジネスロジックを持たない純粋なデータクラス"
+    naming_pattern: "{対象名}_entity.dart"
+
+  - title: "リポジトリ"
+    layer_path: "1_model/2_repositories"
+    detail_content_path: ""
+    rules:
+      - "データアクセスの抽象インターフェースを定義"
+      - "実装は同ディレクトリに配置"
+    naming_pattern: "{対象名}_repository.dart"
+
+  - title: "サービス"
+    layer_path: "1_model/3_services"
+    detail_content_path: ""
+    rules:
+      - "ビジネスロジックを集約する"
+      - "リポジトリを通じてデータにアクセスする"
+    naming_pattern: "{対象名}_service.dart"
+
+  - title: "ViewModel (State)"
+    layer_path: "2_viewmodel/1_states"
+    detail_content_path: ""
+    rules:
+      - "freezed で不変状態を定義"
+      - "UI が参照する状態の型を提供"
+    naming_pattern: "{feature名}_state.dart"
+
+  - title: "ViewModel (Notifier)"
+    layer_path: "2_viewmodel/2_notifiers"
+    detail_content_path: ""
+    rules:
+      - "Riverpod Notifier で状態遷移ロジックを実装"
+      - "Service 層を呼び出して状態を更新"
+    naming_pattern: "{feature名}_notifier.dart"
+
+  - title: "Screen"
+    layer_path: "3_view/2_screens"
+    detail_content_path: ""
+    rules:
+      - "1画面 = 1 Screen ファイル"
+      - "ViewModel の状態を watch して描画"
+    naming_pattern: "{feature名}_screen.dart"

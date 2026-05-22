@@ -47,14 +47,23 @@ class InitFeaturesUsecase {
       final featureName = featureEntry.key as String;
       final featureNode = featureEntry.value;
 
-      // feature_request.yaml から permission を取得、なければ 'direct'
+      // feature_request.yaml から permission と architecture を取得
       String perm = 'direct';
+      String archId = 'clean_architecture';
       if (featureRequest != null) {
+        // プロジェクトデフォルトの architecture
+        final projectNode = featureRequest['project'];
+        if (projectNode is Map) {
+          archId = (projectNode['architecture'] as String?) ?? archId;
+        }
+
         final reqFeatures = featureRequest['features'];
         if (reqFeatures is Map && reqFeatures.containsKey(featureName)) {
           final reqDetails = reqFeatures[featureName];
           if (reqDetails is Map) {
             perm = (reqDetails['permission'] as String?) ?? 'direct';
+            // フィーチャー単位でオーバーライド
+            archId = (reqDetails['architecture'] as String?) ?? archId;
           }
         }
       }
@@ -64,6 +73,7 @@ class InitFeaturesUsecase {
         featureName: featureName,
         entityName: entityName,
         permission: perm,
+        architectureId: archId,
       ));
     }
 
