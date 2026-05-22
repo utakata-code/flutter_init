@@ -13,7 +13,6 @@ import 'package:utakata/src/1_domain/3_usecases/create_architecture_usecase.dart
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/messages/ja_messages.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
-import 'package:utakata/src/1_domain/1_entities/core_module_entity.dart';
 
 void main() {
   group('FeatureSpecEntity', () {
