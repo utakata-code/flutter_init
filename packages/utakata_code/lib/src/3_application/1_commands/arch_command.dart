@@ -74,7 +74,7 @@ class _ArchListCommand extends Command<int> {
   }
 }
 
-/// utakata arch show <id> — 指定したアーキテクチャの定義詳細を表示する
+/// utakata arch show [id] — 指定したアーキテクチャの定義詳細を表示する
 class _ArchShowCommand extends Command<int> {
   final ShowArchitectureUsecase _usecase;
   final CliMessages _msg;
@@ -136,7 +136,7 @@ class _ArchShowCommand extends Command<int> {
   }
 }
 
-/// utakata arch export <id> <path> — 指定したアーキテクチャの定義をYAMLファイルとしてエクスポートする
+/// utakata arch export [id] [path] — 指定したアーキテクチャの定義をYAMLファイルとしてエクスポートする
 class _ArchExportCommand extends Command<int> {
   final ExportArchitectureUsecase _usecase;
   final CliMessages _msg;
@@ -174,7 +174,7 @@ class _ArchExportCommand extends Command<int> {
   }
 }
 
-/// utakata arch create <id> — プロジェクトのローカルにアーキテクチャ定義のボイラープレートを作成する
+/// utakata arch create [id] — プロジェクトのローカルにアーキテクチャ定義のボイラープレートを作成する
 class _ArchCreateCommand extends Command<int> {
   final CreateArchitectureUsecase _usecase;
   final CliMessages _msg;

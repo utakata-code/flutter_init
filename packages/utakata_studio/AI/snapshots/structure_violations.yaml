@@ -1,0 +1,8 @@
+# structure_violations.yaml
+# 自動生成 — 手動編集しないでください
+# 生成日時: 2026-04-10T15:54:11+0900
+
+last_checked: "2026-04-10T15:54:11+0900"
+violation_count: 0
+violations: []
+note: "lib/ ディレクトリが存在しません"

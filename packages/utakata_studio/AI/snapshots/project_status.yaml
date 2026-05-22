@@ -1,0 +1,48 @@
+# project_status.yaml
+# 自動生成 — 手動編集しないでください
+# 生成日時: 2026-04-10T15:54:11+0900
+
+project:
+  name: ""
+  version: ""
+  mode: null
+  started_at: null
+  last_worked_at: null
+
+stage:
+  current: null
+  stage1:
+    status: "not_started"
+  stage2:
+    status: "not_started"
+  stage3:
+    status: "not_started"
+
+flutter:
+  pubspec_exists: false
+  lib_exists: false
+  initialized: false
+
+core:
+  routing: false
+  routing_path: false
+  theme: false
+  api: false
+  env: false
+  database: false
+  database_table: false
+  exceptions: false
+
+entry_points:
+  main_dart: false
+  app_dart: false
+
+documents:
+  specification: "template_only"
+  structure_plan: "template_only"
+
+features:
+  count: 0
+
+updated_at: "2026-04-10T15:54:11+0900"
+updated_by: "update_status.sh"

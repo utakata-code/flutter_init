@@ -1,0 +1,37 @@
+// {{FeatureName}} ページ
+//
+// プレゼンテーション層のページ（画面）。
+// Riverpod の Consumer を使って状態を購読する。
+
+import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+import '../../3_application/3_notifiers/{{feature_name}}_notifier.dart';
+
+class {{FeatureName}}Page extends ConsumerWidget {
+  const {{FeatureName}}Page({super.key});
+
+  static const routePath = '/{{feature_name}}';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch({{featureName}}NotifierProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('{{FeatureName}}'),
+      ),
+      body: state.when(
+        initial: () => const SizedBox.shrink(),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        success: (data) => Center(child: Text(data.toString())),
+        error: (message) => Center(
+          child: Text(
+            message,
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
+    );
+  }
+}
