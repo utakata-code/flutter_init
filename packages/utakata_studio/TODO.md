@@ -235,3 +235,39 @@ core_modules:
 
 - [ ] 保留（utakata_studio の実装を優先）
 
+---
+
+## 保留: `utakata validate` / `utakata diff` のバグ修正（utakata_code 側）
+
+### 問題 1: `.freezed.dart` / `.g.dart` が命名違反として検出される
+
+- `utakata validate` が `*.freezed.dart`, `*.g.dart` 等のコード生成ファイルを命名規則チェックの対象にしてしまう
+- 例: `arch_viewer_state.freezed.dart` → `Expected: {name}_state.dart` と報告される
+- **対処**: `validate` コマンドで `*.freezed.dart`, `*.g.dart` をスキャン対象から除外する
+
+### 問題 2: `exceptions/` サブディレクトリが命名違反として検出される
+
+- `2_data_sources/1_local/exceptions/` 配下のファイルが `{name}_local_data_source.dart` パターンに一致しないと報告される
+- 例: `arch_definition_local_exception.dart` → `Expected: {name}_local_data_source.dart`
+- **対処**: `exceptions/` はサブディレクトリであり、親ディレクトリの命名規則は適用すべきでない。サブディレクトリの除外ロジックを追加する
+
+### 問題 3: `utakata diff` がファイルを `__files__` ディレクトリとして誤検出する
+
+- `plan_architecture.yaml` にディレクトリのみ記述した場合、各ディレクトリ配下の dart ファイル群が `__files__` サブディレクトリの Extra として報告される
+- 例: `features/arch_viewer/1_domain/1_entities/__files__` (Extra)
+- **対処**: `diff` コマンドの比較ロジックで、ファイルとディレクトリを正しく区別する
+
+### 問題 4: `yaml_file_watcher_data_source.dart` の命名違反
+
+- feature 名 `validation` との prefix 不一致で違反として検出される
+- 実際には「ファイル監視」という具体的な責務名を意図的に付与している
+- **対処**: 命名規則に `prefix_override` 等の柔軟性を持たせるか、data_source 層は feature 名と一致しなくても良いルールに変更する
+
+### 対象ファイル（utakata_code 側）
+
+- `lib/src/1_domain/3_usecases/validate_structure_usecase.dart` — validate ロジック
+- `lib/src/1_domain/3_usecases/diff_structure_usecase.dart` — diff ロジック
+
+### ステータス
+
+- [ ] 保留（utakata_studio の実装を優先）

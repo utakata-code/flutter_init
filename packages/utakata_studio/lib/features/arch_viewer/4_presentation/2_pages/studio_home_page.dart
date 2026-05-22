@@ -25,6 +25,17 @@ class StudioHomePage extends HookConsumerWidget {
     final validationState = ref.watch(validationNotifierProvider);
     final layerState = ref.watch(layerVisualizerNotifierProvider);
 
+    // バリデーション完了時にレイヤービジュアライザへ自動連携
+    ref.listen<ValidationState>(validationNotifierProvider, (prev, next) {
+      next.mapOrNull(
+        loaded: (s) {
+          ref
+              .read(layerVisualizerNotifierProvider.notifier)
+              .updateLayers(s.result.layers);
+        },
+      );
+    });
+
     return Scaffold(
       backgroundColor: StudioTheme.darkBg,
       body: Row(

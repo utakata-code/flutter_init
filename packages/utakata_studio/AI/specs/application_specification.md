@@ -222,10 +222,11 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
   - **データモデル**: freezed（必要に応じて）
   - **YAML パース**: yaml パッケージ
   - **ウィンドウ制御**: window_manager（Desktop 向け）
+  - **ルーティング**: go_router — 設定画面等の画面遷移に使用
+  - **ファイル選択**: file_picker — プロジェクトフォルダ選択
   - **CLI 連携**: dart:io の Process（utakata コマンドの実行）
   - **ドメインモデル共有**: utakata_code パッケージ（path 依存）
 - **不要なもの**:
-  - go_router: v0.1.0 では単一画面、v0.2.0 以降もサイドバーナビゲーションで十分
   - drift: DB 不要（utakata はすべてテキストファイルで管理）
   - Firebase: ローカル専用アプリ
 
@@ -266,6 +267,7 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 ## 更新履歴
 - 2026-05-22: 仕様草案 v1 作成
 - 2026-05-22: v2 ブラッシュアップ — コンセプト再定義（全 CLI 操作の GUI 化）、Web 対応追加、utakata CLI 前提条件明記
+- 2026-05-22: v3 技術選定更新 — go_router を「不要」から「採用済み」へ移動、file_picker 追加
 
 ## 参考・関連
 - プロセス詳細（第一段階）: `flutter-stage1-specification` スキル

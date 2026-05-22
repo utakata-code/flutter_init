@@ -7,6 +7,8 @@ import 'app.dart';
 import 'core/routing/app_router.dart';
 import 'features/settings/3_application/1_states/settings_state.dart';
 import 'features/settings/3_application/3_notifiers/settings_notifier.dart';
+import 'features/layer_visualizer/3_application/3_notifiers/layer_visualizer_notifier.dart';
+import 'features/validation/3_application/1_states/validation_state.dart';
 import 'features/validation/3_application/3_notifiers/validation_notifier.dart';
 
 /// アプリのブートシーケンス
@@ -50,9 +52,19 @@ void main() {
         ) ??
         '.';
 
-    container
+    await container
         .read(validationNotifierProvider.notifier)
         .loadAndValidate('$projectRoot/AI/architecture/arch_definition.yaml');
+
+    // バリデーション結果のレイヤーをレイヤービジュアライザに連携
+    final validationState = container.read(validationNotifierProvider);
+    validationState.mapOrNull(
+      loaded: (s) {
+        container
+            .read(layerVisualizerNotifierProvider.notifier)
+            .updateLayers(s.result.layers);
+      },
+    );
 
     runApp(UncontrolledProviderScope(
       container: container,
