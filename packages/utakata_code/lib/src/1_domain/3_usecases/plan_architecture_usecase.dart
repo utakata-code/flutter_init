@@ -32,21 +32,15 @@ class PlanArchitectureUsecase {
       final featureName = featureEntry.key as String;
       final details = featureEntry.value;
 
-      String perm = 'user';
       String entity = featureName;
 
       if (details is Map) {
-        perm = (details['permission'] as String?) ?? 'user';
         entity = (details['entity'] as String?) ?? featureName;
       }
 
+      // フラット形式: features.{featureName} に直接配置
       final features = plan['features'] as Map<String, dynamic>;
-      if (!features.containsKey(perm)) {
-        features[perm] = <String, dynamic>{};
-      }
-
-      (features[perm] as Map<String, dynamic>)[featureName] =
-          _buildFeaturePlan(featureName, entity);
+      features[featureName] = _buildFeaturePlan(featureName, entity);
     }
 
     // 計画を保存

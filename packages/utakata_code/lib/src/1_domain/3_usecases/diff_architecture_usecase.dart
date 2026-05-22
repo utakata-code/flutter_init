@@ -42,6 +42,11 @@ class DiffArchitectureUsecase {
   }
 
   /// expected にあって actual にないパスを収集する（再帰）
+  ///
+  /// __files__ の扱い:
+  ///   - expected（plan）に __files__ があれば、actual（current）と比較する
+  ///   - expected（current）に __files__ があっても、plan 側になければスキップ
+  ///     （計画になかったファイルは Extra として報告しない）
   List<String> _collectMissing(
     dynamic expected,
     dynamic actual,
@@ -52,8 +57,20 @@ class DiffArchitectureUsecase {
     if (expected is Map) {
       final actualMap = actual is Map ? actual : <String, dynamic>{};
       for (final key in expected.keys) {
-        // __files__ はファイルリストであり、ディレクトリではないのでスキップ
-        if (key == '__files__') continue;
+        if (key == '__files__') {
+          // plan に __files__ がある場合はファイル名を比較
+          final expectedFiles = expected[key];
+          final actualFiles = actualMap[key];
+          if (expectedFiles is List) {
+            final actualList = actualFiles is List ? actualFiles : <dynamic>[];
+            for (final file in expectedFiles) {
+              if (!actualList.contains(file)) {
+                missing.add(path.isEmpty ? file.toString() : '$path/$file');
+              }
+            }
+          }
+          continue;
+        }
         final currentPath = path.isEmpty ? '$key' : '$path/$key';
         if (!actualMap.containsKey(key)) {
           missing.add(currentPath);

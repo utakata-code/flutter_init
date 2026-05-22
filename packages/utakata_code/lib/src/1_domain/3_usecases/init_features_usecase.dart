@@ -30,25 +30,41 @@ class InitFeaturesUsecase {
       throw Exception(_msg.planNotFound('AI/specs/plan_architecture.yaml'));
     }
 
+    // feature_request.yaml から permission を取得
+    Map<String, dynamic>? featureRequest;
+    try {
+      featureRequest = await _projectRepo.readFeatureRequest(projectDir);
+    } catch (_) {
+      // feature_request.yaml がない場合は permission = 'direct' をデフォルトに
+    }
+
     final tasks = <FeatureSpecEntity>[];
     final featuresNode = plan['features'];
     if (featuresNode is! Map) return tasks;
 
-    // features.{perm}.{feature_name} を走査
-    for (final permEntry in featuresNode.entries) {
-      final perm = permEntry.key as String;
-      final permNode = permEntry.value;
-      if (permNode is! Map) continue;
+    // フラット形式: features.{feature_name} を走査
+    for (final featureEntry in featuresNode.entries) {
+      final featureName = featureEntry.key as String;
+      final featureNode = featureEntry.value;
 
-      for (final featureEntry in permNode.entries) {
-        final featureName = featureEntry.key as String;
-        final entityName = _detectEntityName(featureName, featureEntry.value);
-        tasks.add(FeatureSpecEntity(
-          featureName: featureName,
-          entityName: entityName,
-          permission: perm,
-        ));
+      // feature_request.yaml から permission を取得、なければ 'direct'
+      String perm = 'direct';
+      if (featureRequest != null) {
+        final reqFeatures = featureRequest['features'];
+        if (reqFeatures is Map && reqFeatures.containsKey(featureName)) {
+          final reqDetails = reqFeatures[featureName];
+          if (reqDetails is Map) {
+            perm = (reqDetails['permission'] as String?) ?? 'direct';
+          }
+        }
       }
+
+      final entityName = _detectEntityName(featureName, featureNode);
+      tasks.add(FeatureSpecEntity(
+        featureName: featureName,
+        entityName: entityName,
+        permission: perm,
+      ));
     }
 
     if (!dryRun) {
