@@ -7,6 +7,7 @@ import '../1_atoms/status_badge_atom.dart';
 /// サイドバーのコールバック定義
 typedef SidebarCallbacks = ({
   VoidCallback onSettingsTap,
+  VoidCallback onHealthTap,
   VoidCallback onOpenProject,
 });
 
@@ -126,11 +127,11 @@ class SidebarOrganism extends StatelessWidget {
             label: 'Features',
             isActive: false,
             badge: 'v0.2'),
-        const _NavItem(
+        _NavItem(
             icon: Icons.health_and_safety_outlined,
             label: 'Health',
             isActive: false,
-            badge: 'v0.2'),
+            onTap: callbacks.onHealthTap),
         const _NavItem(
             icon: Icons.dashboard_outlined,
             label: 'Dashboard',

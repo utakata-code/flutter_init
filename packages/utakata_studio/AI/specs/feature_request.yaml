@@ -1,16 +1,10 @@
 # feature_request.yaml
 # utakata plan に渡すと AI/specs/plan_architecture.yaml が生成される
-#
-# 使い方:
-#   1. このファイルにフィーチャー情報を記載する
-#   2. utakata plan を実行する
-#   3. plan_architecture.yaml が自動生成される
-#   4. utakata feature init で一括生成する
 
 # ── プロジェクト情報 ──
 project:
   name: "utakata_studio"
-  version: "0.1.0"
+  version: "0.2.0"
 
 # ── フィーチャー一覧（Map形式: キー = フィーチャー名） ──
 features:
@@ -34,6 +28,11 @@ features:
     entity: app_settings
     description: "utakata CLI パスのオーバーライド等のアプリ設定管理"
 
+  command_runner:
+    permission: direct
+    entity: command_result
+    description: "utakata CLI コマンドを GUI から実行し、結果をリアルタイムストリーム表示する。validate/diff/check/scan/status 等の操作パネル"
+
 # ── Core層の追加設定 ──
 core:
   theme:
@@ -42,3 +41,14 @@ core:
   config:
     files:
       - app_config
+  cli_bridge:
+    files:
+      - cli_bridge
+      - cli_result
+      - cli_bridge_provider
+  routing:
+    files:
+      - app_router
+    path:
+      files:
+        - app_paths

@@ -45,6 +45,7 @@ class StudioHomePage extends HookConsumerWidget {
             validationState: validationState,
             callbacks: (
               onSettingsTap: () => context.push(AppPaths.settings),
+              onHealthTap: () => context.push(AppPaths.health),
               onOpenProject: () => _openProject(context, ref),
             ),
           ),

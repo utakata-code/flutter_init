@@ -4,7 +4,7 @@
 
 ## メタ情報
 - プロジェクト名: utakata studio
-- バージョン: 0.1.0
+- バージョン: 0.2.0
 - 最終更新日: 2026-05-22
 - 作成者: AI + haruma
 
@@ -20,6 +20,7 @@
   - `validation` — YAML パース・バリデーション + ファイル変更検知
   - `layer_visualizer` — レイヤー構造のグラフィカル描画
   - `settings` — utakata CLI パス設定等のアプリ設定
+  - `command_runner` — **[v0.2.0 NEW]** utakata CLI コマンドの GUI 実行 + 結果表示
 - 対象レイヤー: Domain / Infrastructure / Application / Presentation（4 層すべて）
 
 ## 依存・技術参照
@@ -29,6 +30,8 @@
   - flutter_hooks（UI フック）
   - freezed（データモデル）
   - yaml（YAML パース）
+  - go_router（ルーティング）
+  - file_picker（フォルダ選択）
   - window_manager（デスクトップウィンドウ制御）
   - utakata_code（ドメインモデル共有、path 依存）
 
@@ -182,7 +185,45 @@ lib/
           2_molecules/
           3_organisms/
         2_pages/
-          settings_page.dart
+           settings_page.dart
+    command_runner/
+      1_domain/
+        1_entities/
+          command_result_entity.dart        # CLI 実行結果エンティティ
+        2_repositories/
+          command_runner_repository.dart
+        3_usecases/
+          run_command_usecase.dart           # CLI コマンド実行ユースケース
+        exceptions/
+          command_runner_exception.dart
+      2_infrastructure/
+        1_models/
+          command_runner_model.dart          # CliResult → Entity 変換
+        2_data_sources/
+          1_local/
+            command_runner_local_data_source.dart  # CliBridge ラッパー
+            exceptions/
+          2_remote/
+            exceptions/
+        3_repositories/
+          command_runner_repository_impl.dart
+      3_application/
+        1_states/
+          command_runner_state.dart          # idle/running/completed/error
+        2_providers/
+          command_runner_providers.dart
+        3_notifiers/
+          command_runner_notifier.dart
+      4_presentation/
+        1_widgets/
+          1_atoms/
+            command_button_atom.dart          # CLI コマンドボタン
+          2_molecules/
+            command_output_molecule.dart      # 出力のリアルタイム表示
+          3_organisms/
+            command_panel_organism.dart       # コマンドボタン + 出力パネル統合
+        2_pages/
+          command_runner_page.dart            # Health タブページ
 ```
 
 ## ファイル定義表
@@ -232,10 +273,27 @@ lib/
 | `3_application/3_notifiers/` | `settings_notifier.dart` | 設定の読み込み・保存 |
 | `4_presentation/2_pages/` | `settings_page.dart` | 設定画面（CLI パスのオーバーライド等） |
 
+### command_runner フィーチャー（v0.2.0）
+
+| パス | ファイル名 | 役割 |
+|---|---|---|
+| `1_domain/1_entities/` | `command_result_entity.dart` | CLI 実行結果（command, exitCode, stdout, stderr, duration） |
+| `1_domain/2_repositories/` | `command_runner_repository.dart` | CLI 実行の抽象インターフェース |
+| `1_domain/3_usecases/` | `run_command_usecase.dart` | CLI コマンド実行ユースケース（callable） |
+| `2_infrastructure/1_models/` | `command_runner_model.dart` | CliResult → CommandResultEntity 変換 |
+| `2_infrastructure/2_data_sources/1_local/` | `command_runner_local_data_source.dart` | CliBridge ラッパー |
+| `2_infrastructure/3_repositories/` | `command_runner_repository_impl.dart` | Repository 実装 |
+| `3_application/1_states/` | `command_runner_state.dart` | idle / running / completed / error |
+| `3_application/2_providers/` | `command_runner_providers.dart` | DI Provider |
+| `3_application/3_notifiers/` | `command_runner_notifier.dart` | コマンド実行 + 状態管理 |
+| `4_presentation/1_widgets/1_atoms/` | `command_button_atom.dart` | CLI コマンドボタン |
+| `4_presentation/1_widgets/2_molecules/` | `command_output_molecule.dart` | 出力のリアルタイム表示 |
+| `4_presentation/1_widgets/3_organisms/` | `command_panel_organism.dart` | ボタン群 + 出力パネル統合 |
+| `4_presentation/2_pages/` | `command_runner_page.dart` | Health タブページ |
+
 ## ルーティング計画
-- v0.1.0 では単一画面（StudioHomePage）のため、ルーティング不要
-- v0.2.0 以降: サイドバーナビゲーションで画面切替（IndexedStack または Navigator）
-- go_router は不使用
+- v0.1.0: `home` (/) + `settings` (/settings) — go_router 使用
+- v0.2.0: `health` (/health) を追加 — CLI コマンド実行画面
 
 ## 状態管理計画（Riverpod）
 
@@ -318,6 +376,7 @@ lib/
 
 ## 更新履歴
 - 2026-05-22: 構造計画 v1 作成
+- 2026-05-22: v2 更新 — command_runner feature 追加、cli_bridge / go_router / file_picker を反映
 
 ## 参考・関連
 - 仕様書: `AI/specs/application_specification.md`

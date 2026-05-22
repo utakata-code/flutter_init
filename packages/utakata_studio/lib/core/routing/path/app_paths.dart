@@ -12,4 +12,8 @@ class AppPaths {
   // ── 設定 ──
   static const settings = '/settings';
   static const settingsRouteName = 'settings';
+
+  // ── ヘルス（CLI コマンド実行） ──
+  static const health = '/health';
+  static const healthRouteName = 'health';
 }
