@@ -33,6 +33,16 @@ features:
     entity: command_result
     description: "utakata CLI コマンドを GUI から実行し、結果をリアルタイムストリーム表示する。validate/diff/check/scan/status 等の操作パネル"
 
+  feature_viewer:
+    permission: direct
+    entity: feature_request
+    description: "feature_request.yaml をパースし、フィーチャー一覧をカード形式でビジュアル表示するビューア"
+
+  dashboard:
+    permission: direct
+    entity: project_status
+    description: "utakata status コマンドを実行し、Flutter バージョン・Lint 結果・Diff 結果等をセクション別にダッシュボード表示"
+
 # ── Core層の追加設定 ──
 core:
   theme:

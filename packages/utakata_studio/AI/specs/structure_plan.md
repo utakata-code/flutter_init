@@ -20,7 +20,9 @@
   - `validation` — YAML パース・バリデーション + ファイル変更検知
   - `layer_visualizer` — レイヤー構造のグラフィカル描画
   - `settings` — utakata CLI パス設定等のアプリ設定
-  - `command_runner` — **[v0.2.0 NEW]** utakata CLI コマンドの GUI 実行 + 結果表示
+  - `command_runner` — **[v0.2.0]** utakata CLI コマンドの GUI 実行 + 結果表示
+  - `feature_viewer` — **[v0.2.0 NEW]** feature_request.yaml のビジュアルビューア
+  - `dashboard` — **[v0.2.0 NEW]** utakata status のダッシュボード表示
 - 対象レイヤー: Domain / Infrastructure / Application / Presentation（4 層すべて）
 
 ## 依存・技術参照
@@ -45,8 +47,28 @@ lib/
       studio_theme.dart           # ダークテーマ定義（カラー、フォント、グラデーション）
     config/
       app_config.dart             # アプリ設定（utakata CLI パス等）
+    cli_bridge/
+      cli_bridge.dart             # CLI 実行基盤（Process.run / Process.start）
+      cli_result.dart             # CLI 実行結果モデル
+      cli_bridge_provider.dart    # CliBridge の Riverpod Provider
+    routing/
+      app_router.dart             # go_router ルーティング定義（ShellRoute）
+      path/
+        app_paths.dart            # ルートパス定数
   features/
-    arch_viewer/
+    arch_viewer/                  # → 既存
+    validation/                   # → 既存
+    layer_visualizer/             # → 既存
+    settings/                     # → 既存
+    command_runner/               # → v0.2.0
+    feature_viewer/               # → v0.2.0 NEW
+      4_presentation/
+        2_pages/
+          features_page.dart      # feature_request.yaml ビジュアルビューア
+    dashboard/                    # → v0.2.0 NEW
+      4_presentation/
+        2_pages/
+          dashboard_page.dart     # utakata status ダッシュボード
       1_domain/
         1_entities/
           arch_definition_entity.dart   # arch_definition.yaml 全体を表すエンティティ
@@ -293,7 +315,10 @@ lib/
 
 ## ルーティング計画
 - v0.1.0: `home` (/) + `settings` (/settings) — go_router 使用
-- v0.2.0: `health` (/health) を追加 — CLI コマンド実行画面
+- v0.2.0: ShellRoute でサイドバー常時表示 + 以下のルート追加:
+  - `health` (/health) — CLI コマンド実行画面（command_runner）
+  - `features` (/features) — feature_request.yaml ビューア（feature_viewer）
+  - `dashboard` (/dashboard) — utakata status ダッシュボード（dashboard）
 
 ## 状態管理計画（Riverpod）
 

@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'path/app_paths.dart';
 import '../../features/arch_viewer/4_presentation/2_pages/shell_layout_page.dart';
 import '../../features/arch_viewer/4_presentation/2_pages/studio_home_page.dart';
-import '../../features/arch_viewer/4_presentation/2_pages/features_page.dart';
-import '../../features/arch_viewer/4_presentation/2_pages/dashboard_page.dart';
+import '../../features/feature_viewer/4_presentation/2_pages/features_page.dart';
+import '../../features/dashboard/4_presentation/2_pages/dashboard_page.dart';
 import '../../features/command_runner/4_presentation/2_pages/command_runner_page.dart';
 import '../../features/settings/4_presentation/2_pages/settings_page.dart';
 

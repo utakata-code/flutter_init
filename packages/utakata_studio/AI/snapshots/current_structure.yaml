@@ -57,9 +57,6 @@ features:
             - sidebar_organism.dart
       2_pages:
         __files__:
-          - dashboard_page.dart
-          - features_page.dart
-          - placeholder_page.dart
           - shell_layout_page.dart
           - studio_home_page.dart
   command_runner:
@@ -108,6 +105,58 @@ features:
       2_pages:
         __files__:
           - command_runner_page.dart
+  dashboard:
+    1_domain:
+      1_entities:
+      2_repositories:
+      3_usecases:
+      exceptions:
+    2_infrastructure:
+      1_models:
+      2_data_sources:
+        1_local:
+          exceptions:
+        2_remote:
+          exceptions:
+      3_repositories:
+    3_application:
+      1_states:
+      2_providers:
+      3_notifiers:
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - dashboard_page.dart
+  feature_viewer:
+    1_domain:
+      1_entities:
+      2_repositories:
+      3_usecases:
+      exceptions:
+    2_infrastructure:
+      1_models:
+      2_data_sources:
+        1_local:
+          exceptions:
+        2_remote:
+          exceptions:
+      3_repositories:
+    3_application:
+      1_states:
+      2_providers:
+      3_notifiers:
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - features_page.dart
   layer_visualizer:
     1_domain:
       1_entities:
