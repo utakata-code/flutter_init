@@ -23,6 +23,7 @@ CLI がプロセスの標準入出力を通じてフィードバックを返す�
 utakata studio は **YAML を直接編集するエディタではない**。YAML の構造をビジュアルに表示する **ビューア** であり、将来的にはフォーム UI を通じてアーキテクチャを GUI で構築する **ビジュアルエディタ** へと進化する。
 
 - **v0.1.0（ビューアモード）**: arch_definition.yaml をパースし、レイヤー構造・命名規則・ガイドを視覚的に表示する。raw YAML の編集は VSCode / Antigravity IDE 等の外部エディタで行い、studio はリアルタイムにファイル変更を検知して表示を更新する。
+- **v0.2.0（タブ化 + ガイド Markdown レンダリング）**: ビューアを4タブ（LAYERS/NAMING RULES/CORE MODULES/GUIDES）に分割しスクロール量を削減。ガイドカードをクリックすると `GuideEntity.render()` で生成された Markdown がダイアログ内でリッチレンダリング表示される。レイヤービジュアライザは全サブディレクトリの依存グラフに進化。
 - **v0.3.0（ビジュアルエディタモード）**: raw ↔ ビジュアルの切替をサポート。ビジュアルモードでは、たとえばクリーンアーキテクチャなら：
   - エンティティのプロパティ（名前・型・制約）を GUI フォームで設定
   - ユースケースを「＋」ボタンで追加
@@ -170,10 +171,13 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 - **ShellLayoutPage**: サイドバー常時表示 + コンテンツ領域切り替え（ShellRoute パターン）
   - 左ペイン（280px 固定）: サイドバー — ロゴ、ナビゲーション（5項目 + Settings）、バリデーションステータス、構造統計
   - 右ペイン: ルートに応じたコンテンツ切り替え
-- **StudioHomePage** (`/`): Architecture ビューア + レイヤービジュアライザ（2ペイン）
+- **StudioHomePage** (`/`): Architecture タブビューア（LAYERS/NAMING/CORE/GUIDES） + 全ディレクトリ依存グラフ（2ペイン）
+  - ガイドカードクリック → Markdown レンダリングダイアログ（flutter_markdown）
+  - **TODO**: 現在は `GuideEntity.render(null)` でメタデータ（doList/dontList/imports/naming）のみ表示。将来的に `detailContentPath` から実際の GUIDE.md ファイル（コード例・実装ガイドライン等）を読み込んで `render(fileContent)` に渡す
 - **CommandRunnerPage** (`/health`): CLI コマンド実行 GUI + リアルタイムストリーム出力
 - **SettingsPage** (`/settings`): プロジェクトルート設定 + CLI パス設定 + 接続テスト
-- **PlaceholderPage** (`/features`, `/dashboard`): 未実装機能のプレースホルダー
+- **FeaturesPage** (`/features`): feature_request.yaml ビジュアルビューア
+- **DashboardPage** (`/dashboard`): utakata status ダッシュボード
 > **注意**: v0.1.0 では中央ペインは「閲覧専用ビューア」であり、raw YAML のテキスト編集機能は持たない。
 > raw YAML の編集は VSCode / Antigravity IDE 等の外部エディタで行い、ファイル変更検知で studio が自動更新する。
 
@@ -263,6 +267,7 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
   - **yaml** — YAML パース
   - **path** — パス操作
   - **freezed_annotation** — データクラス
+  - **flutter_markdown** — ガイドの Markdown レンダリング
   - **build_runner** + **freezed**（dev）— コード生成
 
 ## マイルストーン（仕様策定観点）
@@ -279,6 +284,7 @@ utakata studio は **YAML を直接編集するエディタではない**。YAML
 - 2026-05-22: v2 ブラッシュアップ — コンセプト再定義（全 CLI 操作の GUI 化）、Web 対応追加、utakata CLI 前提条件明記
 - 2026-05-22: v3 技術選定更新 — go_router を「不要」から「採用済み」へ移動、file_picker 追加
 - 2026-05-22: v4 v0.2.0 進捗反映 — command_runner 実装、ShellRoute 導入、CLI ブリッジ強化（dart.exe 自動解決 / ANSI 除去 / UTF-8 対応）、画面設計更新
+- 2026-05-22: v5 v0.2.0 進捗反映 — ビューアタブ化、全ディレクトリ依存グラフ、ガイド Markdown レンダリング、feature_viewer/dashboard 実装、flutter_markdown 追加
 ## 参考・関連
 - プロセス詳細（第一段階）: `flutter-stage1-specification` スキル
 - アーキテクチャ規約: `AI/architecture/features/ARCHITECTURE.md`

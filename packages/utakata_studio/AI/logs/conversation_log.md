@@ -65,6 +65,67 @@
 
 ---
 
+## [2026-05-22 14:41] Features / Dashboard 画面実装 + フィーチャー分離
+
+**ステージ**: Stage 3 - 実装（v0.2.0 継続）
+**担当AIエージェント**: Antigravity (Google Deepmind)
+**会話ID**: c4922fea-2b05-47c8-a973-554da5571bbb
+
+### 🎯 目的・背景
+
+- v0.2.0 の残りタスク: Features 画面（feature_request.yaml ビューア）と Dashboard 画面（status ダッシュボード）の実装
+- 実装後にユーザーから「別フィーチャーに切り出すべき」と指摘を受け、utakata ワークフローに従って正しくリファクタリング
+
+### 💬 会話の要点
+
+- Features 画面: feature_request.yaml をパースしてカード形式で表示
+- Dashboard 画面: `utakata status` を実行しセクション別にカード表示
+- 最初は `arch_viewer` 配下に配置 → ユーザー指摘で `feature_viewer` / `dashboard` に分離
+- `utakata feature add --permission direct -y` で正しいディレクトリ構造を生成
+- 生成されたボイラープレートは不要分を削除し、実装済みページのみ配置
+
+### ✅ 実施した作業
+
+| ファイル | 変更内容 |
+|---|---|
+| `feature_request.yaml` | `feature_viewer` / `dashboard` フィーチャー追加 |
+| `plan_architecture.yaml` | 2フィーチャーの4層ディレクトリ構造追加 |
+| `structure_plan.md` | フィーチャー一覧・ルーティング計画・ディレクトリ構造更新 |
+| `application_specification.md` | v0.2.0 進捗反映（バージョン、スコープ、F-01、画面設計、ナビゲーション原則） |
+| `features_page.dart` | **[NEW]** `feature_viewer/4_presentation/2_pages/` に配置 |
+| `dashboard_page.dart` | **[NEW]** `dashboard/4_presentation/2_pages/` に配置 |
+| `app_router.dart` | import パスを新フィーチャーに変更 |
+
+### 🔍 発見した問題
+
+| 問題 | 原因 | 解決策 |
+|---|---|---|
+| `utakata feature add` のパスが `lib/features/user/` | permission デフォルトが `user` | `--permission direct` を明示指定 |
+| 生成テンプレートで 226 エラー | ボイラープレートが riverpod_annotation 等に依存 | 不要なテンプレートファイルを削除、ディレクトリ構造のみ保持 |
+| SettingsState の `mapOrNull` / `when` が使えない | freezed sealed class の API | Dart 3 パターンマッチング（`switch`）で対応 |
+
+### 💡 解決方法・決定事項
+
+- **フィーチャー分離原則**: 独立した画面は独立フィーチャーとして切り出す
+- **utakata feature add の使い方**: `--permission direct -y` で確認スキップ + 正しいパス生成
+- **ボイラープレート戦略**: 生成テンプレートのうち不要な層は削除、必要な層のみ実装
+
+### 📊 影響範囲
+
+- **新規ファイル**: 2ファイル（features_page.dart, dashboard_page.dart）
+- **更新ファイル**: 4ファイル（スペック3点 + ルーター）
+- **新フィーチャーディレクトリ**: 2つ（feature_viewer, dashboard）
+- **flutter analyze**: No issues found ✅
+
+### 📝 次回への引き継ぎ事項
+
+- [ ] **v0.2.0 残り**: plan / feature add / feature init の GUI 実行（UC-06〜UC-08）
+- [ ] **utakata_code 側のバグ修正**: TODO.md に記載の 4件（保留）
+- [ ] **Features 画面の拡充**: plan_architecture.yaml の表示、feature init の GUI 実行
+- [ ] **Dashboard 画面の拡充**: validate / diff / check 結果のサマリー表示
+
+---
+
 ## [2026-05-22 14:19] CLI 接続修正 + ShellRoute サイドバー常時表示 + 文字化け修正
 
 **ステージ**: Stage 3 - 実装（v0.2.0 継続）

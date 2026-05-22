@@ -200,6 +200,7 @@ features:
         1_atoms:
           __files__:
             - dependency_arrow_atom.dart
+            - dependency_graph_painter.dart
         2_molecules:
           __files__:
             - layer_card_molecule.dart
