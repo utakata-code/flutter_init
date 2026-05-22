@@ -210,3 +210,28 @@ core_modules:
 | ✅ 完了 | Phase 3: project_status 汎用化 ＆ 依存関係自動マージ・自動ビルド実行 | v0.6.0 |
 | ✅ 完了 | Phase 4: ローカル優先読み込み | v0.4.1 (先行実装) |
 | 🔵 将来 | Phase 5: GUI (utakata_studio) | v1.0.0 |
+
+---
+
+## 保留: `utakata feature init` が `plan_architecture.yaml` の `__files__` を尊重する改善
+
+### 現状の問題
+
+- `utakata feature init` は `plan_architecture.yaml` に記載されたファイル名（`__files__`）を**無視**し、固定テンプレート（`entity.dart`, `repository.dart`, `usecase.dart` 等の汎用名）を常に生成する
+- `plan_architecture.yaml` に `section_header_atom.dart`, `sidebar_organism.dart` 等の具体的なファイル名を定義しても反映されない
+
+### あるべき姿
+
+- `plan_architecture.yaml` の `__files__` に記載されたファイル名でスケルトンを生成する
+- ファイル名が未指定のディレクトリは、従来通り汎用テンプレート（`entity.dart` 等）を生成する（後方互換）
+- atoms / molecules / organisms 等のウィジェットファイルも `plan_architecture.yaml` に定義した名前で生成する
+
+### 対象ファイル（utakata_code 側）
+
+- `lib/src/1_domain/3_usecases/init_features_usecase.dart` — ファイル生成ロジック
+- `plan_architecture.yaml` の `__files__` を読み取り、テンプレートの出力ファイル名を動的に変更する
+
+### ステータス
+
+- [ ] 保留（utakata_studio の実装を優先）
+

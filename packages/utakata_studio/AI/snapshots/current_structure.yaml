@@ -1,0 +1,193 @@
+features:
+  arch_viewer:
+    1_domain:
+      1_entities:
+        __files__:
+          - entity.dart
+      2_repositories:
+        __files__:
+          - repository.dart
+      3_usecases:
+        __files__:
+          - usecase.dart
+      exceptions:
+        __files__:
+          - exceptions.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+          __files__:
+            - local_data_source.dart
+        2_remote:
+          exceptions:
+          __files__:
+            - remote_data_source.dart
+      3_repositories:
+        __files__:
+          - repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - state.dart
+      2_providers:
+        __files__:
+          - providers.dart
+      3_notifiers:
+        __files__:
+          - notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - page.dart
+  layer_visualizer:
+    1_domain:
+      1_entities:
+        __files__:
+          - entity.dart
+      2_repositories:
+        __files__:
+          - repository.dart
+      3_usecases:
+        __files__:
+          - usecase.dart
+      exceptions:
+        __files__:
+          - exceptions.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+          __files__:
+            - local_data_source.dart
+        2_remote:
+          exceptions:
+          __files__:
+            - remote_data_source.dart
+      3_repositories:
+        __files__:
+          - repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - state.dart
+      2_providers:
+        __files__:
+          - providers.dart
+      3_notifiers:
+        __files__:
+          - notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - page.dart
+  settings:
+    1_domain:
+      1_entities:
+        __files__:
+          - entity.dart
+      2_repositories:
+        __files__:
+          - repository.dart
+      3_usecases:
+        __files__:
+          - usecase.dart
+      exceptions:
+        __files__:
+          - exceptions.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+          __files__:
+            - local_data_source.dart
+        2_remote:
+          exceptions:
+          __files__:
+            - remote_data_source.dart
+      3_repositories:
+        __files__:
+          - repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - state.dart
+      2_providers:
+        __files__:
+          - providers.dart
+      3_notifiers:
+        __files__:
+          - notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - page.dart
+  validation:
+    1_domain:
+      1_entities:
+        __files__:
+          - entity.dart
+      2_repositories:
+        __files__:
+          - repository.dart
+      3_usecases:
+        __files__:
+          - usecase.dart
+      exceptions:
+        __files__:
+          - exceptions.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+          __files__:
+            - local_data_source.dart
+        2_remote:
+          exceptions:
+          __files__:
+            - remote_data_source.dart
+      3_repositories:
+        __files__:
+          - repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - state.dart
+      2_providers:
+        __files__:
+          - providers.dart
+      3_notifiers:
+        __files__:
+          - notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - page.dart
