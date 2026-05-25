@@ -97,50 +97,152 @@ naming_rules:
 
 # ─── ガイド定義 ───
 guides:
-  - title: "エンティティ"
+  - title: "Entity Layer — エンティティ層"
     layer_path: "1_model/1_entities"
-    detail_content_path: ""
-    rules:
-      - "不変オブジェクトとして定義する（freezed 推奨）"
-      - "ビジネスロジックを持たない純粋なデータクラス"
+    apply_to: "lib/features/**/1_model/1_entities/**"
     naming_pattern: "{対象名}_entity.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/1_model/1_entities/GUIDE.md"
+    do_list:
+      - "ビジネスオブジェクトの定義: アプリケーションで扱う中核的なデータ構造"
+      - "不変性の保証: freezed を使用してイミュータブルに定義"
+      - "純粋なDartコード: 外部ライブラリに依存しない実装"
+    dont_list:
+      - "UIフレームワークへの依存: Flutterウィジェットのimport禁止"
+      - "データベースアクセス: 永続化に関する処理の記述"
+      - "状態管理ライブラリへの依存: Riverpodなどのimport禁止"
+    allowed_imports:
+      - "import 'dart:core';"
+      - "import 'package:freezed_annotation/freezed_annotation.dart';"
+      - "import 'package:json_annotation/json_annotation.dart';"
+      - "import '../other_entity.dart';"
+    forbidden_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import 'package:riverpod/riverpod.dart';"
+      - "import 'package:dio/dio.dart';"
 
-  - title: "リポジトリ"
+  - title: "Repository Layer — リポジトリ層"
     layer_path: "1_model/2_repositories"
-    detail_content_path: ""
-    rules:
-      - "データアクセスの抽象インターフェースを定義"
-      - "実装は同ディレクトリに配置"
+    apply_to: "lib/features/**/1_model/2_repositories/**"
     naming_pattern: "{対象名}_repository.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/1_model/2_repositories/GUIDE.md"
+    do_list:
+      - "データアクセスの抽象化: abstract interface class で定義"
+      - "ドメイン境界の保護: 外部データソース仕様をドメインモデルから隠蔽"
+      - "実装クラスは同ディレクトリに配置: {name}_repository_impl.dart"
+    dont_list:
+      - "データベース・通信ライブラリへの依存: dioやdriftの直接import"
+      - "状態管理ライブラリへの依存: Riverpodの直接import"
+    allowed_imports:
+      - "import '../1_entities/some_entity.dart';"
+      - "import '../exceptions/some_exception.dart';"
+    forbidden_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import 'package:dio/dio.dart';"
+      - "import 'package:drift/drift.dart';"
 
-  - title: "サービス"
+  - title: "Service Layer — サービス層"
     layer_path: "1_model/3_services"
-    detail_content_path: ""
-    rules:
-      - "ビジネスロジックを集約する"
-      - "リポジトリを通じてデータにアクセスする"
+    apply_to: "lib/features/**/1_model/3_services/**"
     naming_pattern: "{対象名}_service.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/1_model/3_services/GUIDE.md"
+    do_list:
+      - "ビジネスロジックの集約: 複数リポジトリの協調や業務処理を実装"
+      - "リポジトリインターフェースへの依存: 実装クラスではなく抽象に依存"
+    dont_list:
+      - "UIロジックの混入: BuildContext等への依存禁止"
+      - "状態管理ライブラリへの依存: Riverpodのimport禁止"
+    allowed_imports:
+      - "import '../1_entities/some_entity.dart';"
+      - "import '../2_repositories/some_repository.dart';"
+      - "import '../exceptions/some_exception.dart';"
+    forbidden_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import 'package:riverpod/riverpod.dart';"
 
-  - title: "ViewModel (State)"
+  - title: "Model Exceptions Layer — 例外層"
+    layer_path: "1_model/exceptions"
+    apply_to: "lib/features/**/1_model/exceptions/**"
+    naming_pattern: "{対象名}_exception.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/1_model/exceptions/GUIDE.md"
+    do_list:
+      - "ドメイン固有エラーの定義: ビジネスロジック上の異常系を型安全に表現"
+    dont_list:
+      - "インフラ層エラーの漏洩: HTTPエラーやSQLエラーをそのままスローしない"
+    allowed_imports:
+      - "import 'dart:core';"
+    forbidden_imports:
+      - "import 'package:dio/dio.dart';"
+
+  - title: "ViewModel State Layer — 状態定義層"
     layer_path: "2_viewmodel/1_states"
-    detail_content_path: ""
-    rules:
-      - "freezed で不変状態を定義"
-      - "UI が参照する状態の型を提供"
+    apply_to: "lib/features/**/2_viewmodel/1_states/**"
     naming_pattern: "{feature名}_state.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/2_viewmodel/1_states/GUIDE.md"
+    do_list:
+      - "UI状態の定義: ローディング、成功、失敗など不変状態オブジェクト"
+      - "freezed で不変性を保証"
+    dont_list:
+      - "ミュータブルな状態表現: 必ず @freezed でイミュータブルに定義"
+      - "Flutter UIへの依存: BuildContext等のimport禁止"
+    allowed_imports:
+      - "import 'package:freezed_annotation/freezed_annotation.dart';"
+      - "import '../../1_model/1_entities/some_entity.dart';"
+    forbidden_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import 'package:riverpod/riverpod.dart';"
 
-  - title: "ViewModel (Notifier)"
+  - title: "ViewModel Notifier Layer — ノティファイア層"
     layer_path: "2_viewmodel/2_notifiers"
-    detail_content_path: ""
-    rules:
-      - "Riverpod Notifier で状態遷移ロジックを実装"
-      - "Service 層を呼び出して状態を更新"
+    apply_to: "lib/features/**/2_viewmodel/2_notifiers/**"
     naming_pattern: "{feature名}_notifier.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/2_viewmodel/2_notifiers/GUIDE.md"
+    do_list:
+      - "UI状態変更ロジック: ユーザーイベントを受けてServiceを呼び出しStateを更新"
+      - "Riverpod Notifier で状態遷移を実装"
+    dont_list:
+      - "ビジネスルールの直接記述: ロジックはServiceに委譲"
+      - "Flutter UIへの依存: BuildContext等のimport禁止"
+    allowed_imports:
+      - "import 'package:riverpod_annotation/riverpod_annotation.dart';"
+      - "import '../1_states/some_state.dart';"
+      - "import '../../1_model/3_services/some_service.dart';"
+    forbidden_imports:
+      - "import 'package:flutter/material.dart';"
 
-  - title: "Screen"
+  - title: "View Widget Layer — ウィジェット層"
+    layer_path: "3_view/1_widgets"
+    apply_to: "lib/features/**/3_view/1_widgets/**"
+    naming_pattern: "{対象名}_widget.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/3_view/1_widgets/GUIDE.md"
+    do_list:
+      - "再利用可能なUI部品の定義: カード、リスト項目、フォーム等"
+      - "引数でデータを受け取る: コンストラクタ経由でのデータ受け渡し"
+    dont_list:
+      - "Riverpodへの直接依存: 状態管理からの隔離"
+      - "ビジネスロジックの混入: 表示のみに専念"
+    allowed_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import '../../1_model/1_entities/some_entity.dart';"
+    forbidden_imports:
+      - "import 'package:flutter_riverpod/flutter_riverpod.dart';"
+      - "import '../../2_viewmodel/2_notifiers/some_notifier.dart';"
+
+  - title: "View Screen Layer — 画面層"
     layer_path: "3_view/2_screens"
-    detail_content_path: ""
-    rules:
-      - "1画面 = 1 Screen ファイル"
-      - "ViewModel の状態を watch して描画"
+    apply_to: "lib/features/**/3_view/2_screens/**"
     naming_pattern: "{feature名}_screen.dart"
+    detail_content_path: "architectures/mvvm/AI/architecture/features/3_view/2_screens/GUIDE.md"
+    do_list:
+      - "完全な画面レイアウトの構築: Widgetを配置して1つの画面を定義"
+      - "状態の監視: ConsumerWidget / HookConsumerWidget でNotifierの状態をwatch"
+    dont_list:
+      - "ビジネスロジック記述: イベントをNotifierに通知するのみ"
+      - "Repository / Serviceの直接呼び出し: 必ずNotifier経由"
+    allowed_imports:
+      - "import 'package:flutter/material.dart';"
+      - "import 'package:hooks_riverpod/hooks_riverpod.dart';"
+      - "import '../../2_viewmodel/2_notifiers/some_notifier.dart';"
+      - "import '../1_widgets/some_widget.dart';"
+    forbidden_imports:
+      - "import '../../1_model/2_repositories/some_repository.dart';"
+      - "import '../../1_model/3_services/some_service.dart';"

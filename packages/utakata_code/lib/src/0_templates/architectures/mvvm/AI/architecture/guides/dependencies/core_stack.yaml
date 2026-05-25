@@ -1,0 +1,32 @@
+# MVVM コアスタック定義
+# arch_definition.yaml の dependencies セクションと同期すること
+
+flutter:
+  sdk: flutter
+
+# ─── 状態管理 ───
+hooks_riverpod: ^2.6.1
+flutter_hooks: ^0.20.5
+
+# ─── データモデル ───
+freezed_annotation: ^3.0.0
+json_annotation: ^4.9.0
+
+# ─── HTTP通信 ───
+dio: ^5.4.0
+
+# ─── 画面遷移 ───
+go_router: ^15.1.3
+
+# ─── ユーティリティ ───
+shared_preferences: ^2.5.5
+logger: ^2.6.2
+intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.8
+  freezed: ^3.0.0
+  json_serializable: ^6.8.0

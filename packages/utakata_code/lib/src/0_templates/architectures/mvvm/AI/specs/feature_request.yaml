@@ -1,0 +1,40 @@
+# feature_request.yaml
+# AI書き込み用 — フィーチャーの要件定義のみを記載する
+# AI/scripts/generate/generate_plan.sh に渡すと AI/snapshots/plan_architecture.yaml が生成される
+#
+# 使い方:
+#   1. AIがこのファイルにフィーチャー情報を記載する
+#   2. ./AI/scripts/generate/generate_plan.sh を実行する
+#   3. バリデーション通過後、plan_architecture.yaml が自動生成される
+
+# ── プロジェクト情報 ──
+project:
+  name: ""       # プロジェクト名（必須）
+  version: ""    # バージョン（必須）
+
+# ── フィーチャー一覧（必須: 1つ以上） ──
+features: {}
+  # 以下のフォーマットで記載する（MVVM 3層）:
+  #
+  # memo:                           # フィーチャー名（snake_case、必須）
+  #   permission: user              # admin / user / shared / direct（必須）
+  #   description: "メモ機能"        # 説明（必須）
+  #   entities:                     # エンティティ一覧（必須: 1つ以上）
+  #     - memo                      #   → memo_entity.dart
+  #   services:                     # サービス一覧（オプション）
+  #     - memo                      #   → memo_service.dart
+  #   screens:                      # 画面一覧（オプション）
+  #     - memo_list                 #   → memo_list_screen.dart
+  #     - memo_detail               #   → memo_detail_screen.dart
+  #   widgets:                      # ウィジェット一覧（オプション）
+  #     - memo_card                 #   → memo_card_widget.dart
+
+# ── Core層の追加設定（オプション） ──
+core:
+  routing:
+    files: []                       # app_router → app_router.dart
+    paths: []                       # memo_paths → memo_paths.dart
+  theme:
+    files: []                       # app_theme → app_theme.dart
+  di:
+    files: []                       # providers → providers.dart
