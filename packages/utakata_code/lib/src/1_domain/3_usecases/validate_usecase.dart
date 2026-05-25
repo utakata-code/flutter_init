@@ -49,12 +49,15 @@ class ValidateUsecase {
 
     // 2. ディレクトリ構造違反を検出（plan vs current）
     final plan = await _projectRepo.readPlanArchitecture(projectDir);
-    final current = await _projectRepo.readCurrentStructure(projectDir);
+    
+    // ディスクの最新構造をリアルタイムスキャンし、スナップショットを同期更新
+    final current = await _projectRepo.scanFeaturesStructure(projectDir);
+    await _projectRepo.writeCurrentStructure(projectDir, current);
 
     final missingDirs = <String>[];
     final extraDirs = <String>[];
 
-    if (plan != null && current != null) {
+    if (plan != null) {
       missingDirs.addAll(_collectMissing(plan, current, ''));
       extraDirs.addAll(_collectMissing(current, plan, ''));
     }

@@ -1,11 +1,9 @@
 import '../1_entities/architecture_diff_entity.dart';
 import '../messages/cli_messages.dart';
 import 'diff_architecture_usecase.dart';
-import 'scan_structure_usecase.dart';
 
 /// プロジェクトステータスを集計するユースケース
 class StatusUsecase {
-  final ScanStructureUsecase _scanUsecase;
   final DiffArchitectureUsecase _diffUsecase;
   final CliMessages _msg;
 
@@ -16,13 +14,11 @@ class StatusUsecase {
   final Future<String> Function() _getFlutterVersion;
 
   const StatusUsecase({
-    required ScanStructureUsecase scanUsecase,
     required DiffArchitectureUsecase diffUsecase,
     required CliMessages msg,
     required Future<String> Function(String projectDir) runFlutterAnalyze,
     required Future<String> Function() getFlutterVersion,
-  })  : _scanUsecase = scanUsecase,
-        _diffUsecase = diffUsecase,
+  })  : _diffUsecase = diffUsecase,
         _msg = msg,
         _runFlutterAnalyze = runFlutterAnalyze,
         _getFlutterVersion = getFlutterVersion;
@@ -38,8 +34,7 @@ class StatusUsecase {
     final flutterVersion = results[0];
     final analyzeOutput = results[1];
 
-    // scan してから diff
-    await _scanUsecase.execute(projectDir);
+    // diff 内部で自動的にスキャン＆保存されます
     ArchitectureDiffEntity? diff;
     try {
       diff = await _diffUsecase.execute(projectDir);

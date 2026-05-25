@@ -48,9 +48,11 @@ class PlanArchitectureUsecase {
 
       String entity = featureName;
       String archId = defaultArchId;
+      String permission = 'user';
 
       if (details is Map) {
         entity = (details['entity'] as String?) ?? featureName;
+        permission = (details['permission'] as String?) ?? 'user';
         // フィーチャー単位でアーキテクチャをオーバーライド可能
         archId = (details['architecture'] as String?) ?? defaultArchId;
       }
@@ -58,7 +60,11 @@ class PlanArchitectureUsecase {
       // アーキテクチャ定義を取得して動的に plan を生成
       final arch = await _archRepo.getById(archId);
       final features = plan['features'] as Map<String, dynamic>;
-      features[featureName] = _buildFeaturePlan(arch, featureName, entity);
+      
+      features.putIfAbsent(permission, () => <String, dynamic>{});
+      final permGroup = features[permission] as Map<String, dynamic>;
+      
+      permGroup[featureName] = _buildFeaturePlan(arch, featureName, entity);
     }
 
     // 計画を保存

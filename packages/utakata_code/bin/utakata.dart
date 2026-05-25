@@ -127,7 +127,6 @@ Future<void> main(List<String> arguments) async {
   );
 
   final statusUsecase = StatusUsecase(
-    scanUsecase: scanUsecase,
     diffUsecase: diffUsecase,
     msg: msg,
     runFlutterAnalyze: process.flutterAnalyze,

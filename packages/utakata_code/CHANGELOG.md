@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+* **feat(verify)**: Switched verification commands (`utakata diff`, `utakata check`, `utakata validate`, `utakata status`) to use **real-time directory scanning** instead of reading saved snapshot files. They now scan disk changes dynamically and auto-update `current_structure.yaml` in the background (no longer requiring manual `utakata scan` before diff/check).
+* **refactor(plan)**: Reverted plan architecture structure back to nested **`features.{permission}.{featureName}`** format to completely align with physical folder structure, resolving false validation errors when permission folders are present.
+
 ## 0.5.1
 
 * **fix(plan)**: Corrected `feature_request.yaml` template file in clean_architecture. Changed `features` default from `[]` (List) to `{}` (Map) and updated the commented example to Map format to align with `utakata plan` parser expectations (was failing with `planMissingFeaturesKey` exception).

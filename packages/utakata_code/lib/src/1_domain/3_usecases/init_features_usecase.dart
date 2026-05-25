@@ -42,39 +42,43 @@ class InitFeaturesUsecase {
     final featuresNode = plan['features'];
     if (featuresNode is! Map) return tasks;
 
-    // フラット形式: features.{feature_name} を走査
-    for (final featureEntry in featuresNode.entries) {
-      final featureName = featureEntry.key as String;
-      final featureNode = featureEntry.value;
+    // ネスト形式: features.{permission}.{feature_name} を走査
+    for (final permEntry in featuresNode.entries) {
+      final perm = permEntry.key as String;
+      final permNode = permEntry.value;
+      if (permNode is! Map) continue;
 
-      // feature_request.yaml から permission と architecture を取得
-      String perm = 'direct';
-      String archId = 'clean_architecture';
-      if (featureRequest != null) {
-        // プロジェクトデフォルトの architecture
-        final projectNode = featureRequest['project'];
-        if (projectNode is Map) {
-          archId = (projectNode['architecture'] as String?) ?? archId;
-        }
+      for (final featureEntry in permNode.entries) {
+        final featureName = featureEntry.key as String;
+        final featureNode = featureEntry.value;
 
-        final reqFeatures = featureRequest['features'];
-        if (reqFeatures is Map && reqFeatures.containsKey(featureName)) {
-          final reqDetails = reqFeatures[featureName];
-          if (reqDetails is Map) {
-            perm = (reqDetails['permission'] as String?) ?? 'direct';
-            // フィーチャー単位でオーバーライド
-            archId = (reqDetails['architecture'] as String?) ?? archId;
+        // feature_request.yaml から architecture を取得
+        String archId = 'clean_architecture';
+        if (featureRequest != null) {
+          // プロジェクトデフォルトの architecture
+          final projectNode = featureRequest['project'];
+          if (projectNode is Map) {
+            archId = (projectNode['architecture'] as String?) ?? archId;
+          }
+
+          final reqFeatures = featureRequest['features'];
+          if (reqFeatures is Map && reqFeatures.containsKey(featureName)) {
+            final reqDetails = reqFeatures[featureName];
+            if (reqDetails is Map) {
+              // フィーチャー単位でオーバーライド
+              archId = (reqDetails['architecture'] as String?) ?? archId;
+            }
           }
         }
-      }
 
-      final entityName = _detectEntityName(featureName, featureNode);
-      tasks.add(FeatureSpecEntity(
-        featureName: featureName,
-        entityName: entityName,
-        permission: perm,
-        architectureId: archId,
-      ));
+        final entityName = _detectEntityName(featureName, featureNode);
+        tasks.add(FeatureSpecEntity(
+          featureName: featureName,
+          entityName: entityName,
+          permission: perm,
+          architectureId: archId,
+        ));
+      }
     }
 
     if (!dryRun) {

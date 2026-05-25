@@ -21,15 +21,15 @@ class DiffArchitectureUsecase {
   /// [projectDir]: プロジェクトルートパス
   Future<ArchitectureDiffEntity> execute(String projectDir) async {
     final plan = await _projectRepo.readPlanArchitecture(projectDir);
-    final current = await _projectRepo.readCurrentStructure(projectDir);
+    
+    // ディスクの最新構造をリアルタイムスキャン
+    final current = await _projectRepo.scanFeaturesStructure(projectDir);
+    
+    // スナップショットファイルを同期更新
+    await _projectRepo.writeCurrentStructure(projectDir, current);
 
     if (plan == null) {
       throw Exception(_msg.planNotFound('AI/specs/plan_architecture.yaml'));
-    }
-    if (current == null) {
-      throw Exception(
-        _msg.currentStructureNotFound('AI/snapshots/current_structure.yaml'),
-      );
     }
 
     final missingPaths = _collectMissing(plan, current, '');
