@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.7
+
+* **fix(version)**: Fixed hardcoded version display in `utakata --version` — now correctly shows the current version
+* **feat(status)**: `utakata status` now also generates `AI/snapshots/preview/project_status.md` Markdown preview
+* **docs**: Added English `README.md`, renamed original to `README_ja.md`
+
 ## 0.5.6
 
 * **feat(status)**: `utakata status` now also generates `AI/snapshots/preview/project_status.md` — a human-readable Markdown preview of the project status with ✅/❌ icons, tables, and feature count
