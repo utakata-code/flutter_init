@@ -54,6 +54,12 @@ class AddFeatureUsecase {
 
     for (final template in templates) {
       final resolvedPath = template.resolvedPath(variables);
+      
+      // プレースホルダーの.dartファイルは生成しないようにスキップ
+      if (resolvedPath.endsWith('.dart')) {
+        continue;
+      }
+
       // 動的生成対象の GUIDE.md であれば、静的なコピー処理をスキップする
       if (p.basename(resolvedPath) == 'GUIDE.md') {
         continue;

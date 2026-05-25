@@ -13,10 +13,10 @@ project:
   version: ""    # バージョン（必須）
 
 # ── フィーチャー一覧（必須: 1つ以上） ──
-features: []
+features: {}
   # 以下のフォーマットで記載する:
   #
-  # - name: memo                    # フィーチャー名（snake_case、必須）
+  # memo:                           # フィーチャー名（snake_case、必須）
   #   permission: user              # admin / user / shared / direct（必須）
   #   description: "メモ機能"        # 説明（必須）
   #   entities:                     # エンティティ一覧（必須: 1つ以上）
