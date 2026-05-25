@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.6
+
+* **feat(status)**: `utakata status` now also generates `AI/snapshots/preview/project_status.md` — a human-readable Markdown preview of the project status with ✅/❌ icons, tables, and feature count
+
 ## 0.5.5
 
 * **feat(core)**: New `utakata core` command — generates Core directory structure dynamically from `arch_definition.yaml` `core_modules` (replaces hardcoded `generate_core.sh`)

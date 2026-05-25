@@ -28,4 +28,7 @@ abstract interface class ProjectRepository {
 
   /// project_status.yaml を書き込む
   Future<void> writeProjectStatus(String projectDir, Map<String, dynamic> status);
+
+  /// AI/snapshots/preview/project_status.md を書き込む
+  Future<void> writeProjectStatusMarkdown(String projectDir, String markdown);
 }

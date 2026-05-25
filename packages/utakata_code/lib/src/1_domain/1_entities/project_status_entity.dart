@@ -87,4 +87,85 @@ class ProjectStatusEntity {
       'updated_by': 'utakata status',
     };
   }
+
+  /// Markdown プレビュー用のテキストを生成する
+  String toMarkdown() {
+    final buf = StringBuffer();
+    String icon(bool v) => v ? '✅' : '❌';
+    String docLabel(String s) {
+      switch (s) {
+        case 'template_only':
+          return 'テンプレートのみ';
+        case 'edited':
+          return '✅ 編集済み';
+        case 'not_found':
+          return '❌ 未作成';
+        default:
+          return s;
+      }
+    }
+
+    buf.writeln('# プロジェクトステータス');
+    buf.writeln();
+    buf.writeln('> 自動生成 — 手動編集しないでください');
+    buf.writeln('> 生成日時: ${updatedAt.toIso8601String()}');
+    buf.writeln();
+
+    // プロジェクト情報
+    if (projectName.isNotEmpty) {
+      buf.writeln('## プロジェクト');
+      buf.writeln();
+      buf.writeln('| 項目 | 値 |');
+      buf.writeln('|------|-----|');
+      buf.writeln('| 名前 | $projectName |');
+      buf.writeln('| バージョン | $projectVersion |');
+      buf.writeln();
+    }
+
+    // Flutter
+    buf.writeln('## Flutter プロジェクト');
+    buf.writeln();
+    buf.writeln('| 項目 | 状態 |');
+    buf.writeln('|------|------|');
+    buf.writeln('| pubspec.yaml | ${icon(pubspecExists)} |');
+    buf.writeln('| lib/ | ${icon(libExists)} |');
+    buf.writeln('| 初期化済み | ${icon(initialized)} |');
+    buf.writeln();
+
+    // エントリポイント
+    buf.writeln('## エントリポイント');
+    buf.writeln();
+    buf.writeln('| ファイル | 状態 |');
+    buf.writeln('|---------|------|');
+    buf.writeln('| main.dart | ${icon(mainDartExists)} |');
+    buf.writeln('| app.dart | ${icon(appDartExists)} |');
+    buf.writeln();
+
+    // Core
+    buf.writeln('## Core 基盤');
+    buf.writeln();
+    buf.writeln('| コンポーネント | 状態 |');
+    buf.writeln('|-------------|------|');
+    for (final entry in coreModules.entries) {
+      buf.writeln('| ${entry.key}/ | ${icon(entry.value)} |');
+    }
+    buf.writeln();
+
+    // ドキュメント
+    buf.writeln('## ドキュメント');
+    buf.writeln();
+    buf.writeln('| ドキュメント | 状態 |');
+    buf.writeln('|-----------|------|');
+    buf.writeln('| 仕様書 | ${docLabel(specificationStatus)} |');
+    buf.writeln('| 構造計画書 | ${docLabel(structurePlanStatus)} |');
+    buf.writeln();
+
+    // フィーチャー
+    buf.writeln('## フィーチャー');
+    buf.writeln();
+    buf.writeln('- **検出数**: $featureCount');
+    buf.writeln();
+
+    return buf.toString();
+  }
 }

@@ -51,10 +51,15 @@ class StatusCommand extends BaseCommand {
       Logger.warn(msg.diffSummary(diff.missingCount, diff.extraCount));
     }
 
-    // project_status.yaml を更新
+    // project_status.yaml + preview/project_status.md を更新
+    final projectDir = Directory.current.path;
     await _projectRepo.writeProjectStatus(
-      Directory.current.path,
+      projectDir,
       result.projectStatus.toYamlMap(),
+    );
+    await _projectRepo.writeProjectStatusMarkdown(
+      projectDir,
+      result.projectStatus.toMarkdown(),
     );
 
     return 0;

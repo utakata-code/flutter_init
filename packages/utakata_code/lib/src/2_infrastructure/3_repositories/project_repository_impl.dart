@@ -18,6 +18,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
   static const _planArchYamlPath = 'AI/specs/plan_architecture.yaml';
   static const _currentStructYamlPath = 'AI/snapshots/current_structure.yaml';
   static const _projectStatusYamlPath = 'AI/snapshots/project_status.yaml';
+  static const _projectStatusMdPath = 'AI/snapshots/preview/project_status.md';
   static const _featuresDir = 'lib/features';
 
   @override
@@ -88,6 +89,17 @@ class ProjectRepositoryImpl implements ProjectRepository {
     await _fs.writeFile(
       p.join(projectDir, _projectStatusYamlPath),
       header + yamlStr,
+    );
+  }
+
+  @override
+  Future<void> writeProjectStatusMarkdown(
+    String projectDir,
+    String markdown,
+  ) async {
+    await _fs.writeFile(
+      p.join(projectDir, _projectStatusMdPath),
+      markdown,
     );
   }
 }
