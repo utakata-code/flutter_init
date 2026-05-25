@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1
+
+* **fix(plan)**: Corrected `feature_request.yaml` template file in clean_architecture. Changed `features` default from `[]` (List) to `{}` (Map) and updated the commented example to Map format to align with `utakata plan` parser expectations (was failing with `planMissingFeaturesKey` exception).
+* **feat(feature)**: Skip placeholder `.dart` files generation during `utakata feature add` and `utakata feature init`. Now only architecture directory structure and `GUIDE.md` files are generated, avoiding template boilerplates.
+
 ## 0.5.0
 
 * **feat(multi-arch)**: `utakata plan` now dynamically generates architecture plans from `arch_definition.yaml` — no longer hardcoded to Clean Architecture
