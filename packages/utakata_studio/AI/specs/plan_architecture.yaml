@@ -1,0 +1,309 @@
+features:
+  arch_viewer:
+    1_domain:
+      1_entities:
+        __files__:
+          - arch_definition_entity.dart
+      2_repositories:
+        __files__:
+          - arch_definition_repository.dart
+      3_usecases:
+        __files__:
+          - load_arch_definition_usecase.dart
+      exceptions:
+        __files__:
+          - arch_viewer_exception.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - arch_definition_model.dart
+      2_data_sources:
+        1_local:
+          __files__:
+            - arch_definition_local_data_source.dart
+          exceptions:
+            __files__:
+              - arch_definition_local_exception.dart
+        2_remote:
+          exceptions:
+      3_repositories:
+        __files__:
+          - arch_definition_repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - arch_viewer_state.dart
+      2_providers:
+        __files__:
+          - arch_viewer_providers.dart
+      3_notifiers:
+        __files__:
+          - arch_viewer_notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+          __files__:
+            - section_header_atom.dart
+            - status_badge_atom.dart
+        2_molecules:
+          __files__:
+            - core_module_card_molecule.dart
+            - guide_card_molecule.dart
+            - layer_summary_card_molecule.dart
+            - naming_rule_card_molecule.dart
+        3_organisms:
+          __files__:
+            - arch_definition_viewer_organism.dart
+            - sidebar_organism.dart
+      2_pages:
+        __files__:
+          - shell_layout_page.dart
+          - studio_home_page.dart
+  command_runner:
+    1_domain:
+      1_entities:
+        __files__:
+          - command_result_entity.dart
+      2_repositories:
+        __files__:
+          - command_runner_repository.dart
+      3_usecases:
+        __files__:
+          - run_command_usecase.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - command_runner_model.dart
+      2_data_sources:
+        1_local:
+          __files__:
+            - command_runner_local_data_source.dart
+      3_repositories:
+        __files__:
+          - command_runner_repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - command_runner_state.dart
+      2_providers:
+        __files__:
+          - command_runner_providers.dart
+      3_notifiers:
+        __files__:
+          - command_runner_notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+          __files__:
+            - command_button_atom.dart
+        2_molecules:
+          __files__:
+            - command_output_molecule.dart
+        3_organisms:
+          __files__:
+            - command_panel_organism.dart
+      2_pages:
+        __files__:
+          - command_runner_page.dart
+  dashboard:
+    1_domain:
+      1_entities:
+      2_repositories:
+      3_usecases:
+      exceptions:
+    2_infrastructure:
+      1_models:
+      2_data_sources:
+        1_local:
+          exceptions:
+        2_remote:
+          exceptions:
+      3_repositories:
+    3_application:
+      1_states:
+      2_providers:
+      3_notifiers:
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - dashboard_page.dart
+  feature_viewer:
+    1_domain:
+      1_entities:
+      2_repositories:
+      3_usecases:
+      exceptions:
+    2_infrastructure:
+      1_models:
+      2_data_sources:
+        1_local:
+          exceptions:
+        2_remote:
+          exceptions:
+      3_repositories:
+    3_application:
+      1_states:
+      2_providers:
+      3_notifiers:
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - features_page.dart
+  layer_visualizer:
+    1_domain:
+      1_entities:
+        __files__:
+          - layer_visual_entity.dart
+      2_repositories:
+        __files__:
+          - layer_visual_repository.dart
+      3_usecases:
+        __files__:
+          - build_layer_tree_usecase.dart
+      exceptions:
+        __files__:
+          - layer_visualizer_exception.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - layer_visual_model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+          __files__:
+            - layer_visual_local_data_source.dart
+        2_remote:
+          exceptions:
+      3_repositories:
+        __files__:
+          - layer_visual_repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - layer_visualizer_state.dart
+      2_providers:
+        __files__:
+          - layer_visualizer_providers.dart
+      3_notifiers:
+        __files__:
+          - layer_visualizer_notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+          __files__:
+            - dependency_arrow_atom.dart
+            - dependency_graph_painter_atom.dart
+        2_molecules:
+          __files__:
+            - layer_card_molecule.dart
+        3_organisms:
+          __files__:
+            - layer_tree_visualizer_organism.dart
+      2_pages:
+  settings:
+    1_domain:
+      1_entities:
+        __files__:
+          - app_settings_entity.dart
+      2_repositories:
+        __files__:
+          - settings_repository.dart
+      3_usecases:
+        __files__:
+          - load_settings_usecase.dart
+          - save_settings_usecase.dart
+      exceptions:
+        __files__:
+          - settings_exception.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - app_settings_model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+            __files__:
+              - settings_local_exception.dart
+          __files__:
+            - settings_local_data_source.dart
+        2_remote:
+          exceptions:
+      3_repositories:
+        __files__:
+          - settings_repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - settings_state.dart
+      2_providers:
+        __files__:
+          - settings_providers.dart
+      3_notifiers:
+        __files__:
+          - settings_notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+        3_organisms:
+      2_pages:
+        __files__:
+          - settings_page.dart
+  validation:
+    1_domain:
+      1_entities:
+        __files__:
+          - validation_result_entity.dart
+      2_repositories:
+        __files__:
+          - validation_repository.dart
+          - yaml_parser_repository.dart
+      3_usecases:
+        __files__:
+          - validate_yaml_usecase.dart
+      exceptions:
+        __files__:
+          - validation_exception.dart
+    2_infrastructure:
+      1_models:
+        __files__:
+          - validation_result_model.dart
+      2_data_sources:
+        1_local:
+          exceptions:
+            __files__:
+              - file_watcher_exception.dart
+          __files__:
+            - yaml_file_watcher_data_source.dart
+        2_remote:
+          exceptions:
+      3_repositories:
+        __files__:
+          - validation_repository_impl.dart
+          - yaml_parser_repository_impl.dart
+    3_application:
+      1_states:
+        __files__:
+          - validation_state.dart
+      2_providers:
+        __files__:
+          - validation_providers.dart
+      3_notifiers:
+        __files__:
+          - validation_notifier.dart
+    4_presentation:
+      1_widgets:
+        1_atoms:
+        2_molecules:
+          __files__:
+            - validation_status_molecule.dart
+        3_organisms:
+      2_pages:

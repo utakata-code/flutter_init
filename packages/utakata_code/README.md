@@ -12,9 +12,10 @@
 ## Features
 
 - 🤖 **AI-Native Development**: Commands designed for both humans and AI agents. Combined with `.agent/` rules and `AI/guides/`, AI can develop without architectural drift.
-- 🏗️ **Architecture-Agnostic**: No longer hardcoded to Clean Architecture. Define your own architecture via `arch_definition.yaml`.
+- 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)** out of the box. Create your own via `utakata arch create` or `arch_definition.yaml`.
 - 🔍 **Validate Everything**: `utakata validate` detects naming rule violations and directory structure violations — based on your `arch_definition.yaml`.
 - 📋 **Specification-Driven**: Define features in `feature_request.yaml`, generate a plan, scaffold all layers at once.
+- 📊 **File-Level Diff**: `utakata diff` compares planned vs actual file names, not just directories — enabling precise progress tracking.
 - 🌐 **Internationalized**: CLI messages support English and Japanese.
 
 ---
@@ -45,6 +46,33 @@ utakata validate
 
 ---
 
+## Built-in Architectures
+
+```sh
+utakata arch list    # List all available architectures
+utakata arch show mvvm  # Show layer structure and naming rules
+```
+
+| Architecture | Layers | Description |
+|---|---|---|
+| `clean_architecture` | 4 | Domain → Infrastructure → Application → Presentation |
+| `mvvm` | 3 | Model → ViewModel → View |
+
+Specify in `feature_request.yaml`:
+
+```yaml
+project:
+  name: "my_app"
+  architecture: "mvvm"     # Project-wide default
+
+features:
+  todo:
+    entity: todo
+    # architecture: "clean_architecture"  # Per-feature override
+```
+
+---
+
 ## Command Reference
 
 ### `utakata create`
@@ -57,7 +85,7 @@ utakata create my_app --org com.example
 
 ### `utakata plan`
 
-Reads `AI/specs/feature_request.yaml` and generates a structured architecture plan.
+Reads `AI/specs/feature_request.yaml` and dynamically generates a structured architecture plan based on your `arch_definition.yaml`.
 
 ```sh
 utakata plan
@@ -75,18 +103,28 @@ utakata feature init
 
 ### `utakata validate`
 
-Validates naming rules and directory structure against `arch_definition.yaml`.
+Validates naming rules and directory structure against `arch_definition.yaml`. Auto-detects architecture from `feature_request.yaml`.
 
 ```sh
 utakata validate
+utakata validate --arch mvvm  # Explicit override
 ```
 
 ### `utakata scan / diff / check`
 
 ```sh
 utakata scan    # Snapshot the current lib/ structure
-utakata diff    # Compare plan vs actual structure
+utakata diff    # Compare plan vs actual (directories + files)
 utakata check   # Run diff and report violations
+```
+
+### `utakata arch`
+
+```sh
+utakata arch list              # List available architectures
+utakata arch show <id>         # Show layer structure and naming rules
+utakata arch create <id>       # Create a custom architecture locally
+utakata arch export <id>       # Export raw YAML definition
 ```
 
 ### `utakata status`
@@ -113,6 +151,7 @@ The generated project includes `.agent/rules/flutter.md` and `AI/guides/` with d
 
 ```
 packages/utakata_code/lib/src/
+├── 0_templates/     # Architecture templates (clean_architecture, mvvm)
 ├── 1_domain/        # Entities, Repository interfaces, Use cases
 ├── 2_infrastructure/ # Filesystem, YAML, Process data sources
 └── 3_application/   # Command handlers, Runner

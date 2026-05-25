@@ -78,21 +78,28 @@ class ValidateUsecase {
     if (!featuresDir.existsSync()) return violations;
 
     // lib/features/ 配下の全 .dart ファイルを走査
+    // .freezed.dart / .g.dart 等のコード生成ファイルは除外
     final dartFiles = featuresDir
         .listSync(recursive: true)
         .whereType<File>()
         .where((f) => f.path.endsWith('.dart'))
+        .where((f) => !f.path.endsWith('.freezed.dart'))
+        .where((f) => !f.path.endsWith('.g.dart'))
+        .where((f) => !f.path.endsWith('.template.dart'))
         .toList();
 
     for (final file in dartFiles) {
       // features/ 以降の相対パス
       final relPath = p.relative(file.path, from: p.join(projectDir, 'lib'));
       final fileName = p.basename(file.path);
-      final dirPath = p.dirname(relPath);
+      final dirPath = p.dirname(relPath).replaceAll(r'\', '/');
+
+      // exceptions/ サブディレクトリ配下のファイルは親ルールを適用しない
+      if (dirPath.contains('/exceptions')) continue;
 
       // マッチするルールを探す
       for (final rule in namingRules) {
-        if (rule.matches(dirPath.replaceAll(r'\', '/'))) {
+        if (rule.matches(dirPath)) {
           if (!rule.regex.hasMatch(fileName)) {
             violations.add(NamingViolationEntity(
               filePath: relPath.replaceAll(r'\', '/'),
@@ -118,6 +125,8 @@ class ValidateUsecase {
     if (expected is Map) {
       final actualMap = actual is Map ? actual : <String, dynamic>{};
       for (final key in expected.keys) {
+        // __files__ はファイルリストであり、ディレクトリではないのでスキップ
+        if (key == '__files__') continue;
         final currentPath = path.isEmpty ? '$key' : '$path/$key';
         if (!actualMap.containsKey(key)) {
           missing.add(currentPath);

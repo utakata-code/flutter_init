@@ -1,0 +1,29 @@
+// {{FeatureName}} プロバイダー定義
+//
+// アプリケーション層のプロバイダー定義。
+// Riverpod を使用してリポジトリと Notifier を提供する。
+
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../1_domain/2_repositories/{{entity_name}}_repository.dart';
+import '../3_repositories/{{entity_name}}_repository_impl.dart';
+import '../2_data_sources/1_local/{{entity_name}}_local_data_source.dart';
+
+part '{{feature_name}}_providers.g.dart';
+
+/// {{EntityName}}Repository プロバイダー
+@riverpod
+{{EntityName}}Repository {{featureName}}Repository({{FeatureName}}RepositoryRef ref) {
+  // TODO: 適切な LocalDataSource の実装を注入してください
+  final localDataSource = ref.watch({{featureName}}LocalDataSourceProvider);
+  return {{EntityName}}RepositoryImpl(localDataSource: localDataSource);
+}
+
+/// {{EntityName}}LocalDataSource プロバイダー
+@riverpod
+{{EntityName}}LocalDataSource {{featureName}}LocalDataSource(
+  {{FeatureName}}LocalDataSourceRef ref,
+) {
+  // TODO: 実装クラスを返してください
+  throw UnimplementedError();
+}

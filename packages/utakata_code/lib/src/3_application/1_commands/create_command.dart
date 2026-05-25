@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import '../../1_domain/1_entities/project_spec_entity.dart';
 import '../../1_domain/3_usecases/create_project_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
@@ -41,7 +43,7 @@ class CreateCommand extends BaseCommand {
     }
 
     final appName = argResults!.rest.first;
-    final projectName = _toSnakeCase(appName);
+    final projectName = _toSnakeCase(p.basename(appName));
 
     Logger.section(_msg.sectionCreate(appName));
 

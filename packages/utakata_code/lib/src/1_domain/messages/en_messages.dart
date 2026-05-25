@@ -173,6 +173,8 @@ class EnMessages implements CliMessages {
   String yamlParseFailed(String path) => 'Failed to parse YAML: $path';
   @override
   String get flutterCreateFailed => 'flutter create failed.';
+  @override
+  String get buildRunnerFailed => 'build_runner execution failed.';
 
   // ─── add_feature_usecase ───
   @override
@@ -205,4 +207,41 @@ class EnMessages implements CliMessages {
   @override
   String validateSummary(int naming, int missing, int extra) =>
       'Naming: $naming violation(s) / Missing: $missing / Extra: $extra';
+
+  // ─── arch subcommands ───
+  @override
+  String get cmdArchDesc => 'Inspect, export, and custom-create architectures';
+  @override
+  String get cmdArchListDesc => 'List all available architecture definitions';
+  @override
+  String get cmdArchShowDesc => 'Show detail definition, naming rules, and layer structure tree';
+  @override
+  String get cmdArchExportDesc => 'Export raw YAML file for the specified architecture';
+  @override
+  String get cmdArchCreateDesc => 'Create a customizable architecture definition boilerplate locally';
+  @override
+  String get archListHeader => 'Available Architecture Definitions:';
+  @override
+  String archShowHeader(String id, String name) => '🏛️ Architecture: $name ($id)';
+  @override
+  String get archShowLayers => '[Layer Structure (Layers)]';
+  @override
+  String get archShowNamingRules => '[Naming Rules]';
+  @override
+  String archExportSuccess(String id, String path) => '✅ Exported architecture "$id" to "$path"!';
+  @override
+  String archCreateSuccess(String id, String path) => '✅ Created local architecture boilerplate at "$path"!';
+  @override
+  String architectureAlreadyExists(String path) => '❌ Error: Architecture definition already exists: $path';
+  @override
+  String get missingArchitectureId => 'Please specify an architecture ID. Example: utakata arch show clean_architecture';
+  @override
+  String get missingOutputPath => 'Please specify an output path. Example: utakata arch export clean_architecture temp.yaml';
+
+  // ─── other errors ───
+  @override
+  String guideGenerationFailed(String error) => 'Failed to generate guides: $error';
+  @override
+  String templatePathResolveFailed(String path) => 'Failed to resolve package template path: $path';
 }
+

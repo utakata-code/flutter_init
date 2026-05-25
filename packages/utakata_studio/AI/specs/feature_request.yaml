@@ -1,0 +1,64 @@
+# feature_request.yaml
+# utakata plan に渡すと AI/specs/plan_architecture.yaml が生成される
+
+# ── プロジェクト情報 ──
+project:
+  name: "utakata_studio"
+  version: "0.2.0"
+
+# ── フィーチャー一覧（Map形式: キー = フィーチャー名） ──
+features:
+  arch_viewer:
+    permission: direct
+    entity: arch_definition
+    description: "アーキテクチャ定義のビジュアルビューア + サイドバー。3ペイン構成のメイン画面を提供する"
+
+  validation:
+    permission: direct
+    entity: validation_result
+    description: "YAML パース・バリデーション + ファイル変更検知。外部エディタでの変更を自動検知してリアルタイム再検証する"
+
+  layer_visualizer:
+    permission: direct
+    entity: layer_visual
+    description: "レイヤー構造をグラデーションカードで階層的にグラフィカル描画するビジュアライザ"
+
+  settings:
+    permission: direct
+    entity: app_settings
+    description: "utakata CLI パスのオーバーライド等のアプリ設定管理"
+
+  command_runner:
+    permission: direct
+    entity: command_result
+    description: "utakata CLI コマンドを GUI から実行し、結果をリアルタイムストリーム表示する。validate/diff/check/scan/status 等の操作パネル"
+
+  feature_viewer:
+    permission: direct
+    entity: feature_request
+    description: "feature_request.yaml をパースし、フィーチャー一覧をカード形式でビジュアル表示するビューア"
+
+  dashboard:
+    permission: direct
+    entity: project_status
+    description: "utakata status コマンドを実行し、Flutter バージョン・Lint 結果・Diff 結果等をセクション別にダッシュボード表示"
+
+# ── Core層の追加設定 ──
+core:
+  theme:
+    files:
+      - studio_theme
+  config:
+    files:
+      - app_config
+  cli_bridge:
+    files:
+      - cli_bridge
+      - cli_result
+      - cli_bridge_provider
+  routing:
+    files:
+      - app_router
+    path:
+      files:
+        - app_paths

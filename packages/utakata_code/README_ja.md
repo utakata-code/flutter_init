@@ -13,9 +13,10 @@
 ## 特徴
 
 - 🤖 **AI ネイティブ開発**: 人間と AI エージェントの両方向けに設計されたコマンド群。`.agent/` ルールと `AI/guides/` を組み合わせることで、AI がアーキテクチャから逸脱せずに開発できます。
-- 🏗️ **アーキテクチャ非依存**: Clean Architecture に限定されません。`arch_definition.yaml` で独自のアーキテクチャを定義できます。
+- 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch create` や `arch_definition.yaml` で独自アーキテクチャも定義可能。
 - 🔍 **構造・命名規則の検証**: `utakata validate` で命名規則違反とディレクトリ構造違反を `arch_definition.yaml` に基づいて検出します。
 - 📋 **仕様駆動**: `feature_request.yaml` にフィーチャーを定義し、計画書を生成、全層を一括スキャフォールドします。
+- 📊 **ファイルレベル差分**: `utakata diff` がディレクトリだけでなくファイル名も比較し、正確な進捗追跡が可能。
 - 🌐 **多言語対応**: CLI メッセージは日本語・英語に対応しています。
 
 ---
@@ -46,6 +47,33 @@ utakata validate
 
 ---
 
+## 組み込みアーキテクチャ
+
+```sh
+utakata arch list         # 利用可能なアーキテクチャ一覧
+utakata arch show mvvm    # レイヤー構造と命名規則を表示
+```
+
+| アーキテクチャ | レイヤー数 | 説明 |
+|---|---|---|
+| `clean_architecture` | 4 | Domain → Infrastructure → Application → Presentation |
+| `mvvm` | 3 | Model → ViewModel → View |
+
+`feature_request.yaml` で指定：
+
+```yaml
+project:
+  name: "my_app"
+  architecture: "mvvm"     # プロジェクト全体のデフォルト
+
+features:
+  todo:
+    entity: todo
+    # architecture: "clean_architecture"  # フィーチャー単位で上書き可能
+```
+
+---
+
 ## コマンドリファレンス
 
 ### `utakata create`
@@ -58,7 +86,7 @@ utakata create my_app --org com.example
 
 ### `utakata plan`
 
-`AI/specs/feature_request.yaml` を読み込み、構造化されたアーキテクチャ計画書を生成します。
+`AI/specs/feature_request.yaml` を読み込み、`arch_definition.yaml` に基づいて構造化されたアーキテクチャ計画書を動的に生成します。
 
 ```sh
 utakata plan
@@ -76,18 +104,28 @@ utakata feature init
 
 ### `utakata validate`
 
-`arch_definition.yaml` に基づいて命名規則とディレクトリ構造を検証します。
+`arch_definition.yaml` に基づいて命名規則とディレクトリ構造を検証します。アーキテクチャは `feature_request.yaml` から自動検出されます。
 
 ```sh
 utakata validate
+utakata validate --arch mvvm  # 明示的に指定
 ```
 
 ### `utakata scan / diff / check`
 
 ```sh
 utakata scan    # 現在の lib/ 構造をスキャン
-utakata diff    # 計画と実際の構造を比較
+utakata diff    # 計画と実際の構造を比較（ディレクトリ + ファイル）
 utakata check   # diff を実行して違反を報告
+```
+
+### `utakata arch`
+
+```sh
+utakata arch list              # 利用可能なアーキテクチャ一覧
+utakata arch show <id>         # レイヤー構造と命名規則を表示
+utakata arch create <id>       # ローカルにカスタムアーキテクチャを作成
+utakata arch export <id>       # 生の YAML 定義をエクスポート
 ```
 
 ### `utakata status`
@@ -115,6 +153,7 @@ utakata status
 
 ```
 packages/utakata_code/lib/src/
+├── 0_templates/      # アーキテクチャテンプレート (clean_architecture, mvvm)
 ├── 1_domain/         # エンティティ・リポジトリI/F・ユースケース
 ├── 2_infrastructure/  # ファイルシステム・YAML・プロセス操作
 └── 3_application/    # コマンドハンドラ・Runner

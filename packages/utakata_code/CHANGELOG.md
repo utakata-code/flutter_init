@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0
+
+* **feat(multi-arch)**: `utakata plan` now dynamically generates architecture plans from `arch_definition.yaml` — no longer hardcoded to Clean Architecture
+* **feat(multi-arch)**: Added `architecture` field to `feature_request.yaml` (`project.architecture` for project default, per-feature override also supported)
+* **feat(template)**: Added **MVVM (3-layer)** as a built-in architecture template (`1_model` / `2_viewmodel` / `3_view`)
+* **feat(diff)**: `utakata diff` now compares file names (`__files__`) when present in `plan_architecture.yaml`, enabling file-level progress tracking
+* **feat(validate)**: `utakata validate` auto-detects `architectureId` from `feature_request.yaml` (`--arch` flag still available for override)
+* **fix(validate)**: Exclude `.freezed.dart` / `.g.dart` generated files from naming rule validation
+* **fix(validate)**: Skip `exceptions/` subdirectories from parent naming rule matching (was causing false positives)
+* **fix(validate)**: Skip `__files__` key in directory structure comparison (was reporting 67+ false Extra violations)
+* **fix(diff)**: Smart `__files__` comparison — only compare file names when plan explicitly defines them; ignore extra files not in plan
+* **refactor(plan)**: Flat output format (`features.{name}`) instead of permission-grouped (`features.{perm}.{name}`)
+* **refactor(init)**: `feature init` reads `permission` and `architectureId` from `feature_request.yaml` instead of plan structure
+* **fix(naming)**: Relaxed `1_local` data source pattern from `_local_data_source.dart` to `_data_source.dart` (directory already implies locality)
+* **fix(naming)**: `{feature}` placeholder in `arch_definition.yaml` `description` for application/presentation layer files (state, providers, notifiers, pages)
+
 ## 0.4.0
 
 * **feat(template)**: Restructured `AI/` directory — introduced `AI/architecture/` to consolidate all architecture-specific resources (guides, features, core, arch_definition.yaml)

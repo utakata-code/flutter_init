@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../1_domain/2_repositories/project_repository.dart';
 import '../../1_domain/3_usecases/validate_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
@@ -8,6 +9,7 @@ import 'logger.dart';
 /// utakata validate — 命名規則 + ディレクトリ構造違反を検出する
 class ValidateCommand extends BaseCommand {
   final ValidateUsecase _usecase;
+  final ProjectRepository _projectRepo;
   final CliMessages _msg;
 
   @override
@@ -16,10 +18,9 @@ class ValidateCommand extends BaseCommand {
   @override
   String get description => _msg.cmdValidateDesc;
 
-  ValidateCommand(this._usecase, this._msg) {
+  ValidateCommand(this._usecase, this._projectRepo, this._msg) {
     argParser.addOption(
       'arch',
-      defaultsTo: 'clean_architecture',
       help: _msg.optArch,
     );
   }
@@ -28,9 +29,25 @@ class ValidateCommand extends BaseCommand {
   Future<int> execute() async {
     Logger.section(_msg.sectionValidate);
 
+    // --arch が指定されていなければ feature_request.yaml から自動取得
+    String archId = argResults!['arch'] as String? ?? '';
+    if (archId.isEmpty) {
+      try {
+        final request = await _projectRepo.readFeatureRequest(Directory.current.path);
+        final project = request['project'];
+        if (project is Map) {
+          archId = (project['architecture'] as String?) ?? 'clean_architecture';
+        } else {
+          archId = 'clean_architecture';
+        }
+      } catch (_) {
+        archId = 'clean_architecture';
+      }
+    }
+
     final result = await _usecase.execute(
       Directory.current.path,
-      architectureId: argResults!['arch'] as String,
+      architectureId: archId,
     );
 
     if (result.isClean) {

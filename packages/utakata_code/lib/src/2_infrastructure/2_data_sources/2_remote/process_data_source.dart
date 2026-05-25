@@ -39,7 +39,7 @@ class ProcessDataSource {
     // 2. 環境変数 FLUTTER_ROOT（SDK ルートディレクトリ）
     final envRoot = Platform.environment['FLUTTER_ROOT'];
     if (envRoot != null && envRoot.isNotEmpty) {
-      final candidate = p.join(envRoot, 'bin', 'flutter');
+      final candidate = p.join(envRoot, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter');
       if (File(candidate).existsSync()) return candidate;
     }
 
@@ -49,8 +49,23 @@ class ProcessDataSource {
       ['flutter'],
     );
     if (result.exitCode == 0) {
-      final line = (result.stdout as String).trim().split('\n').first.trim();
-      if (line.isNotEmpty) return line;
+      final lines = (result.stdout as String)
+          .trim()
+          .split('\n')
+          .map((l) => l.trim())
+          .where((l) => l.isNotEmpty)
+          .toList();
+      if (lines.isNotEmpty) {
+        if (Platform.isWindows) {
+          final batExe = lines.firstWhere(
+            (l) => l.endsWith('.bat') || l.endsWith('.cmd') || l.endsWith('.exe'),
+            orElse: () => lines.first,
+          );
+          return batExe;
+        } else {
+          return lines.first;
+        }
+      }
     }
 
     throw const FlutterNotFoundException();
@@ -79,6 +94,50 @@ class ProcessDataSource {
         appName,
       ],
       workingDirectory: workingDir,
+      runInShell: Platform.isWindows,
+    );
+
+    stdout.write(result.stdout);
+    if (result.exitCode != 0) {
+      stderr.write(result.stderr);
+      return false;
+    }
+    return true;
+  }
+
+  /// build_runner を実行する
+  ///
+  /// 成功時は true を返す
+  Future<bool> flutterPubRunBuildRunner({
+    required String appName,
+    String? workingDir,
+  }) async {
+    final targetDir = workingDir ?? p.join(Directory.current.path, appName);
+
+    // 依存関係を解決するために flutter pub get を実行
+    final getResult = await Process.run(
+      _flutterExe,
+      ['pub', 'get'],
+      workingDirectory: targetDir,
+      runInShell: Platform.isWindows,
+    );
+    stdout.write(getResult.stdout);
+    if (getResult.exitCode != 0) {
+      stderr.write(getResult.stderr);
+      return false;
+    }
+
+    final result = await Process.run(
+      _flutterExe,
+      [
+        'pub',
+        'run',
+        'build_runner',
+        'build',
+        '--delete-conflicting-outputs',
+      ],
+      workingDirectory: targetDir,
+      runInShell: Platform.isWindows,
     );
 
     stdout.write(result.stdout);
@@ -95,6 +154,7 @@ class ProcessDataSource {
       _flutterExe,
       ['analyze'],
       workingDirectory: projectDir,
+      runInShell: Platform.isWindows,
     );
     return result.stdout as String;
   }
@@ -104,6 +164,7 @@ class ProcessDataSource {
     final result = await Process.run(
       _flutterExe,
       ['--version', '--machine'],
+      runInShell: Platform.isWindows,
     );
     return result.stdout as String;
   }
