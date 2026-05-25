@@ -226,5 +226,11 @@ class JaMessages implements CliMessages {
   String get missingArchitectureId => 'アーキテクチャ ID を指定してください。例: utakata arch show clean_architecture';
   @override
   String get missingOutputPath => 'エクスポート先のパスを指定してください。例: utakata arch export clean_architecture temp.yaml';
+
+  // ─── その他エラー ───
+  @override
+  String guideGenerationFailed(String error) => 'ガイド生成に失敗しました: $error';
+  @override
+  String templatePathResolveFailed(String path) => 'パッケージテンプレートのパス解決に失敗しました: $path';
 }
 

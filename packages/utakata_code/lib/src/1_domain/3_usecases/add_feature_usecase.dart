@@ -76,7 +76,7 @@ class AddFeatureUsecase {
           archDefinition: arch,
         );
       } catch (e) {
-        throw Exception('ガイド生成に失敗しました: $e');
+        throw Exception(_msg.guideGenerationFailed('$e'));
       }
     }
   }

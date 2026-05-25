@@ -237,5 +237,11 @@ class EnMessages implements CliMessages {
   String get missingArchitectureId => 'Please specify an architecture ID. Example: utakata arch show clean_architecture';
   @override
   String get missingOutputPath => 'Please specify an output path. Example: utakata arch export clean_architecture temp.yaml';
+
+  // ─── other errors ───
+  @override
+  String guideGenerationFailed(String error) => 'Failed to generate guides: $error';
+  @override
+  String templatePathResolveFailed(String path) => 'Failed to resolve package template path: $path';
 }
 

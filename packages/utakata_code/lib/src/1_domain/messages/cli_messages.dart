@@ -125,5 +125,9 @@ abstract interface class CliMessages {
   String architectureAlreadyExists(String path);
   String get missingArchitectureId;
   String get missingOutputPath;
+
+  // ─── その他エラー ───
+  String guideGenerationFailed(String error);
+  String templatePathResolveFailed(String path);
 }
 
