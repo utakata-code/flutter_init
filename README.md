@@ -23,7 +23,9 @@
 | `flutter_init` 初期 | Flutter 新規プロジェクト用テンプレート（.agent/ + AI/）|
 | `flutter_init` v2.0 | Clean Architecture 対応・スキル / ワークフロー体系を整備 |
 | `utakata` v0.2.0 | テンプレートのロジックを Dart CLI ツール（pub.dev: utakata）として切り出し |
-| `utakata` v0.3.0（現在） | CLI を `utakata_code` パッケージに昇格・モノレポへ統合・アーキテクチャ非依存化 |
+| `utakata` v0.3.0 | CLI を `utakata_code` パッケージに昇格・モノレポへ統合・アーキテクチャ非依存化 |
+| `utakata` v0.4.0 | `AI/architecture/` 再構成・GUIDE.md 動的生成・依存関係自動挿入 |
+| `utakata` v0.5.0（現在） | **マルチアーキテクチャ完全対応**・MVVM テンプレート追加・ファイルレベル差分比較 |
 
 ---
 
@@ -33,12 +35,12 @@
 utakata/
 ├── .agent/              # AIエージェント向けルール・ワークフロー定義
 ├── AI/                  # AIと人間が共同参照する仕様書ハブ
-│   ├── guides/          # アーキテクチャガイド（CA公式推奨 + 拡張可能）
+│   ├── architecture/    # アーキテクチャ定義（arch_definition.yaml + ガイド）
 │   ├── specs/           # プロジェクト仕様書（プロジェクト作成時に生成）
 │   └── snapshots/       # utakata CLI が自動更新する現在の状態
 ├── packages/
-│   └── utakata_code/    # CLI ツール本体（pub.dev: utakata_code）
-├── templates/           # プロジェクト生成用テンプレート群
+│   ├── utakata_code/    # CLI ツール本体（pub.dev: utakata）
+│   └── utakata_studio/  # 開発支援 Flutter アプリ
 └── doc/                 # 実装ドキュメント
 ```
 
@@ -62,11 +64,10 @@ AIと人間が共同参照する仕様書ハブ。
 
 ```
 AI/
-├── guides/
-│   ├── architectures/clean_architecture/
-│   │   ├── arch_summary.md   # trigger: always_on（AIが常時参照）
-│   │   └── lib/              # applyTo: で編集時に自動注入
-│   └── common/collaboration.md  # 複数人/複数AI 協作ルール
+├── architecture/
+│   ├── arch_definition.yaml  # アーキテクチャ定義（層・命名規則・ガイド）
+│   ├── guides/               # 各層の実装ガイド（動的生成）
+│   └── features/             # フィーチャーテンプレート
 ├── specs/                    # アプリ仕様書・フィーチャー定義
 └── snapshots/                # utakata が自動更新する構造スナップショット
 ```
@@ -85,10 +86,11 @@ dart pub global activate utakata
 | `utakata create <app_name>` | Flutter プロジェクトを作成（.agent/ と AI/ 込み） |
 | `utakata feature add <name>` | フィーチャーを追加 |
 | `utakata feature init` | 計画書に基づき全フィーチャーを一括生成 |
-| `utakata plan` | feature_request.yaml から計画書を生成 |
+| `utakata plan` | feature_request.yaml + arch_definition.yaml から計画書を動的生成 |
 | `utakata scan` | 現在の構造をスキャン |
-| `utakata validate` | 命名規則・ディレクトリ構造を検証 |
-| `utakata diff` | 計画との差分を確認 |
+| `utakata validate` | 命名規則・ディレクトリ構造を検証（アーキ自動検出） |
+| `utakata diff` | 計画との差分を確認（ディレクトリ + ファイル名） |
+| `utakata arch list / show / create` | アーキテクチャの確認・管理 |
 | `utakata status` | 総合ステータスを確認 |
 
 詳細: [pub.dev/packages/utakata](https://pub.dev/packages/utakata)
