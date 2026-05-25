@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.4
+
+* **fix(diff)**: Fixed root key mismatch between `plan_architecture.yaml` (has `features:` root) and `scanFeaturesStructure` (returns contents directly) — `utakata diff` / `utakata check` were falsely reporting `features` as Missing and permission folders as Extra
+* **fix(validate)**: Applied the same root key extraction fix to `utakata validate` directory structure comparison
+
 ## 0.5.3
 
 * **feat(template/mvvm)**: Expanded MVVM (3-layer) architecture template to match `clean_architecture` completeness — added **GUIDE.md** for all 8 layer directories (`1_model/{entities,repositories,services,exceptions}`, `2_viewmodel/{states,notifiers}`, `3_view/{widgets,screens}`)
@@ -11,7 +16,7 @@
 * **feat(template/mvvm)**: Added `.agent/` directory with rules, skills, workflows — all content adapted for MVVM (3-layer Model→ViewModel→View ordering, DI in `core/di/`, Service instead of UseCase, Screen instead of Page)
 * **refactor(template/mvvm)**: Enriched `arch_definition.yaml` guides section with `apply_to`, `detail_content_path`, `do_list`, `dont_list`, `allowed_imports`, `forbidden_imports` for all 9 layer guides
 
-
+## 0.5.2
 
 * **feat(verify)**: Switched verification commands (`utakata diff`, `utakata check`, `utakata validate`, `utakata status`) to use **real-time directory scanning** instead of reading saved snapshot files. They now scan disk changes dynamically and auto-update `current_structure.yaml` in the background (no longer requiring manual `utakata scan` before diff/check).
 * **refactor(plan)**: Reverted plan architecture structure back to nested **`features.{permission}.{featureName}`** format to completely align with physical folder structure, resolving false validation errors when permission folders are present.

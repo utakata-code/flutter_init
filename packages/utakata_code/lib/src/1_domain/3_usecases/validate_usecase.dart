@@ -58,8 +58,12 @@ class ValidateUsecase {
     final extraDirs = <String>[];
 
     if (plan != null) {
-      missingDirs.addAll(_collectMissing(plan, current, ''));
-      extraDirs.addAll(_collectMissing(current, plan, ''));
+      // plan_architecture.yaml はルートに `features:` キーを持つ場合がある
+      final planFeatures = plan.containsKey('features')
+          ? (plan['features'] as Map<String, dynamic>? ?? <String, dynamic>{})
+          : plan;
+      missingDirs.addAll(_collectMissing(planFeatures, current, ''));
+      extraDirs.addAll(_collectMissing(current, planFeatures, ''));
     }
 
     return ValidationResultEntity(

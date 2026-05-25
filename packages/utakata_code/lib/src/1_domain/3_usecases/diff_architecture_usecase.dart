@@ -32,8 +32,15 @@ class DiffArchitectureUsecase {
       throw Exception(_msg.planNotFound('AI/specs/plan_architecture.yaml'));
     }
 
-    final missingPaths = _collectMissing(plan, current, '');
-    final extraPaths = _collectMissing(current, plan, '');
+    // plan_architecture.yaml はルートに `features:` キーを持つ場合がある
+    // scanFeaturesStructure は lib/features/ 配下を直接返すので、
+    // 比較の基準を揃えるために plan から features の中身を取り出す
+    final planFeatures = plan.containsKey('features')
+        ? (plan['features'] as Map<String, dynamic>? ?? <String, dynamic>{})
+        : plan;
+
+    final missingPaths = _collectMissing(planFeatures, current, '');
+    final extraPaths = _collectMissing(current, planFeatures, '');
 
     return ArchitectureDiffEntity(
       missingPaths: missingPaths,
