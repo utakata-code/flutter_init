@@ -6,8 +6,10 @@ import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_structure_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/diff_architecture_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/generate_core_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_features_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/plan_architecture_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/scan_project_status_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/scan_structure_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/status_usecase.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/filesystem_data_source.dart';
@@ -17,6 +19,7 @@ import 'package:utakata/src/2_infrastructure/3_repositories/architecture_reposit
 import 'package:utakata/src/2_infrastructure/3_repositories/project_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/template_repository_impl.dart';
 import 'package:utakata/src/3_application/1_commands/check_command.dart';
+import 'package:utakata/src/3_application/1_commands/core_command.dart';
 import 'package:utakata/src/3_application/1_commands/create_command.dart';
 import 'package:utakata/src/3_application/1_commands/diff_command.dart';
 import 'package:utakata/src/3_application/1_commands/feature_command.dart';
@@ -126,8 +129,23 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final scanProjectStatusUsecase = ScanProjectStatusUsecase(
+    archRepo: archRepo,
+    readFile: fs.readFile,
+    fileExists: fs.fileExists,
+    dirExists: fs.dirExists,
+    scanDartFiles: fs.scanDartFiles,
+  );
+
+  final generateCoreUsecase = GenerateCoreUsecase(
+    archRepo: archRepo,
+    ensureDir: fs.ensureDir,
+    readFile: fs.readFile,
+  );
+
   final statusUsecase = StatusUsecase(
     diffUsecase: diffUsecase,
+    scanStatusUsecase: scanProjectStatusUsecase,
     msg: msg,
     runFlutterAnalyze: process.flutterAnalyze,
     getFlutterVersion: process.flutterVersion,
@@ -169,8 +187,9 @@ Future<void> main(List<String> arguments) async {
     scanCommand: ScanCommand(scanUsecase, msg),
     diffCommand: DiffCommand(diffUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
-    statusCommand: StatusCommand(statusUsecase, msg),
+    statusCommand: StatusCommand(statusUsecase, projectRepo, msg),
     validateCommand: ValidateCommand(validateUsecase, projectRepo, msg),
+    coreCommand: CoreCommand(generateCoreUsecase, msg),
     archCommand: ArchCommand(
       listArchitecturesUsecase,
       showArchitectureUsecase,

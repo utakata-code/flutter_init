@@ -25,4 +25,7 @@ abstract interface class ProjectRepository {
 
   /// lib/features/ 配下のディレクトリ構造をスキャンして返す
   Future<Map<String, dynamic>> scanFeaturesStructure(String projectDir);
+
+  /// project_status.yaml を書き込む
+  Future<void> writeProjectStatus(String projectDir, Map<String, dynamic> status);
 }

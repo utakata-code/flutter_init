@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../1_domain/2_repositories/project_repository.dart';
 import '../../1_domain/3_usecases/status_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
@@ -8,6 +9,7 @@ import 'logger.dart';
 /// utakata status — プロジェクトステータスを表示する
 class StatusCommand extends BaseCommand {
   final StatusUsecase _usecase;
+  final ProjectRepository _projectRepo;
   final CliMessages _msg;
 
   @override
@@ -16,7 +18,7 @@ class StatusCommand extends BaseCommand {
   @override
   String get description => _msg.cmdStatusDesc;
 
-  StatusCommand(this._usecase, this._msg);
+  StatusCommand(this._usecase, this._projectRepo, this._msg);
 
   @override
   Future<int> execute() async {
@@ -48,6 +50,12 @@ class StatusCommand extends BaseCommand {
     } else {
       Logger.warn(msg.diffSummary(diff.missingCount, diff.extraCount));
     }
+
+    // project_status.yaml を更新
+    await _projectRepo.writeProjectStatus(
+      Directory.current.path,
+      result.projectStatus.toYamlMap(),
+    );
 
     return 0;
   }

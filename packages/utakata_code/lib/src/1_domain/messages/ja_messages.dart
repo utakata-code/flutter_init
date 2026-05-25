@@ -232,5 +232,15 @@ class JaMessages implements CliMessages {
   String guideGenerationFailed(String error) => 'ガイド生成に失敗しました: $error';
   @override
   String templatePathResolveFailed(String path) => 'パッケージテンプレートのパス解決に失敗しました: $path';
+
+  // ─── core ───
+  @override
+  String get cmdCoreDesc => 'Core ディレクトリ構造を生成する';
+  @override
+  String get sectionCore => '🏗️ utakata core — Core ディレクトリ生成';
+  @override
+  String coreDone(int count) => '✅ $count 件の Core モジュールディレクトリを生成しました！';
+  @override
+  String coreModuleRow(String path) => '  ✅ $path';
 }
 

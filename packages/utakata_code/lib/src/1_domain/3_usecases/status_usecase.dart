@@ -1,10 +1,13 @@
 import '../1_entities/architecture_diff_entity.dart';
+import '../1_entities/project_status_entity.dart';
 import '../messages/cli_messages.dart';
 import 'diff_architecture_usecase.dart';
+import 'scan_project_status_usecase.dart';
 
 /// プロジェクトステータスを集計するユースケース
 class StatusUsecase {
   final DiffArchitectureUsecase _diffUsecase;
+  final ScanProjectStatusUsecase _scanStatusUsecase;
   final CliMessages _msg;
 
   /// flutter analyze を実行する関数（Infrastructure から注入）
@@ -15,10 +18,12 @@ class StatusUsecase {
 
   const StatusUsecase({
     required DiffArchitectureUsecase diffUsecase,
+    required ScanProjectStatusUsecase scanStatusUsecase,
     required CliMessages msg,
     required Future<String> Function(String projectDir) runFlutterAnalyze,
     required Future<String> Function() getFlutterVersion,
   })  : _diffUsecase = diffUsecase,
+        _scanStatusUsecase = scanStatusUsecase,
         _msg = msg,
         _runFlutterAnalyze = runFlutterAnalyze,
         _getFlutterVersion = getFlutterVersion;
@@ -42,11 +47,15 @@ class StatusUsecase {
       // plan_architecture.yaml がない場合は diff なし
     }
 
+    // プロジェクト状態をスキャン
+    final projectStatus = await _scanStatusUsecase.execute(projectDir);
+
     return ProjectStatusResult(
       flutterVersion: flutterVersion,
       analyzeOutput: analyzeOutput,
       diff: diff,
       msg: _msg,
+      projectStatus: projectStatus,
     );
   }
 }
@@ -57,11 +66,13 @@ class ProjectStatusResult {
   final String analyzeOutput;
   final ArchitectureDiffEntity? diff;
   final CliMessages msg;
+  final ProjectStatusEntity projectStatus;
 
   const ProjectStatusResult({
     required this.flutterVersion,
     required this.analyzeOutput,
     required this.msg,
+    required this.projectStatus,
     this.diff,
   });
 }

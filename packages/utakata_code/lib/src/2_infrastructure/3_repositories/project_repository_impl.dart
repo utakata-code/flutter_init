@@ -17,6 +17,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
   static const _featureRequestPath = 'AI/specs/feature_request.yaml';
   static const _planArchYamlPath = 'AI/specs/plan_architecture.yaml';
   static const _currentStructYamlPath = 'AI/snapshots/current_structure.yaml';
+  static const _projectStatusYamlPath = 'AI/snapshots/project_status.yaml';
   static const _featuresDir = 'lib/features';
 
   @override
@@ -73,5 +74,20 @@ class ProjectRepositoryImpl implements ProjectRepository {
   Future<Map<String, dynamic>> scanFeaturesStructure(String projectDir) async {
     final featDir = p.join(projectDir, _featuresDir);
     return _fs.scanDartFiles(featDir);
+  }
+
+  @override
+  Future<void> writeProjectStatus(
+    String projectDir,
+    Map<String, dynamic> status,
+  ) async {
+    final header = '# project_status.yaml\n'
+        '# 自動生成 — 手動編集しないでください\n'
+        '# 生成日時: ${DateTime.now().toIso8601String()}\n\n';
+    final yamlStr = _yaml.serialize(status);
+    await _fs.writeFile(
+      p.join(projectDir, _projectStatusYamlPath),
+      header + yamlStr,
+    );
   }
 }

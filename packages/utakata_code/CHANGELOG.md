@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.5
+
+* **feat(core)**: New `utakata core` command — generates Core directory structure dynamically from `arch_definition.yaml` `core_modules` (replaces hardcoded `generate_core.sh`)
+* **feat(core)**: `--arch` option to specify architecture (auto-detects from `feature_request.yaml` if omitted)
+* **feat(status)**: `utakata status` now scans the project and writes real-time data to `AI/snapshots/project_status.yaml` — tracks `project.name/version`, `flutter`, `core` modules, `entry_points`, `documents`, and `features.count`
+* **refactor(status)**: Core modules in `project_status.yaml` are now dynamically generated from `arch_definition.yaml` instead of hardcoded
+* **chore(template)**: Removed unused legacy files `actual_architecture.yaml`, `change_history.yaml` and their previews from both `clean_architecture` and `mvvm` templates
+
 ## 0.5.4
 
 * **fix(diff)**: Fixed root key mismatch between `plan_architecture.yaml` (has `features:` root) and `scanFeaturesStructure` (returns contents directly) — `utakata diff` / `utakata check` were falsely reporting `features` as Missing and permission folders as Extra

@@ -129,5 +129,11 @@ abstract interface class CliMessages {
   // ─── その他エラー ───
   String guideGenerationFailed(String error);
   String templatePathResolveFailed(String path);
+
+  // ─── core ───
+  String get cmdCoreDesc;
+  String get sectionCore;
+  String coreDone(int count);
+  String coreModuleRow(String path);
 }
 

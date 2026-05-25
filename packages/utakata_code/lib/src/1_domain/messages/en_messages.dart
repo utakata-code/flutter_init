@@ -243,5 +243,15 @@ class EnMessages implements CliMessages {
   String guideGenerationFailed(String error) => 'Failed to generate guides: $error';
   @override
   String templatePathResolveFailed(String path) => 'Failed to resolve package template path: $path';
+
+  // ─── core ───
+  @override
+  String get cmdCoreDesc => 'Generate Core directory structure';
+  @override
+  String get sectionCore => '🏗️ utakata core — Core directory generation';
+  @override
+  String coreDone(int count) => '✅ Generated $count Core module directories!';
+  @override
+  String coreModuleRow(String path) => '  ✅ $path';
 }
 

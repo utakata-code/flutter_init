@@ -3,6 +3,7 @@ import 'package:args/command_runner.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
+import '../1_commands/core_command.dart';
 import '../1_commands/create_command.dart';
 import '../1_commands/diff_command.dart';
 import '../1_commands/feature_command.dart';
@@ -52,6 +53,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required CheckCommand checkCommand,
     required StatusCommand statusCommand,
     required ValidateCommand validateCommand,
+    required CoreCommand coreCommand,
     required ArchCommand archCommand,
   }) : super(
           'utakata',
@@ -74,6 +76,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(checkCommand);
     addCommand(statusCommand);
     addCommand(validateCommand);
+    addCommand(coreCommand);
     addCommand(archCommand);
   }
 
