@@ -35,9 +35,20 @@ class DiffArchitectureUsecase {
     // plan_architecture.yaml はルートに `features:` キーを持つ場合がある
     // scanFeaturesStructure は lib/features/ 配下を直接返すので、
     // 比較の基準を揃えるために plan から features の中身を取り出す
-    final planFeatures = plan.containsKey('features')
+    final rawFeatures = plan.containsKey('features')
         ? (plan['features'] as Map<String, dynamic>? ?? <String, dynamic>{})
         : plan;
+
+    // direct パーミッションのフィーチャーは階層を挟まずに lib/features/ 直下に配置されるため、
+    // 比較を正しく行うために 'direct' の中身をトップレベルに展開する。
+    final planFeatures = <String, dynamic>{};
+    for (final entry in rawFeatures.entries) {
+      if (entry.key == 'direct' && entry.value is Map) {
+        planFeatures.addAll(Map<String, dynamic>.from(entry.value as Map));
+      } else {
+        planFeatures[entry.key] = entry.value;
+      }
+    }
 
     final missingPaths = _collectMissing(planFeatures, current, '');
     final extraPaths = _collectMissing(current, planFeatures, '');

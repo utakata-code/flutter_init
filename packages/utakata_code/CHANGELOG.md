@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.8
+
+* **fix(diff)**: Flattened `direct` permission group in `planFeatures` to align with the actual physical file structure in `lib/features/` which does not nest direct features under a `direct` folder.
+
 ## 0.5.7
 
 * **fix(version)**: Fixed hardcoded version display in `utakata --version` — now correctly shows the current version
