@@ -1,48 +1,30 @@
 # project_status.yaml
 # 自動生成 — 手動編集しないでください
-# 生成日時: 2026-04-10T15:54:11+0900
+# 生成日時: 2026-05-29T11:25:40.951307
 
 project:
-  name: ""
-  version: ""
-  mode: null
-  started_at: null
-  last_worked_at: null
-
-stage:
-  current: null
-  stage1:
-    status: "not_started"
-  stage2:
-    status: "not_started"
-  stage3:
-    status: "not_started"
-
+  name: utakata_studio
+  version: 0.1.0+1
 flutter:
-  pubspec_exists: false
-  lib_exists: false
-  initialized: false
-
+  pubspec_exists: true
+  lib_exists: true
+  initialized: true
 core:
-  routing: false
-  routing_path: false
-  theme: false
+  routing: true
+  routing_path: true
+  theme: true
   api: false
   env: false
   database: false
   database_table: false
   exceptions: false
-
 entry_points:
-  main_dart: false
-  app_dart: false
-
+  main_dart: true
+  app_dart: true
 documents:
-  specification: "template_only"
-  structure_plan: "template_only"
-
+  specification: edited
+  structure_plan: edited
 features:
-  count: 0
-
-updated_at: "2026-04-10T15:54:11+0900"
-updated_by: "update_status.sh"
+  count: 7
+updated_at: 2026-05-29T11:25:40.946573
+updated_by: utakata status
