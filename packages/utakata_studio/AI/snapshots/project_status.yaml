@@ -1,6 +1,6 @@
 # project_status.yaml
 # 自動生成 — 手動編集しないでください
-# 生成日時: 2026-05-29T11:25:40.951307
+# 生成日時: 2026-05-29T11:32:30.616680
 
 project:
   name: utakata_studio
@@ -26,5 +26,5 @@ documents:
   structure_plan: edited
 features:
   count: 7
-updated_at: 2026-05-29T11:25:40.946573
+updated_at: 2026-05-29T11:32:30.613022
 updated_by: utakata status

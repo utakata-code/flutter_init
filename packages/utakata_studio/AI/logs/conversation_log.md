@@ -65,6 +65,50 @@
 
 ---
 
+## [2026-05-29 11:30] utakata plan仕様変更への追従 + directフォルダ検証バグ修正 & pub.devデプロイ
+
+**ステージ**: Stage 3 - 実装 / メンテナンス (v0.5.8リリース & スタジオ反映)
+**担当AIエージェント**: Antigravity (Google Deepmind)
+**会話ID**: c4922fea-2b05-47c8-a973-554da5571bbb
+
+### 🎯 目的・背景
+
+- `feature_request.yaml` および `plan_architecture.yaml` を参照した上で、現在の `utakata plan` および `utakata diff` の仕様に合わせた実行と、それに伴う不整合の解決。
+- スタジオ側の依存同期および、スタジオ側での `utakata diff` 連携不具合の修正。
+
+### 💬 会話の要点
+
+- `utakata plan` 実行により `permission: direct` フィーチャーが `plan_architecture.yaml` 内で `direct` キー配下にネストされるが、実際のディスク構成は `lib/features/` 直下（`direct` フォルダを挟まない）になるため、`utakata diff` が誤って Missing/Extra を大量検知する不整合を発見。
+- `utakata_code` 側の `DiffArchitectureUsecase` において、`direct` パーミッションの計画をフラット化してディスク構造と正しく比較するように修正。
+- 修正完了に伴い `utakata_code` のバージョンを `0.5.8` に上げ、`CHANGELOG.md` を更新して `pub.dev` へデプロイ。
+- `utakata_studio` 側で `flutter pub get` を行い、最新の `utakata 0.5.8` (ローカルPath依存) を同期。
+- スタジオの `FeaturesPage` で `utakata diff` をパースする際、最新の diff 出力形式（`features/` プレフィックスなし）に追従できておらず、Missing ディレクトリが常に空になってしまう不具合を発見したため、古い・新しい両形式をサポートするようにパースコードを修正。
+
+### ✅ 実施した作業
+
+| ファイル / パッケージ | 変更内容 |
+|---|---|
+| `diff_architecture_usecase.dart` | 計画上の `direct` グループをトップレベルにフラット化して比較するロジックの追加 |
+| `pubspec.yaml` (utakata_code) | バージョンを `0.5.8` に更新 |
+| `CHANGELOG.md` (utakata_code) | `0.5.8` セクションを追加 |
+| `pub.dev` デプロイ | `dart pub publish` を実行して `0.5.8` を正常にアップロード完了 |
+| `pubspec.lock` (utakata_studio) | `flutter pub get` を実行して `0.5.8` 依存に更新 |
+| `features_page.dart` | 詳細ダイアログの `_runDiff` で新旧両方の `utakata diff` パス形式をパース可能に修正 |
+
+### 🔍 発見した問題
+
+| 問題 | 原因 | 解決策 |
+|---|---|---|
+| `utakata diff` の大量誤検知 | `direct` グループのネスト構造と、実際のディスク直下配置の突き合わせ不整合 | プラン比較ロジック（`DiffArchitectureUsecase`）側で `direct` キーの中身をトップレベルに自動フラット化する |
+| スタジオ側で `Missing` が常に空表示 | 最新の `utakata diff` 出力が `features/` プレフィックスを排除した形式になり、スタジオ側のパース条件と不一致 | `features/{name}/` と `{name}/` の両方のパターンに対応するようパース条件を拡張 |
+
+### 💡 解決方法・決定事項
+
+- `utakata` CLI 自体のパース仕様（YAML設計の美しさ・対称性）を守るため `plan` の YAML 階層自体は `direct` を残し、スキャン結果と突き合わせる `diff` のビジネスロジック側で賢くフラット化して解決するアプローチを採用しました。
+- スタジオのパースは後方互換性を考慮し、新旧どちらの diff 出力に対しても堅牢に動作するよう拡張しました。
+
+---
+
 ## [2026-05-22 14:41] Features / Dashboard 画面実装 + フィーチャー分離
 
 **ステージ**: Stage 3 - 実装（v0.2.0 継続）

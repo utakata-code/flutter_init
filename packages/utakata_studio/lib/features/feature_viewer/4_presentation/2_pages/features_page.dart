@@ -425,7 +425,8 @@ class _FeatureDetailDialogState extends State<_FeatureDetailDialog> {
       final output = result.stdout as String;
       final missing = <String>[];
       bool inMissing = false;
-      final featurePrefix = 'features/${widget.name}/';
+      final featurePrefix1 = 'features/${widget.name}/';
+      final featurePrefix2 = '${widget.name}/';
 
       for (final line in output.split('\n')) {
         final trimmed = line.trim();
@@ -433,9 +434,14 @@ class _FeatureDetailDialogState extends State<_FeatureDetailDialog> {
           inMissing = true;
         } else if (trimmed.startsWith('Extra')) {
           inMissing = false;
-        } else if (inMissing && trimmed.contains(featurePrefix)) {
-          final cleaned = trimmed.replaceFirst(featurePrefix, '').trim();
-          if (cleaned.isNotEmpty) missing.add(cleaned);
+        } else if (inMissing) {
+          if (trimmed.contains(featurePrefix1)) {
+            final cleaned = trimmed.replaceFirst(featurePrefix1, '').trim();
+            if (cleaned.isNotEmpty) missing.add(cleaned);
+          } else if (trimmed.contains(featurePrefix2)) {
+            final cleaned = trimmed.replaceFirst(featurePrefix2, '').trim();
+            if (cleaned.isNotEmpty) missing.add(cleaned);
+          }
         }
       }
 

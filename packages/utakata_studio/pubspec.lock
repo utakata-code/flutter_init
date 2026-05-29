@@ -779,7 +779,7 @@ packages:
       path: "../utakata_code"
       relative: true
     source: path
-    version: "0.5.7"
+    version: "0.5.8"
   vector_math:
     dependency: transitive
     description:
