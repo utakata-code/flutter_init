@@ -11,6 +11,8 @@ typedef SidebarCallbacks = ({
   VoidCallback onHomeTap,
   VoidCallback onFeaturesTap,
   VoidCallback onDashboardTap,
+  VoidCallback onSpecTap,
+  VoidCallback onPlanTap,
   VoidCallback onOpenProject,
 });
 
@@ -26,7 +28,7 @@ class SidebarOrganism extends StatelessWidget {
     super.key,
     required this.validationState,
     required this.callbacks,
-    this.activeRoute = '/',
+    this.activeRoute = '/project',
   });
 
   @override
@@ -62,7 +64,7 @@ class SidebarOrganism extends StatelessWidget {
                     ?.copyWith(fontWeight: FontWeight.w900)),
           ]),
         ),
-        // ── プロジェクトを開く ──
+        // ── プロジェクトを開く（ランチャーに戻る） ──
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: SizedBox(
@@ -128,29 +130,51 @@ class SidebarOrganism extends StatelessWidget {
         _NavItem(
             icon: Icons.architecture,
             label: 'Architecture',
-            isActive: activeRoute == '/',
+            isActive: activeRoute == '/project',
             onTap: callbacks.onHomeTap),
         _NavItem(
             icon: Icons.featured_play_list_outlined,
             label: 'Features',
-            isActive: activeRoute == '/features',
+            isActive: activeRoute == '/project/features',
             onTap: callbacks.onFeaturesTap),
         _NavItem(
             icon: Icons.health_and_safety_outlined,
             label: 'Health',
-            isActive: activeRoute == '/health',
+            isActive: activeRoute == '/project/health',
             onTap: callbacks.onHealthTap),
         _NavItem(
             icon: Icons.dashboard_outlined,
             label: 'Dashboard',
-            isActive: activeRoute == '/dashboard',
+            isActive: activeRoute == '/project/dashboard',
             onTap: callbacks.onDashboardTap),
+        const Divider(),
+        // ── ドキュメントビューア ──
+        Padding(
+          padding: const EdgeInsets.only(left: 20, top: 4, bottom: 4),
+          child: Text('DOCUMENTS',
+              style: TextStyle(
+                color: StudioTheme.textMuted,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5,
+              )),
+        ),
+        _NavItem(
+            icon: Icons.description_outlined,
+            label: 'Spec',
+            isActive: activeRoute == '/project/spec',
+            onTap: callbacks.onSpecTap),
+        _NavItem(
+            icon: Icons.account_tree_outlined,
+            label: 'Structure Plan',
+            isActive: activeRoute == '/project/plan',
+            onTap: callbacks.onPlanTap),
         const Spacer(),
         const Divider(),
         _NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
-            isActive: activeRoute == '/settings',
+            isActive: activeRoute == '/project/settings',
             onTap: callbacks.onSettingsTap),
         const SizedBox(height: 8),
       ]),

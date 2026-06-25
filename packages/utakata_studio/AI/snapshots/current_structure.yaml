@@ -57,6 +57,9 @@ features:
             - sidebar_organism.dart
       2_pages:
         __files__:
+          - architectures_page.dart
+          - doc_viewer_page.dart
+          - launcher_page.dart
           - shell_layout_page.dart
           - studio_home_page.dart
   command_runner:

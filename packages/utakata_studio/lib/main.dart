@@ -44,27 +44,29 @@ void main() {
       appRouterProvider.overrideWithValue(router),
     ]);
 
-    // 設定をロード → arch_definition.yaml をバリデーション
+    // 設定をロード
     await container.read(settingsNotifierProvider.notifier).load();
     final settingsState = container.read(settingsNotifierProvider);
     final projectRoot = settingsState.mapOrNull(
-          loaded: (s) => s.settings.projectRoot,
-        ) ??
-        '.';
-
-    await container
-        .read(validationNotifierProvider.notifier)
-        .loadAndValidate('$projectRoot/AI/architecture/arch_definition.yaml');
-
-    // バリデーション結果のレイヤーをレイヤービジュアライザに連携
-    final validationState = container.read(validationNotifierProvider);
-    validationState.mapOrNull(
-      loaded: (s) {
-        container
-            .read(layerVisualizerNotifierProvider.notifier)
-            .updateLayers(s.result.layers);
-      },
+      loaded: (s) => s.settings.projectRoot,
     );
+
+    // プロジェクトルートが設定済みの場合のみ、起動時にバリデーションを実行
+    if (projectRoot != null && projectRoot.isNotEmpty) {
+      await container
+          .read(validationNotifierProvider.notifier)
+          .loadAndValidate('$projectRoot/AI/architecture/arch_definition.yaml');
+
+      // バリデーション結果のレイヤーをレイヤービジュアライザに連携
+      final validationState = container.read(validationNotifierProvider);
+      validationState.mapOrNull(
+        loaded: (s) {
+          container
+              .read(layerVisualizerNotifierProvider.notifier)
+              .updateLayers(s.result.layers);
+        },
+      );
+    }
 
     runApp(UncontrolledProviderScope(
       container: container,

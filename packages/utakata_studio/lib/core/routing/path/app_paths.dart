@@ -5,23 +5,36 @@
 class AppPaths {
   AppPaths._();
 
-  // ── メイン ──
-  static const home = '/';
-  static const homeRouteName = 'home';
+  // ── ランチャー ──
+  static const launcher = '/';
+  static const launcherRouteName = 'launcher';
 
-  // ── 設定 ──
-  static const settings = '/settings';
-  static const settingsRouteName = 'settings';
+  // ── アーキテクチャ管理 ──
+  static const architectures = '/architectures';
+  static const architecturesRouteName = 'architectures';
 
-  // ── ヘルス（CLI コマンド実行） ──
-  static const health = '/health';
-  static const healthRouteName = 'health';
+  // ── プロジェクトワークスペース ──
+  static const project = '/project';
+  static const projectRouteName = 'project';
 
-  // ── フィーチャー ──
-  static const features = '/features';
-  static const featuresRouteName = 'features';
+  static const projectArchitecture = '/project';
+  static const projectArchitectureRouteName = 'projectArchitecture';
 
-  // ── ダッシュボード ──
-  static const dashboard = '/dashboard';
-  static const dashboardRouteName = 'dashboard';
+  static const projectFeatures = '/project/features';
+  static const projectFeaturesRouteName = 'projectFeatures';
+
+  static const projectHealth = '/project/health';
+  static const projectHealthRouteName = 'projectHealth';
+
+  static const projectDashboard = '/project/dashboard';
+  static const projectDashboardRouteName = 'projectDashboard';
+
+  static const projectSpec = '/project/spec';
+  static const projectSpecRouteName = 'projectSpec';
+
+  static const projectPlan = '/project/plan';
+  static const projectPlanRouteName = 'projectPlan';
+
+  static const projectSettings = '/project/settings';
+  static const projectSettingsRouteName = 'projectSettings';
 }

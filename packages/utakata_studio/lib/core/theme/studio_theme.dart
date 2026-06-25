@@ -2,32 +2,32 @@ import 'package:flutter/material.dart';
 
 /// utakata studio のダークテーマ定義
 ///
-/// プレミアム感のあるダークテーマ。グラデーション・グラスモーフィズム・
-/// サイアン系アクセントカラーを基調とした統一デザインシステム。
+/// 洗練されたダークテーマ。彩度を抑えたアクセントカラーと
+/// 落ち着いた背景色で、長時間の作業でも目に優しいデザインシステム。
 class StudioTheme {
   StudioTheme._();
 
   // ── ベースカラー ──
-  static const darkBg = Color(0xFF0D1117);
-  static const sidebarBg = Color(0xFF161B22);
-  static const surfaceBg = Color(0xFF1C2128);
-  static const editorBg = Color(0xFF0D1117);
+  static const darkBg = Color(0xFF111318);
+  static const sidebarBg = Color(0xFF181B21);
+  static const surfaceBg = Color(0xFF1E2128);
+  static const editorBg = Color(0xFF111318);
 
   // ── ボーダー ──
-  static const borderColor = Color(0xFF30363D);
-  static const borderLight = Color(0xFF3D444D);
+  static const borderColor = Color(0xFF2A2F38);
+  static const borderLight = Color(0xFF353B45);
 
   // ── テキスト ──
-  static const textPrimary = Color(0xFFE6EDF3);
-  static const textSecondary = Color(0xFF8B949E);
-  static const textMuted = Color(0xFF656D76);
+  static const textPrimary = Color(0xFFE0E4EA);
+  static const textSecondary = Color(0xFF8B919A);
+  static const textMuted = Color(0xFF5C6370);
 
-  // ── アクセント ──
-  static const accentCyan = Color(0xFF58D4F0);
-  static const accentGreen = Color(0xFF3FB950);
-  static const accentRed = Color(0xFFF85149);
-  static const accentYellow = Color(0xFFD29922);
-  static const accentPurple = Color(0xFFBC8CFF);
+  // ── アクセント（落ち着いたトーン） ──
+  static const accentCyan = Color(0xFF6CB6D1);
+  static const accentGreen = Color(0xFF5CA97C);
+  static const accentRed = Color(0xFFD16B6B);
+  static const accentYellow = Color(0xFFC4A45A);
+  static const accentPurple = Color(0xFF9B8EC4);
 
   /// ダークテーマ
   static ThemeData get darkTheme => ThemeData(
@@ -71,3 +71,4 @@ class StudioTheme {
         iconTheme: const IconThemeData(color: textSecondary, size: 20),
       );
 }
+

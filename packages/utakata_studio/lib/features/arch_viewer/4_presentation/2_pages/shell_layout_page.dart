@@ -1,10 +1,8 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../../core/routing/path/app_paths.dart';
 import '../../../../core/theme/studio_theme.dart';
-import '../../../settings/3_application/3_notifiers/settings_notifier.dart';
 import '../../../validation/3_application/3_notifiers/validation_notifier.dart';
 import '../1_widgets/3_organisms/sidebar_organism.dart';
 
@@ -30,12 +28,14 @@ class ShellLayoutPage extends HookConsumerWidget {
             validationState: validationState,
             activeRoute: currentPath,
             callbacks: (
-              onSettingsTap: () => context.go(AppPaths.settings),
-              onHealthTap: () => context.go(AppPaths.health),
-              onHomeTap: () => context.go(AppPaths.home),
-              onFeaturesTap: () => context.go(AppPaths.features),
-              onDashboardTap: () => context.go(AppPaths.dashboard),
-              onOpenProject: () => _openProject(context, ref),
+              onSettingsTap: () => context.go(AppPaths.projectSettings),
+              onHealthTap: () => context.go(AppPaths.projectHealth),
+              onHomeTap: () => context.go(AppPaths.projectArchitecture),
+              onFeaturesTap: () => context.go(AppPaths.projectFeatures),
+              onDashboardTap: () => context.go(AppPaths.projectDashboard),
+              onSpecTap: () => context.go(AppPaths.projectSpec),
+              onPlanTap: () => context.go(AppPaths.projectPlan),
+              onOpenProject: () => context.go(AppPaths.launcher),
             ),
           ),
           // ── 右ペイン: ルートに応じたコンテンツ ──
@@ -43,18 +43,5 @@ class ShellLayoutPage extends HookConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// プロジェクトフォルダを開く
-  Future<void> _openProject(BuildContext context, WidgetRef ref) async {
-    final result = await FilePicker.getDirectoryPath(
-      dialogTitle: 'utakata プロジェクトフォルダを選択',
-    );
-    if (result == null) return;
-
-    await ref.read(settingsNotifierProvider.notifier).updateProjectRoot(result);
-    ref
-        .read(validationNotifierProvider.notifier)
-        .loadAndValidate('$result/AI/architecture/arch_definition.yaml');
   }
 }
