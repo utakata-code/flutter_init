@@ -1,0 +1,175 @@
+import '../2_repositories/plan_repository.dart';
+
+/// 1件の移行操作を表す(dry-run 表示・実行ログ共用)。
+class MigrationAction {
+  final String description;
+  final bool automated;
+
+  const MigrationAction(this.description, {this.automated = true});
+}
+
+/// `utakata doctor` — 環境・レイアウトの診断と移行。
+///
+/// 移行対象は構造計画書 §6 の変換表のうち、自動化が安全なものに限定する
+/// (案件整理サマリーの合意抽出・アーキテクチャ定義の override 判定等、
+/// 人間の確認が前提のものは情報提示のみに留める)。
+class DoctorUsecase {
+  final PlanRepository _planRepo;
+
+  final bool Function(String path) _fileExists;
+  final bool Function(String path) _dirExists;
+  final Future<String?> Function(String path) _readFile;
+  final Future<void> Function(String path) _deleteFile;
+  final Future<void> Function(String path) _deleteDir;
+  final Future<void> Function(String from, String to) _movePath;
+  final List<String> Function(String dirPath) _listEntries;
+
+  const DoctorUsecase({
+    required PlanRepository planRepo,
+    required bool Function(String path) fileExists,
+    required bool Function(String path) dirExists,
+    required Future<String?> Function(String path) readFile,
+    required Future<void> Function(String path) deleteFile,
+    required Future<void> Function(String path) deleteDir,
+    required Future<void> Function(String from, String to) movePath,
+    required List<String> Function(String dirPath) listEntries,
+  })  : _planRepo = planRepo,
+        _fileExists = fileExists,
+        _dirExists = dirExists,
+        _readFile = readFile,
+        _deleteFile = deleteFile,
+        _deleteDir = deleteDir,
+        _movePath = movePath,
+        _listEntries = listEntries;
+
+  /// 診断のみ行う(環境チェック)。v0.7 時点では簡易実装。
+  Future<List<String>> diagnose(String projectDir) async {
+    final issues = <String>[];
+    if (!_fileExists('$projectDir/utakata.yaml') &&
+        !_fileExists('$projectDir/doc/specs/plan.yaml') &&
+        !_fileExists('$projectDir/AI/specs/feature_request.yaml')) {
+      issues.add('doc/specs/plan.yaml も旧 feature_request.yaml も見つかりません。'
+          '`utakata doc init` で doc/ ワークスペースを作成してください。');
+    }
+    return issues;
+  }
+
+  /// 旧レイアウト・実案件 doc/ 構成物を新レイアウトへ移行する。
+  Future<List<MigrationAction>> migrate(String projectDir, {bool dryRun = true}) async {
+    final actions = <MigrationAction>[];
+
+    // 1. feature_request.yaml → plan.yaml
+    if (!_fileExists('$projectDir/doc/specs/plan.yaml') &&
+        _fileExists('$projectDir/AI/specs/feature_request.yaml')) {
+      actions.add(const MigrationAction(
+          'AI/specs/feature_request.yaml → doc/specs/plan.yaml(schema:1 へ変換)'));
+      if (!dryRun) {
+        final plan = await _planRepo.read(projectDir);
+        if (plan != null) await _planRepo.write(projectDir, plan);
+      }
+    }
+
+    // 2. 導出可能な生成物の削除
+    for (final path in [
+      'AI/specs/plan_architecture.yaml',
+      'AI/snapshots',
+    ]) {
+      final full = '$projectDir/$path';
+      if (_fileExists(full) || _dirExists(full)) {
+        actions.add(MigrationAction('$path → 削除(導出可能な生成物のため)'));
+        if (!dryRun) {
+          if (_dirExists(full)) {
+            await _deleteDir(full);
+          } else {
+            await _deleteFile(full);
+          }
+        }
+      }
+    }
+
+    // 3. AI/logs/conversation_log.md → doc/impl/research/ (内容があれば) or 削除
+    final logPath = '$projectDir/AI/logs/conversation_log.md';
+    if (_fileExists(logPath)) {
+      final content = await _readFile(logPath);
+      final hasContent = content != null && content.trim().length > 200;
+      // テンプレートの雛形(見出しのみ)は 200 文字未満に収まらないため、
+      // 実質的な会話履歴が追記されているかの簡易判定として長さを使う。
+      if (hasContent) {
+        actions.add(const MigrationAction(
+            'AI/logs/conversation_log.md → doc/impl/research/conversation_log.md(内容ありのため移設)'));
+        if (!dryRun) {
+          await _movePath(logPath, '$projectDir/doc/impl/research/conversation_log.md');
+        }
+      } else {
+        actions.add(const MigrationAction('AI/logs/conversation_log.md → 削除(空テンプレートのため)'));
+        if (!dryRun) await _deleteFile(logPath);
+      }
+    }
+
+    // 4. 実案件 doc/log/raw/*.md → doc/records/log/legacy/
+    final rawDir = '$projectDir/doc/log/raw';
+    if (_dirExists(rawDir)) {
+      actions.add(const MigrationAction('doc/log/raw/** → doc/records/log/legacy/(凍結移動)'));
+      if (!dryRun) {
+        await _movePath(rawDir, '$projectDir/doc/records/log/legacy');
+      }
+    }
+
+    // 5. doc/log/impl/*.md → doc/impl/(front matter 付与は将来の impl コマンドに委ねる)
+    final implDir = '$projectDir/doc/log/impl';
+    if (_dirExists(implDir)) {
+      actions.add(const MigrationAction(
+          'doc/log/impl/** → doc/impl/(実装計画書。frontmatter 付与は手動 or 将来の impl 移行コマンドで実施)'));
+      if (!dryRun) {
+        await _movePath(implDir, '$projectDir/doc/impl');
+      }
+    }
+
+    // 6. doc/log/post_contract_summary_*.md → doc/impl/research/
+    final logDir = '$projectDir/doc/log';
+    if (_dirExists(logDir)) {
+      final summaryFiles =
+          _listEntries(logDir).where((f) => f.startsWith('post_contract_summary_')).toList();
+      for (final file in summaryFiles) {
+        actions.add(MigrationAction('doc/log/$file → doc/impl/research/$file'));
+        if (!dryRun) {
+          await _movePath('$logDir/$file', '$projectDir/doc/impl/research/$file');
+        }
+      }
+    }
+
+    // 7. doc/案件整理サマリー.md → doc/summary.md(リネームのみ。§10 相当のマーカー化・
+    //    合意の agreements.jsonl への個別移行は人間の確認が前提のため自動化しない)
+    const legacySummaryName = '案件整理サマリー.md';
+    final legacySummaryPath = '$projectDir/doc/$legacySummaryName';
+    if (_fileExists(legacySummaryPath) && !_fileExists('$projectDir/doc/summary.md')) {
+      actions.add(MigrationAction(
+        'doc/$legacySummaryName → doc/summary.md(リネームのみ。'
+        '合意ログの agreements.jsonl への個別移行は `agree add --from <legacy>` で人間が確認しながら実施)',
+      ));
+      if (!dryRun) {
+        await _movePath(legacySummaryPath, '$projectDir/doc/summary.md');
+      }
+    }
+
+    // 8. doc/guides/{store,payment,infrastructure,testing,troubleshooting} → ~/.utakata/knowledge/
+    //    doc/guides/project/** → doc/knowledge/
+    final guidesDir = '$projectDir/doc/guides';
+    if (_dirExists(guidesDir)) {
+      for (final entry in _listEntries(guidesDir)) {
+        if (entry == 'project') {
+          actions.add(const MigrationAction('doc/guides/project/** → doc/knowledge/(案件固有ナレッジ)'));
+          if (!dryRun) {
+            await _movePath('$guidesDir/project', '$projectDir/doc/knowledge');
+          }
+        } else {
+          actions.add(MigrationAction(
+              'doc/guides/$entry/** → ~/.utakata/knowledge/$entry/(案件非依存ナレッジ。要手動確認)',
+              automated: false));
+        }
+      }
+    }
+
+    return actions;
+  }
+}

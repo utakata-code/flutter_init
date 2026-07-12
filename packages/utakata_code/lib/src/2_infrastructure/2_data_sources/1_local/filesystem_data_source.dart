@@ -30,6 +30,36 @@ class FilesystemDataSource {
     await Directory(path).create(recursive: true);
   }
 
+  /// ファイルを削除する(存在しなければ何もしない)
+  Future<void> deleteFile(String path) async {
+    final file = File(path);
+    if (file.existsSync()) await file.delete();
+  }
+
+  /// ディレクトリを再帰的に削除する(存在しなければ何もしない)
+  Future<void> deleteDir(String path) async {
+    final dir = Directory(path);
+    if (dir.existsSync()) await dir.delete(recursive: true);
+  }
+
+  /// ファイル/ディレクトリを移動する(移動先の親ディレクトリは自動作成)
+  Future<void> movePath(String from, String to) async {
+    final toParent = Directory(p.dirname(to));
+    await toParent.create(recursive: true);
+    if (Directory(from).existsSync()) {
+      await Directory(from).rename(to);
+    } else if (File(from).existsSync()) {
+      await File(from).rename(to);
+    }
+  }
+
+  /// ディレクトリ直下のエントリ名(ファイル・ディレクトリ)一覧を返す
+  List<String> listEntries(String dirPath) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) return [];
+    return dir.listSync().map((e) => p.basename(e.path)).toList()..sort();
+  }
+
   /// ファイルが存在するか確認する
   bool fileExists(String path) => File(path).existsSync();
 

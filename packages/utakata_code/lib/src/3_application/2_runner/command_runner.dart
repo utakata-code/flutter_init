@@ -8,7 +8,10 @@ import '../1_commands/check_command.dart';
 import '../1_commands/core_command.dart';
 import '../1_commands/create_command.dart';
 import '../1_commands/diff_command.dart';
+import '../1_commands/doc_command.dart';
+import '../1_commands/doctor_command.dart';
 import '../1_commands/feature_command.dart';
+import '../1_commands/log_command.dart';
 import '../1_commands/plan_command.dart';
 import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
@@ -58,6 +61,9 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required ValidateCommand validateCommand,
     required CoreCommand coreCommand,
     required ArchCommand archCommand,
+    required DocCommand docCommand,
+    required LogCommand logCommand,
+    required DoctorCommand doctorCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -82,6 +88,9 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(validateCommand);
     addCommand(coreCommand);
     addCommand(archCommand);
+    addCommand(docCommand);
+    addCommand(logCommand);
+    addCommand(doctorCommand);
   }
 
   @override
