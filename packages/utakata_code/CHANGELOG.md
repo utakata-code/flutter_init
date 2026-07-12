@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.1.0
+
+* **feat(mcp)**: New `utakata mcp` — stateless stdio JSON-RPC 2.0 MCP server (hand-rolled, no external SDK dependency). Exposes 6 read-only tools: `structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`. No write tools are exposed (AI stays read-only for records; see 0.8.0).
+* **chore**: Removed the deprecated `scan`, `validate`, `feature init`, `core` commands and their aliases. `diff` remains as a permanent alias for `check` (kept for compatibility with existing implementation-plan documents that reference "utakata diff").
+* **chore(templates)**: Stopped bundling `.agent/` and the deprecated `AI/scripts/*.sh` (superseded by CLI commands since 0.5.x) in generated projects; `AI/scripts/build/build_native_ios.sh` is kept as it has no CLI equivalent.
+
+## 1.0.0
+
+* **feat(guide)**: New `utakata guide list/show/eject` — browse an architecture's layer guides and copy one locally to start customizing (single-file copy with an origin comment; no hash/manifest tracking).
+* **feat(arch)**: `arch create` renamed to `arch eject`; `arch create` kept as a deprecated alias.
+* **feat(claude)**: `utakata create` now also generates `.mcp.json` and `.claude/` (settings.json with SessionStart/PostToolUse/Stop hooks and deny rules for `doc/records/**`, two skills, one agent).
+* **feat(feature)**: New `feature add <name> --template <id>` — applies a feature preset (permission + entities) from a `manifest.yaml`, resolved from the project or `~/.utakata/feature_templates/`. No preset content (auth/payment/etc.) ships yet — the mechanism only.
+
+## 0.9.0
+
+* **feat(agree)**: New `agree add/status/correct/reflect/list` — append-only agreement tracking (`doc/records/agreements.jsonl`). Corrections create a new entry and mark the original `superseded` rather than rewriting it.
+* **feat(impl)**: New `impl new/list/done/archive` — feature implementation plan lifecycle (`doc/impl/PLAN-NNNN_{feature}.md`, frontmatter-only machine state, free-form Markdown body).
+* **feat(summary)**: New `utakata summary` — regenerates the `<!-- utakata:begin agreements -->` marker section of `doc/summary.md` from the agreement ledger (title/items/status/amount/sources, and a total for agreed client amounts), leaving hand-written sections untouched.
+
+## 0.8.0
+
+* **feat(log)**: New `utakata log add/show/render` — structured client conversation log (`doc/records/log/YYYY-MM.jsonl`, append-only, human-write-only). `log render` regenerates a per-day Markdown preview with ID anchors.
+* **feat(doc)**: New `utakata doc init` — creates the `doc/` workspace (specs/records/preview/impl/knowledge/archive) + `utakata.yaml` ahead of `create`, for the pre-contract phase.
+* **feat(doctor)**: New `utakata doctor [--migrate]` — diagnoses the project and migrates the legacy `AI/`-based layout (and a real project's ad-hoc `doc/` layout) to the new one. Dry-run by default with a confirmation prompt.
+
+## 0.7.0
+
+* **refactor(check)**: New canonical structure model (`StructurePath`/`StructureNode`/`ExpectedStructure`/`CheckReport`) replaces the separate `diff`/`validate` scans. `NameRuleMatcher` resolves naming rules by path-segment suffix instead of substring `.contains()`, fixing a real bug where a parent directory's naming rule leaked into its own `exceptions/` subdirectory. Directories where a naming rule can't produce a deterministic filename (e.g. `3_usecases/`) now allow any file matching the rule's regex instead of always flagging it as extra.
+* **feat(plan)**: New intent-level `doc/specs/plan.yaml` (schema: 1, supports multiple `entities` per feature) replaces the generated `plan_architecture.yaml`. Falls back read-only to the legacy `AI/specs/feature_request.yaml` if `plan.yaml` doesn't exist yet.
+* **feat(check)**: `check` now supports `--json` and `--file <path>`.
+* **feat(apply)**: New `apply [--scope all|feature|core] [--dry-run]` consolidates `feature init` + `core` on the same expected-structure model `check` uses.
+* **feat(plan)**: New `plan adopt` detects features present in `lib/features/` but missing from `plan.yaml` and appends them (format-preserving, via `package:yaml_edit`) after confirmation.
+* **chore**: `scan`, `diff`, `validate`, `feature init`, `core` become deprecated aliases delegating to `check`/`apply` (still functional, print a warning).
+
+## 0.6.0
+
+* **fix**: Removed all silent `catch (_)` blocks in favor of typed exception handling; `getAll()` now warns to stderr on broken architecture definitions instead of silently skipping them.
+* **fix**: `YamlDataSource.parse()` now throws on malformed YAML instead of returning `null` (previously conflated "missing" and "malformed").
+* **perf**: `flutter` executable resolution is now lazy (on first use) instead of at startup, so commands that don't need `flutter` (`plan`, `check`, `status --brief`, ...) no longer fail when it's not on `PATH`.
+* **fix(status)**: `flutter analyze` is now scoped to `lib/` and `test/` (previously the whole project, including noise from `build/`).
+* **refactor**: Unified four divergent, disagreeing `_toSnakeCase`/`_toPascalCase`/`_toCamelCase` implementations into a single `CaseConverter` service.
+* **chore**: `lib/src/version.g.dart` is now generated from `pubspec.yaml` (`tool/generate_version.dart`) instead of hardcoded in `command_runner.dart`.
+* **chore**: Removed the unused `io` package dependency and four exception classes that were never thrown.
+
 ## 0.5.8
 
 * **fix(diff)**: Flattened `direct` permission group in `planFeatures` to align with the actual physical file structure in `lib/features/` which does not nest direct features under a `direct` folder.

@@ -41,7 +41,6 @@ import 'package:utakata/src/2_infrastructure/3_repositories/template_repository_
 import 'package:utakata/src/3_application/1_commands/agree_command.dart';
 import 'package:utakata/src/3_application/1_commands/apply_command.dart';
 import 'package:utakata/src/3_application/1_commands/check_command.dart';
-import 'package:utakata/src/3_application/1_commands/core_command.dart';
 import 'package:utakata/src/3_application/1_commands/create_command.dart';
 import 'package:utakata/src/3_application/1_commands/diff_command.dart';
 import 'package:utakata/src/3_application/1_commands/doc_command.dart';
@@ -50,13 +49,13 @@ import 'package:utakata/src/3_application/1_commands/feature_command.dart';
 import 'package:utakata/src/3_application/1_commands/guide_command.dart';
 import 'package:utakata/src/3_application/1_commands/impl_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
+import 'package:utakata/src/3_application/1_commands/mcp_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
-import 'package:utakata/src/3_application/1_commands/scan_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
 import 'package:utakata/src/3_application/1_commands/summary_command.dart';
-import 'package:utakata/src/3_application/1_commands/validate_command.dart';
 import 'package:utakata/src/3_application/3_presenters/log_preview_presenter.dart';
 import 'package:utakata/src/3_application/3_presenters/summary_presenter.dart';
+import 'package:utakata/src/3_application/4_server/mcp_server.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_architectures_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/show_architecture_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/export_architecture_usecase.dart';
@@ -255,19 +254,24 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final mcpServer = McpServer(
+    checkUsecase: checkUsecase,
+    planRepo: planRepo,
+    queryLogUsecase: queryLogUsecase,
+    listAgreementsUsecase: listAgreementsUsecase,
+    guideUsecase: guideUsecase,
+  );
+
   // ─── Application 層の組み立て ───
   final runner = UtakataCommandRunner(
     msg: msg,
     createCommand: CreateCommand(createProjectUsecase, generateClaudeIntegrationUsecase, msg),
-    featureCommand: FeatureCommand(addFeatureUsecase, applyUsecase, applyFeatureTemplateUsecase, msg),
+    featureCommand: FeatureCommand(addFeatureUsecase, applyFeatureTemplateUsecase, msg),
     planCommand: PlanCommand(adoptPlanUsecase, msg),
-    scanCommand: ScanCommand(msg),
     diffCommand: DiffCommand(checkUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
     applyCommand: ApplyCommand(applyUsecase, msg),
     statusCommand: StatusCommand(statusUsecase, projectRepo, msg),
-    validateCommand: ValidateCommand(checkUsecase, msg),
-    coreCommand: CoreCommand(generateCoreUsecase, msg),
     archCommand: ArchCommand(
       listArchitecturesUsecase,
       showArchitectureUsecase,
@@ -282,6 +286,7 @@ Future<void> main(List<String> arguments) async {
     implCommand: ImplCommand(implPlanUsecase, msg),
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
     guideCommand: GuideCommand(guideUsecase, msg),
+    mcpCommand: McpCommand(mcpServer, msg),
   );
 
   // ─── 実行 ───

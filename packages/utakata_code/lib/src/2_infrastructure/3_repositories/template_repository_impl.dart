@@ -11,7 +11,9 @@ import '../2_data_sources/1_local/filesystem_data_source.dart';
 /// lib/src/0_templates/architectures/{archId}/ 配下のテンプレートを読み込む。
 /// すべてのリソースがアーキテクチャ単位でまとまっている:
 ///   architectures/{archId}/
-///     .agent/         — 汎用 AI エージェント設定
+///     .agent/         — 旧 AI エージェント設定(v1.0 で生成停止。Claude Code
+///                        統合(.claude/ + .mcp.json)が後継。ディレクトリ自体は
+///                        参考資料として残るが getProjectTemplates では読まない)
 ///     AI/             — AI ガイド・テンプレート・仕様書
 ///       architecture/  — アーキテクチャ固有リソース
 ///         arch_definition.yaml
@@ -64,14 +66,8 @@ class TemplateRepositoryImpl implements TemplateRepository {
       ));
     }
 
-    // .agent/ ディレクトリ（プレフィックス付きで展開: .agent/rules/... のように）
-    final agentDir = Directory(p.join(archBasePath, '.agent'));
-    if (agentDir.existsSync()) {
-      results.addAll(await _loadTemplates(
-        agentDir.path,
-        addBaseDirPrefix: true,
-      ));
-    }
+    // .agent/ は v1.0 で生成を停止した(仕様書 §11.3)。
+    // Claude Code 統合(.claude/ + .mcp.json)が後継。
 
     return results;
   }

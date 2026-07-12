@@ -6,7 +6,6 @@ import '../1_commands/agree_command.dart';
 import '../1_commands/apply_command.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
-import '../1_commands/core_command.dart';
 import '../1_commands/create_command.dart';
 import '../1_commands/diff_command.dart';
 import '../1_commands/doc_command.dart';
@@ -15,11 +14,10 @@ import '../1_commands/feature_command.dart';
 import '../1_commands/guide_command.dart';
 import '../1_commands/impl_command.dart';
 import '../1_commands/log_command.dart';
+import '../1_commands/mcp_command.dart';
 import '../1_commands/plan_command.dart';
-import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/summary_command.dart';
-import '../1_commands/validate_command.dart';
 
 const _version = packageVersion;
 
@@ -57,13 +55,10 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required CreateCommand createCommand,
     required FeatureCommand featureCommand,
     required PlanCommand planCommand,
-    required ScanCommand scanCommand,
     required DiffCommand diffCommand,
     required CheckCommand checkCommand,
     required ApplyCommand applyCommand,
     required StatusCommand statusCommand,
-    required ValidateCommand validateCommand,
-    required CoreCommand coreCommand,
     required ArchCommand archCommand,
     required DocCommand docCommand,
     required LogCommand logCommand,
@@ -72,6 +67,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required ImplCommand implCommand,
     required SummaryCommand summaryCommand,
     required GuideCommand guideCommand,
+    required McpCommand mcpCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -88,13 +84,10 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(createCommand);
     addCommand(featureCommand);
     addCommand(planCommand);
-    addCommand(scanCommand);
     addCommand(diffCommand);
     addCommand(checkCommand);
     addCommand(applyCommand);
     addCommand(statusCommand);
-    addCommand(validateCommand);
-    addCommand(coreCommand);
     addCommand(archCommand);
     addCommand(docCommand);
     addCommand(logCommand);
@@ -103,6 +96,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(implCommand);
     addCommand(summaryCommand);
     addCommand(guideCommand);
+    addCommand(mcpCommand);
   }
 
   @override
