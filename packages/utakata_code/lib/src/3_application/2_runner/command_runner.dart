@@ -12,6 +12,7 @@ import '../1_commands/diff_command.dart';
 import '../1_commands/doc_command.dart';
 import '../1_commands/doctor_command.dart';
 import '../1_commands/feature_command.dart';
+import '../1_commands/guide_command.dart';
 import '../1_commands/impl_command.dart';
 import '../1_commands/log_command.dart';
 import '../1_commands/plan_command.dart';
@@ -70,6 +71,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required AgreeCommand agreeCommand,
     required ImplCommand implCommand,
     required SummaryCommand summaryCommand,
+    required GuideCommand guideCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -100,6 +102,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(agreeCommand);
     addCommand(implCommand);
     addCommand(summaryCommand);
+    addCommand(guideCommand);
   }
 
   @override

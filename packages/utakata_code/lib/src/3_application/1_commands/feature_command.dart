@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 
 import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/3_usecases/add_feature_usecase.dart';
+import '../../1_domain/3_usecases/apply_feature_template_usecase.dart';
 import '../../1_domain/3_usecases/apply_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../../1_domain/services/case_converter.dart';
@@ -14,6 +15,7 @@ import 'logger.dart';
 class FeatureCommand extends Command<int> {
   final AddFeatureUsecase _addUsecase;
   final ApplyUsecase _applyUsecase;
+  final ApplyFeatureTemplateUsecase _templateUsecase;
   final CliMessages _msg;
 
   @override
@@ -22,8 +24,8 @@ class FeatureCommand extends Command<int> {
   @override
   String get description => _msg.cmdFeatureDesc;
 
-  FeatureCommand(this._addUsecase, this._applyUsecase, this._msg) {
-    addSubcommand(_FeatureAddCommand(_addUsecase, _msg));
+  FeatureCommand(this._addUsecase, this._applyUsecase, this._templateUsecase, this._msg) {
+    addSubcommand(_FeatureAddCommand(_addUsecase, _templateUsecase, _msg));
     addSubcommand(_FeatureInitCommand(_applyUsecase, _msg));
   }
 
@@ -37,6 +39,7 @@ class FeatureCommand extends Command<int> {
 /// utakata feature add
 class _FeatureAddCommand extends BaseCommand {
   final AddFeatureUsecase _usecase;
+  final ApplyFeatureTemplateUsecase _templateUsecase;
   final CliMessages _msg;
 
   @override
@@ -45,7 +48,7 @@ class _FeatureAddCommand extends BaseCommand {
   @override
   String get description => _msg.cmdFeatureAddDesc;
 
-  _FeatureAddCommand(this._usecase, this._msg) {
+  _FeatureAddCommand(this._usecase, this._templateUsecase, this._msg) {
     argParser
       ..addOption('entity', abbr: 'e', help: _msg.optEntity)
       ..addOption('permission',
@@ -54,6 +57,7 @@ class _FeatureAddCommand extends BaseCommand {
           allowed: ['admin', 'user', 'shared', 'direct'],
           help: _msg.optPermission)
       ..addOption('arch', defaultsTo: 'clean_architecture', help: _msg.optArch)
+      ..addOption('template', help: 'feature プリセットテンプレート ID を適用する')
       ..addFlag('yes', abbr: 'y', help: _msg.optYes);
   }
 
@@ -65,6 +69,20 @@ class _FeatureAddCommand extends BaseCommand {
     }
 
     final featureName = CaseConverter.toSnakeCase(argResults!.rest.first);
+    final templateId = argResults!['template'] as String?;
+
+    if (templateId != null) {
+      Logger.section(_msg.sectionFeatureAdd(featureName));
+      final spec = await _templateUsecase.execute(
+        Directory.current.path,
+        featureName,
+        templateId,
+        architectureId: argResults!['arch'] as String,
+      );
+      Logger.success(_msg.templateApplied(templateId, spec.relativePath));
+      return 0;
+    }
+
     final entityName = CaseConverter.toSnakeCase(
       (argResults!['entity'] as String?) ?? featureName,
     );

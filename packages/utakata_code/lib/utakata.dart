@@ -24,5 +24,6 @@ export 'src/1_domain/2_repositories/structure_repository.dart';
 export 'src/1_domain/2_repositories/conversation_log_repository.dart';
 export 'src/1_domain/2_repositories/agreement_repository.dart';
 export 'src/1_domain/2_repositories/impl_plan_repository.dart';
+export 'src/1_domain/2_repositories/feature_template_repository.dart';
 export 'src/1_domain/1_entities/guide_entity.dart';
 export 'src/1_domain/exceptions/domain_exceptions.dart';

@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../../1_domain/1_entities/project_spec_entity.dart';
 import '../../1_domain/3_usecases/create_project_usecase.dart';
+import '../../1_domain/3_usecases/generate_claude_integration_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../../1_domain/services/case_converter.dart';
 import 'base_command.dart';
@@ -10,6 +11,7 @@ import 'logger.dart';
 /// utakata create — Flutter プロジェクトを新規作成する
 class CreateCommand extends BaseCommand {
   final CreateProjectUsecase _usecase;
+  final GenerateClaudeIntegrationUsecase _claudeUsecase;
   final CliMessages _msg;
 
   @override
@@ -18,7 +20,7 @@ class CreateCommand extends BaseCommand {
   @override
   String get description => _msg.cmdCreateDesc;
 
-  CreateCommand(this._usecase, this._msg) {
+  CreateCommand(this._usecase, this._claudeUsecase, this._msg) {
     argParser
       ..addOption('org',
           abbr: 'o',
@@ -58,8 +60,8 @@ class CreateCommand extends BaseCommand {
     );
 
     await _usecase.execute(spec);
+    await _claudeUsecase.execute(appName);
     Logger.success(_msg.projectCreated(appName));
     return 0;
   }
-
 }

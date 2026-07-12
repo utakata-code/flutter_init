@@ -4,12 +4,15 @@ import 'package:utakata/src/1_domain/messages/messages_resolver.dart';
 import 'package:utakata/src/1_domain/3_usecases/add_feature_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/add_log_entry_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/adopt_plan_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/apply_feature_template_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/apply_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/doctor_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/generate_claude_integration_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_core_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/guide_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_doc_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_agreements_usecase.dart';
@@ -29,6 +32,7 @@ import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/process_dat
 import 'package:utakata/src/2_infrastructure/3_repositories/agreement_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/architecture_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/conversation_log_repository_impl.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/feature_template_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/impl_plan_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/plan_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/project_repository_impl.dart';
@@ -43,6 +47,7 @@ import 'package:utakata/src/3_application/1_commands/diff_command.dart';
 import 'package:utakata/src/3_application/1_commands/doc_command.dart';
 import 'package:utakata/src/3_application/1_commands/doctor_command.dart';
 import 'package:utakata/src/3_application/1_commands/feature_command.dart';
+import 'package:utakata/src/3_application/1_commands/guide_command.dart';
 import 'package:utakata/src/3_application/1_commands/impl_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
@@ -88,6 +93,7 @@ Future<void> main(List<String> arguments) async {
   final logRepo = ConversationLogRepositoryImpl(jsonl);
   final agreementRepo = AgreementRepositoryImpl(jsonl);
   final implPlanRepo = ImplPlanRepositoryImpl(fs, frontMatter);
+  final featureTemplateRepo = FeatureTemplateRepositoryImpl(fs, yaml);
 
   // ─── Domain UseCase の組み立て ───
   final generateGuidesUsecase = GenerateGuidesUsecase(
@@ -229,11 +235,31 @@ Future<void> main(List<String> arguments) async {
     renderAgreements: SummaryPresenter.renderAgreements,
   );
 
+  final guideUsecase = GuideUsecase(
+    archRepo: archRepo,
+    readFile: fs.readFile,
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+    resolvePackageTemplatePath: fs.resolvePackageTemplatePath,
+  );
+
+  final generateClaudeIntegrationUsecase = GenerateClaudeIntegrationUsecase(
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+  );
+
+  final applyFeatureTemplateUsecase = ApplyFeatureTemplateUsecase(
+    templateRepo: featureTemplateRepo,
+    planRepo: planRepo,
+    addFeatureUsecase: addFeatureUsecase,
+    msg: msg,
+  );
+
   // ─── Application 層の組み立て ───
   final runner = UtakataCommandRunner(
     msg: msg,
-    createCommand: CreateCommand(createProjectUsecase, msg),
-    featureCommand: FeatureCommand(addFeatureUsecase, applyUsecase, msg),
+    createCommand: CreateCommand(createProjectUsecase, generateClaudeIntegrationUsecase, msg),
+    featureCommand: FeatureCommand(addFeatureUsecase, applyUsecase, applyFeatureTemplateUsecase, msg),
     planCommand: PlanCommand(adoptPlanUsecase, msg),
     scanCommand: ScanCommand(msg),
     diffCommand: DiffCommand(checkUsecase, msg),
@@ -255,6 +281,7 @@ Future<void> main(List<String> arguments) async {
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
     implCommand: ImplCommand(implPlanUsecase, msg),
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
+    guideCommand: GuideCommand(guideUsecase, msg),
   );
 
   // ─── 実行 ───

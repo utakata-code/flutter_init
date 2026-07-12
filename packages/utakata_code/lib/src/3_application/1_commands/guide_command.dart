@@ -1,0 +1,112 @@
+import 'dart:io';
+
+import 'package:args/command_runner.dart';
+
+import '../../1_domain/3_usecases/guide_usecase.dart';
+import '../../1_domain/messages/cli_messages.dart';
+import 'base_command.dart';
+import 'logger.dart';
+
+/// utakata guide — 参照型ナレッジ(GUIDE 等)の閲覧・カスタム開始
+class GuideCommand extends Command<int> {
+  final CliMessages _msg;
+
+  @override
+  String get name => 'guide';
+  @override
+  String get description => _msg.cmdGuideDesc;
+
+  GuideCommand(GuideUsecase usecase, this._msg) {
+    addSubcommand(_GuideListCommand(usecase, _msg));
+    addSubcommand(_GuideShowCommand(usecase, _msg));
+    addSubcommand(_GuideEjectCommand(usecase, _msg));
+  }
+
+  @override
+  Future<int> run() async {
+    printUsage();
+    return 0;
+  }
+}
+
+class _GuideListCommand extends BaseCommand {
+  final GuideUsecase _usecase;
+  final CliMessages _msg;
+
+  @override
+  String get name => 'list';
+  @override
+  String get description => _msg.cmdGuideListDesc;
+
+  _GuideListCommand(this._usecase, this._msg) {
+    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  }
+
+  @override
+  Future<int> execute() async {
+    final guides = await _usecase.list(argResults!['arch'] as String);
+    if (guides.isEmpty) {
+      Logger.warn(_msg.guideListEmpty);
+      return 0;
+    }
+    for (final g in guides) {
+      Logger.info('${g.layerPath}  —  ${g.title}');
+    }
+    return 0;
+  }
+}
+
+class _GuideShowCommand extends BaseCommand {
+  final GuideUsecase _usecase;
+  final CliMessages _msg;
+
+  @override
+  String get name => 'show';
+  @override
+  String get description => _msg.cmdGuideShowDesc;
+
+  _GuideShowCommand(this._usecase, this._msg) {
+    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  }
+
+  @override
+  Future<int> execute() async {
+    if (argResults!.rest.isEmpty) {
+      Logger.error(_msg.missingGuideId);
+      return 1;
+    }
+    final content = await _usecase.show(argResults!['arch'] as String, argResults!.rest.first);
+    stdout.writeln(content);
+    return 0;
+  }
+}
+
+class _GuideEjectCommand extends BaseCommand {
+  final GuideUsecase _usecase;
+  final CliMessages _msg;
+
+  @override
+  String get name => 'eject';
+  @override
+  String get description => _msg.cmdGuideEjectDesc;
+
+  _GuideEjectCommand(this._usecase, this._msg) {
+    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  }
+
+  @override
+  Future<int> execute() async {
+    if (argResults!.rest.isEmpty) {
+      Logger.error(_msg.missingGuideId);
+      return 1;
+    }
+    final layerPath = argResults!.rest.first;
+    final path = await _usecase.eject(
+      Directory.current.path,
+      argResults!['arch'] as String,
+      layerPath,
+    );
+    Logger.success(_msg.guideEjectDone(layerPath, path));
+    return 0;
+  }
+}

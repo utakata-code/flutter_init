@@ -35,6 +35,7 @@ class ArchCommand extends Command<int> {
     addSubcommand(_ArchListCommand(_listUsecase, _msg));
     addSubcommand(_ArchShowCommand(_showUsecase, _msg));
     addSubcommand(_ArchExportCommand(_exportUsecase, _msg));
+    addSubcommand(_ArchEjectCommand(_createUsecase, _msg));
     addSubcommand(_ArchCreateCommand(_createUsecase, _msg));
   }
 
@@ -159,7 +160,37 @@ class _ArchExportCommand extends BaseCommand {
   }
 }
 
-/// utakata arch create [id] — プロジェクトのローカルにアーキテクチャ定義のボイラープレートを作成する
+/// utakata arch eject [id] — プロジェクトのローカルにアーキテクチャ定義のボイラープレートを書き出す
+class _ArchEjectCommand extends BaseCommand {
+  final CreateArchitectureUsecase _usecase;
+  final CliMessages _msg;
+
+  @override
+  String get name => 'eject';
+
+  @override
+  String get description => _msg.cmdArchCreateDesc;
+
+  _ArchEjectCommand(this._usecase, this._msg);
+
+  @override
+  Future<int> execute() async {
+    if (argResults!.rest.isEmpty) {
+      Logger.error(_msg.missingArchitectureId);
+      return 1;
+    }
+
+    final archId = argResults!.rest.first;
+    final projectDir = Directory.current.path;
+
+    await _usecase.execute(archId, projectDir);
+    final targetPath = p.join(projectDir, 'AI', 'architecture', 'arch_definition.yaml');
+    Logger.success(_msg.archCreateSuccess(archId, targetPath));
+    return 0;
+  }
+}
+
+/// utakata arch create — [非推奨] `utakata arch eject` へのエイリアス
 class _ArchCreateCommand extends BaseCommand {
   final CreateArchitectureUsecase _usecase;
   final CliMessages _msg;
@@ -178,6 +209,8 @@ class _ArchCreateCommand extends BaseCommand {
       Logger.error(_msg.missingArchitectureId);
       return 1;
     }
+
+    Logger.warn(_msg.deprecatedAlias('arch create', 'arch eject'));
 
     final archId = argResults!.rest.first;
     final projectDir = Directory.current.path;
