@@ -83,7 +83,11 @@ plan.yaml(人間/AIが書く・意図レベル)        lib/(実体)
 - `StructurePath`: lib/ 相対・POSIX 区切りに正規化。feature の同一性は `(permission, name)`。`direct` の「features 直下配置」は**正準化層の1箇所だけ**が知る
 - `StructureNode`(sealed): Dir / File(kind: `source` | `generated` | `ignored`)。`*.g.dart`/`*.freezed.dart` は**スキャナが1箇所で** generated に分類し、命名検証・差分の対象外(誤検知バグ2件の恒久解消)。`__files__` という文字列規約のエンコード自体を廃止(誤認バグのクラスごと消滅)
 - 命名規則の適用は**最深 `dir_pattern` 優先**(`exceptions/` に親規則が当たるバグの解消)
-- 既知バグは HEAD 時点で再確認したところ、5件中3件が現行コードで再現する: `diff` が dart ファイルを `__files__` ディレクトリと誤認、feature 名プレフィックス不一致の誤検知、および `validate` が `direct` パーミッションの補償展開を行わないため direct feature を誤検知(旧課題文書に未記載だった実挙動。「plan⇔diff の相互補償」は diff 側のみで成立しており validate は補償していない)。残り2件(`*.freezed.dart`/`*.g.dart` の命名違反誤判定、`exceptions/` サブディレクトリへの親規則適用)は既にアドホックに対処済みで現行コードでは再現しない。**この3件を回帰テストとして先に固定してから**このモデルで修正し、対処済みの2件は正準モデルへの集約と回帰テスト追加のみ行う
+- 既知バグは HEAD 時点で `test/regression/known_bugs_test.dart` として実際にコードを動かして検証した。再現が確認できたのは2件:
+  1. `validate` が `direct` パーミッションの補償展開を行わないため、plan と実構造が完全一致していても `missing: direct` / `extra: {featureName}` を誤検知する(diff 側は 0.5.8 で `direct` をフラット展開する補償が実装済みだが、validate 側には同じ補償がない。旧課題文書に未記載だった実挙動)
+  2. `diff`/`validate` は、命名が非決定的で plan 側に `__files__` が生成されないディレクトリ(`{verb}`や`|`を含む description を持つ layer、典型的には `3_usecases/` 等)で、実際に存在する正当な実装ファイルを**常に extra として誤検知する**。plan にファイル名が1つも列挙されていないディレクトリでは、命名規則に合うファイルは元々許可されるべきだが、現行実装はそう扱わない
+  
+  旧課題文書が挙げていた「`*.freezed.dart`/`*.g.dart` の命名違反誤判定」「`exceptions/` サブディレクトリへの親規則適用」の2件は現行コードで再現しなかった(`filesystem_data_source.dart`/`validate_usecase.dart` で既にアドホックに対処済み)。「feature 名プレフィックス不一致」は未検証のまま残る。**再現した2件を回帰テストとして先に固定してから**このモデルで修正し、対処済みの2件は正準モデルへの集約と回帰テスト追加のみ行う
 - 正準モデル・`check`/`apply` は `arch_definition.yaml` 駆動であり、`clean_architecture` に限らず `mvvm` テンプレートを含む全アーキテクチャ定義に等しく適用される。mvvm も v1.0 の参照化(§9)・回帰テスト整備(§13)の対象
 
 ## 6. plan の意図レベル化(課題③の本体)
