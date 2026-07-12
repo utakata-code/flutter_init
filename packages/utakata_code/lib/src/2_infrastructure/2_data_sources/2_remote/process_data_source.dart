@@ -7,28 +7,25 @@ import '../../../1_domain/exceptions/domain_exceptions.dart';
 /// 外部プロセス実行を担うデータソース
 ///
 /// flutter create / flutter analyze 等を呼び出す。
-/// flutter 実行ファイルのパスはコンストラクタ時に自動解決し、キャッシュする。
-///
-/// インスタンス生成は [ProcessDataSource.create] を使用すること。
+/// flutter 実行ファイルのパスは**初回使用時に**遅延解決し、以降はキャッシュする
+/// (plan/check/status --brief 等 flutter を使わないコマンドの起動を妨げない)。
 class ProcessDataSource {
-  /// 解決済みの flutter 実行ファイルパス
-  final String _flutterExe;
+  const ProcessDataSource();
 
-  ProcessDataSource._(this._flutterExe);
+  /// 解決済みの flutter 実行ファイルパス(初回アクセス時に解決・キャッシュ)
+  static String? _cachedExe;
 
-  /// 非同期ファクトリコンストラクタ
+  Future<String> get _flutterExe async {
+    return _cachedExe ??= await _resolveFlutterExecutable();
+  }
+
+  /// flutter 実行ファイルのパスを解決する
   ///
-  /// 以下の優先順位で flutter 実行ファイルを自動解決する:
+  /// 以下の優先順位で自動解決する:
   ///   1. 環境変数 FLUTTER_PATH
   ///   2. 環境変数 FLUTTER_ROOT → {root}/bin/flutter
   ///   3. which (macOS/Linux) / where (Windows) で PATH 検索
   ///   4. 見つからなければ [FlutterNotFoundException] をスロー
-  static Future<ProcessDataSource> create() async {
-    final exe = await _resolveFlutterExecutable();
-    return ProcessDataSource._(exe);
-  }
-
-  /// flutter 実行ファイルのパスを解決する
   static Future<String> _resolveFlutterExecutable() async {
     // 1. 環境変数 FLUTTER_PATH（フルパス指定）
     final envPath = Platform.environment['FLUTTER_PATH'];
@@ -83,7 +80,7 @@ class ProcessDataSource {
     String? workingDir,
   }) async {
     final result = await Process.run(
-      _flutterExe,
+      await _flutterExe,
       [
         'create',
         '--empty',
@@ -116,7 +113,7 @@ class ProcessDataSource {
 
     // 依存関係を解決するために flutter pub get を実行
     final getResult = await Process.run(
-      _flutterExe,
+      await _flutterExe,
       ['pub', 'get'],
       workingDirectory: targetDir,
       runInShell: Platform.isWindows,
@@ -128,7 +125,7 @@ class ProcessDataSource {
     }
 
     final result = await Process.run(
-      _flutterExe,
+      await _flutterExe,
       [
         'pub',
         'run',
@@ -150,9 +147,15 @@ class ProcessDataSource {
 
   /// flutter analyze を実行してその出力を返す
   Future<String> flutterAnalyze(String projectDir) async {
+    // build/ 配下(SourcePackages 等)のノイズを避けるため lib/ と test/ のみを対象にする。
+    // test/ が存在しないプロジェクトでは lib/ のみを渡す。
+    final targets = <String>['lib'];
+    if (Directory(p.join(projectDir, 'test')).existsSync()) {
+      targets.add('test');
+    }
     final result = await Process.run(
-      _flutterExe,
-      ['analyze'],
+      await _flutterExe,
+      ['analyze', ...targets],
       workingDirectory: projectDir,
       runInShell: Platform.isWindows,
     );
@@ -162,7 +165,7 @@ class ProcessDataSource {
   /// flutter --version を実行してバージョン文字列を返す
   Future<String> flutterVersion() async {
     final result = await Process.run(
-      _flutterExe,
+      await _flutterExe,
       ['--version', '--machine'],
       runInShell: Platform.isWindows,
     );

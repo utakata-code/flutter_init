@@ -1,11 +1,8 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 
 import '../1_entities/validation_result_entity.dart';
 import '../2_repositories/architecture_repository.dart';
 import '../2_repositories/project_repository.dart';
-import '../messages/cli_messages.dart';
 
 /// 命名規則・ディレクトリ構造違反を検出するユースケース
 ///
@@ -17,18 +14,17 @@ class ValidateUsecase {
   final ArchitectureRepository _archRepo;
   final ProjectRepository _projectRepo;
 
-  // msg は将来の拡張（詳細エラーメッセージ多言語化）のために受け取るが
-  // 違反情報は ValidationResultEntity として返すため Command 層で使用する
-  // ignore: unused_field
-  final CliMessages _msg;
+  /// ディレクトリ配下の .dart ファイルを再帰的に列挙する関数
+  /// (Infrastructure から注入。domain 層は dart:io に依存しない)
+  final List<String> Function(String dirPath) _listDartFilesRecursive;
 
   const ValidateUsecase({
     required ArchitectureRepository archRepo,
     required ProjectRepository projectRepo,
-    required CliMessages msg,
+    required List<String> Function(String dirPath) listDartFilesRecursive,
   })  : _archRepo = archRepo,
         _projectRepo = projectRepo,
-        _msg = msg;
+        _listDartFilesRecursive = listDartFilesRecursive;
 
   /// バリデーションを実行する
   ///
@@ -80,25 +76,16 @@ class ValidateUsecase {
     List<dynamic> namingRules,
   ) async {
     final violations = <NamingViolationEntity>[];
-    final featuresDir = Directory(p.join(projectDir, 'lib', 'features'));
-
-    if (!featuresDir.existsSync()) return violations;
+    final featuresDir = p.join(projectDir, 'lib', 'features');
 
     // lib/features/ 配下の全 .dart ファイルを走査
-    // .freezed.dart / .g.dart 等のコード生成ファイルは除外
-    final dartFiles = featuresDir
-        .listSync(recursive: true)
-        .whereType<File>()
-        .where((f) => f.path.endsWith('.dart'))
-        .where((f) => !f.path.endsWith('.freezed.dart'))
-        .where((f) => !f.path.endsWith('.g.dart'))
-        .where((f) => !f.path.endsWith('.template.dart'))
-        .toList();
+    // (コード生成ファイルの除外は listDartFilesRecursive 側で行う)
+    final dartFiles = _listDartFilesRecursive(featuresDir);
 
-    for (final file in dartFiles) {
+    for (final filePath in dartFiles) {
       // features/ 以降の相対パス
-      final relPath = p.relative(file.path, from: p.join(projectDir, 'lib'));
-      final fileName = p.basename(file.path);
+      final relPath = p.relative(filePath, from: p.join(projectDir, 'lib'));
+      final fileName = p.basename(filePath);
       final dirPath = p.dirname(relPath).replaceAll(r'\', '/');
 
       // exceptions/ サブディレクトリ配下のファイルは親ルールを適用しない

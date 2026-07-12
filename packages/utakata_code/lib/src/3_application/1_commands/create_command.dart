@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import '../../1_domain/1_entities/project_spec_entity.dart';
 import '../../1_domain/3_usecases/create_project_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../../1_domain/services/case_converter.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
@@ -43,7 +44,7 @@ class CreateCommand extends BaseCommand {
     }
 
     final appName = argResults!.rest.first;
-    final projectName = _toSnakeCase(p.basename(appName));
+    final projectName = CaseConverter.toSnakeCase(p.basename(appName));
 
     Logger.section(_msg.sectionCreate(appName));
 
@@ -61,12 +62,4 @@ class CreateCommand extends BaseCommand {
     return 0;
   }
 
-  String _toSnakeCase(String input) => input
-      .replaceAll(RegExp(r'[\s\-]'), '_')
-      .replaceAllMapped(
-        RegExp(r'[A-Z]'),
-        (m) => '_${m[0]!.toLowerCase()}',
-      )
-      .toLowerCase()
-      .replaceAll(RegExp(r'^_+|_+$'), '');
 }

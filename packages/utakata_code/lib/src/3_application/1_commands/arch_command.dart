@@ -8,6 +8,7 @@ import '../../1_domain/3_usecases/export_architecture_usecase.dart';
 import '../../1_domain/3_usecases/list_architectures_usecase.dart';
 import '../../1_domain/3_usecases/show_architecture_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import 'base_command.dart';
 import 'logger.dart';
 
 /// utakata arch — アーキテクチャの確認・エクスポート・カスタム作成を行うコマンド群
@@ -45,7 +46,7 @@ class ArchCommand extends Command<int> {
 }
 
 /// utakata arch list — 利用可能なアーキテクチャ定義の一覧を表示する
-class _ArchListCommand extends Command<int> {
+class _ArchListCommand extends BaseCommand {
   final ListArchitecturesUsecase _usecase;
   final CliMessages _msg;
 
@@ -58,24 +59,19 @@ class _ArchListCommand extends Command<int> {
   _ArchListCommand(this._usecase, this._msg);
 
   @override
-  Future<int> run() async {
-    try {
-      final archs = await _usecase.execute();
-      
-      Logger.section(_msg.archListHeader);
-      for (final arch in archs) {
-        Logger.info('  - ${arch.id}: ${arch.displayName}');
-      }
-      return 0;
-    } on Exception catch (e) {
-      Logger.error(e.toString());
-      return 1;
+  Future<int> execute() async {
+    final archs = await _usecase.execute();
+
+    Logger.section(_msg.archListHeader);
+    for (final arch in archs) {
+      Logger.info('  - ${arch.id}: ${arch.displayName}');
     }
+    return 0;
   }
 }
 
 /// utakata arch show [id] — 指定したアーキテクチャの定義詳細を表示する
-class _ArchShowCommand extends Command<int> {
+class _ArchShowCommand extends BaseCommand {
   final ShowArchitectureUsecase _usecase;
   final CliMessages _msg;
 
@@ -88,56 +84,50 @@ class _ArchShowCommand extends Command<int> {
   _ArchShowCommand(this._usecase, this._msg);
 
   @override
-  Future<int> run() async {
+  Future<int> execute() async {
     if (argResults!.rest.isEmpty) {
       Logger.error(_msg.missingArchitectureId);
       return 1;
     }
 
     final archId = argResults!.rest.first;
+    final arch = await _usecase.execute(archId);
 
-    try {
-      final arch = await _usecase.execute(archId);
+    Logger.section(_msg.archShowHeader(arch.id, arch.displayName));
+    Logger.info('');
 
-      Logger.section(_msg.archShowHeader(arch.id, arch.displayName));
-      Logger.info('');
+    // レイヤー構造のツリー表示
+    Logger.info(_msg.archShowLayers);
+    final layers = arch.layers;
+    for (var i = 0; i < layers.length; i++) {
+      final layer = layers[i];
+      final isLastLayer = i == layers.length - 1;
+      final layerPrefix = isLastLayer ? '└── ' : '├── ';
+      final childIndent = isLastLayer ? '    ' : '│   ';
 
-      // レイヤー構造のツリー表示
-      Logger.info(_msg.archShowLayers);
-      final layers = arch.layers;
-      for (var i = 0; i < layers.length; i++) {
-        final layer = layers[i];
-        final isLastLayer = i == layers.length - 1;
-        final layerPrefix = isLastLayer ? '└── ' : '├── ';
-        final childIndent = isLastLayer ? '    ' : '│   ';
+      Logger.info('$layerPrefix${layer.name}');
 
-        Logger.info('$layerPrefix${layer.name}');
-
-        for (var j = 0; j < layer.dirs.length; j++) {
-          final dir = layer.dirs[j];
-          final isLastDir = j == layer.dirs.length - 1;
-          final dirPrefix = isLastDir ? '└── ' : '├── ';
-          Logger.info('$childIndent$dirPrefix$dir');
-        }
+      for (var j = 0; j < layer.dirs.length; j++) {
+        final dir = layer.dirs[j];
+        final isLastDir = j == layer.dirs.length - 1;
+        final dirPrefix = isLastDir ? '└── ' : '├── ';
+        Logger.info('$childIndent$dirPrefix$dir');
       }
-      Logger.info('');
-
-      // 命名規則表示
-      Logger.info(_msg.archShowNamingRules);
-      for (final rule in arch.namingRules) {
-        Logger.info('  - ${rule.dirPattern} -> ${rule.description}');
-      }
-
-      return 0;
-    } on Exception catch (e) {
-      Logger.error(e.toString());
-      return 1;
     }
+    Logger.info('');
+
+    // 命名規則表示
+    Logger.info(_msg.archShowNamingRules);
+    for (final rule in arch.namingRules) {
+      Logger.info('  - ${rule.dirPattern} -> ${rule.description}');
+    }
+
+    return 0;
   }
 }
 
 /// utakata arch export [id] [path] — 指定したアーキテクチャの定義をYAMLファイルとしてエクスポートする
-class _ArchExportCommand extends Command<int> {
+class _ArchExportCommand extends BaseCommand {
   final ExportArchitectureUsecase _usecase;
   final CliMessages _msg;
 
@@ -150,7 +140,7 @@ class _ArchExportCommand extends Command<int> {
   _ArchExportCommand(this._usecase, this._msg);
 
   @override
-  Future<int> run() async {
+  Future<int> execute() async {
     if (argResults!.rest.isEmpty) {
       Logger.error(_msg.missingArchitectureId);
       return 1;
@@ -163,19 +153,14 @@ class _ArchExportCommand extends Command<int> {
     final archId = argResults!.rest[0];
     final outputPath = argResults!.rest[1];
 
-    try {
-      await _usecase.execute(archId, outputPath);
-      Logger.success(_msg.archExportSuccess(archId, outputPath));
-      return 0;
-    } on Exception catch (e) {
-      Logger.error(e.toString());
-      return 1;
-    }
+    await _usecase.execute(archId, outputPath);
+    Logger.success(_msg.archExportSuccess(archId, outputPath));
+    return 0;
   }
 }
 
 /// utakata arch create [id] — プロジェクトのローカルにアーキテクチャ定義のボイラープレートを作成する
-class _ArchCreateCommand extends Command<int> {
+class _ArchCreateCommand extends BaseCommand {
   final CreateArchitectureUsecase _usecase;
   final CliMessages _msg;
 
@@ -188,7 +173,7 @@ class _ArchCreateCommand extends Command<int> {
   _ArchCreateCommand(this._usecase, this._msg);
 
   @override
-  Future<int> run() async {
+  Future<int> execute() async {
     if (argResults!.rest.isEmpty) {
       Logger.error(_msg.missingArchitectureId);
       return 1;
@@ -197,14 +182,9 @@ class _ArchCreateCommand extends Command<int> {
     final archId = argResults!.rest.first;
     final projectDir = Directory.current.path;
 
-    try {
-      await _usecase.execute(archId, projectDir);
-      final targetPath = p.join(projectDir, 'AI', 'architecture', 'arch_definition.yaml');
-      Logger.success(_msg.archCreateSuccess(archId, targetPath));
-      return 0;
-    } on Exception catch (e) {
-      Logger.error(e.toString());
-      return 1;
-    }
+    await _usecase.execute(archId, projectDir);
+    final targetPath = p.join(projectDir, 'AI', 'architecture', 'arch_definition.yaml');
+    Logger.success(_msg.archCreateSuccess(archId, targetPath));
+    return 0;
   }
 }

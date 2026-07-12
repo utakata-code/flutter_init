@@ -1,5 +1,6 @@
 import '../1_entities/feature_spec_entity.dart';
 import '../2_repositories/project_repository.dart';
+import '../exceptions/domain_exceptions.dart';
 import '../messages/cli_messages.dart';
 import 'add_feature_usecase.dart';
 
@@ -34,8 +35,8 @@ class InitFeaturesUsecase {
     Map<String, dynamic>? featureRequest;
     try {
       featureRequest = await _projectRepo.readFeatureRequest(projectDir);
-    } catch (_) {
-      // feature_request.yaml がない場合は permission = 'direct' をデフォルトに
+    } on UtakataDomainException {
+      // feature_request.yaml がない/壊れている場合は permission = 'direct' をデフォルトに
     }
 
     final tasks = <FeatureSpecEntity>[];
@@ -106,7 +107,9 @@ class InitFeaturesUsecase {
           }
         }
       }
-    } catch (_) {}
+    } on TypeError {
+      // plan の形が想定外だった場合のみ feature 名にフォールバック
+    }
     return featureName;
   }
 }

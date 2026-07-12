@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../../1_domain/2_repositories/project_repository.dart';
 import '../../1_domain/3_usecases/validate_usecase.dart';
+import '../../1_domain/exceptions/domain_exceptions.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
 import 'logger.dart';
@@ -40,7 +41,8 @@ class ValidateCommand extends BaseCommand {
         } else {
           archId = 'clean_architecture';
         }
-      } catch (_) {
+      } on UtakataDomainException {
+        // feature_request.yaml が存在しない/壊れている場合のみデフォルトにフォールバック
         archId = 'clean_architecture';
       }
     }

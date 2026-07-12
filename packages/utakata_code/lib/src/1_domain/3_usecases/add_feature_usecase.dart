@@ -4,6 +4,7 @@ import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/2_repositories/architecture_repository.dart';
 import '../../1_domain/2_repositories/template_repository.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../services/case_converter.dart';
 import 'generate_guides_usecase.dart';
 
 /// フィーチャーを追加するユースケース
@@ -89,24 +90,13 @@ class AddFeatureUsecase {
 
   Map<String, String> _buildVariables(FeatureSpecEntity spec) => {
         'entity_name': spec.entityName,
-        'EntityName': _toPascalCase(spec.entityName),
-        'entityName': _toCamelCase(spec.entityName),
+        'EntityName': CaseConverter.toPascalCase(spec.entityName),
+        'entityName': CaseConverter.toCamelCase(spec.entityName),
         'feature_name': spec.featureName,
-        'FeatureName': _toPascalCase(spec.featureName),
-        'featureName': _toCamelCase(spec.featureName),
+        'FeatureName': CaseConverter.toPascalCase(spec.featureName),
+        'featureName': CaseConverter.toCamelCase(spec.featureName),
         'permission': spec.permission,
       };
-
-  String _toPascalCase(String input) => input
-      .split('_')
-      .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
-      .join();
-
-  String _toCamelCase(String input) {
-    final pascal = _toPascalCase(input);
-    if (pascal.isEmpty) return pascal;
-    return '${pascal[0].toLowerCase()}${pascal.substring(1)}';
-  }
 }
 
 

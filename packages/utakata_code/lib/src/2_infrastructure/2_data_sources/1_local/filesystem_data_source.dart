@@ -67,6 +67,25 @@ class FilesystemDataSource {
     return result;
   }
 
+  /// ディレクトリ配下の .dart ファイルを再帰的にフラットリストで返す
+  ///
+  /// .g.dart / .freezed.dart / .template.dart は除外する。
+  /// (命名規則の検証など、ツリー構造ではなくファイル単位の走査が必要な用途向け)
+  List<String> listDartFilesRecursive(String dirPath) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) return [];
+    return dir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .map((f) => f.path)
+        .where((path) => path.endsWith('.dart'))
+        .where((path) => !path.endsWith('.freezed.dart'))
+        .where((path) => !path.endsWith('.g.dart'))
+        .where((path) => !path.endsWith('.template.dart'))
+        .toList()
+      ..sort();
+  }
+
   /// パッケージに同梱されたテンプレートディレクトリのパスを返す
   ///
   /// `dart:isolate` の `Isolate.resolvePackageUri` を使用して、

@@ -31,12 +31,16 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     if (_fs.fileExists(localPath)) {
       final localContent = await _fs.readFile(localPath);
       if (localContent != null) {
-        final doc = _yaml.parse(localContent);
-        if (doc != null) {
+        // ローカル上書きが壊れている場合は同梱テンプレートへフォールバックする
+        // (ローカルカスタムは任意であり、構文エラーは致命的にしない)。
+        try {
+          final doc = _yaml.parse(localContent, source: localPath);
           final definition = _parseDefinition(doc);
           if (definition.id == architectureId) {
             return definition;
           }
+        } on YamlParseException {
+          // fallthrough to package template
         }
       }
     }
@@ -50,11 +54,8 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
       throw ArchitectureNotFoundException(architectureId);
     }
 
-    final doc = _yaml.parse(content);
-    if (doc == null) {
-      throw ArchitectureNotFoundException('$architectureId (YAML parse failed)');
-    }
-
+    // 同梱テンプレートの構文エラーはパッケージ側の不整合であり握りつぶさない
+    final doc = _yaml.parse(content, source: templateBase);
     return _parseDefinition(doc);
   }
 
@@ -69,8 +70,9 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     for (final entry in entries) {
       try {
         result.add(await getById(p.basename(entry.path)));
-      } catch (_) {
-        // 読み込めないものはスキップ
+      } on UtakataDomainException catch (e) {
+        // 壊れた定義はスキップするが、黙殺せず stderr に警告する(P6)
+        stderr.writeln('⚠️  Skipping broken architecture "${p.basename(entry.path)}": $e');
       }
     }
     return result;
@@ -217,12 +219,14 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     if (_fs.fileExists(localPath)) {
       final localContent = await _fs.readFile(localPath);
       if (localContent != null) {
-        final doc = _yaml.parse(localContent);
-        if (doc != null) {
+        try {
+          final doc = _yaml.parse(localContent, source: localPath);
           final definition = _parseDefinition(doc);
           if (definition.id == architectureId) {
             return localContent;
           }
+        } on YamlParseException {
+          // fallthrough to package template
         }
       }
     }

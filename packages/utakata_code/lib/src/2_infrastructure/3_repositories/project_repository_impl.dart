@@ -28,11 +28,7 @@ class ProjectRepositoryImpl implements ProjectRepository {
     if (content == null) {
       throw FeatureRequestNotFoundException(path);
     }
-    final doc = _yaml.parse(content);
-    if (doc == null) {
-      throw YamlParseException(path);
-    }
-    return doc;
+    return _yaml.parse(content, source: path);
   }
 
   @override
@@ -46,17 +42,18 @@ class ProjectRepositoryImpl implements ProjectRepository {
 
   @override
   Future<Map<String, dynamic>?> readPlanArchitecture(String projectDir) async {
-    final content = await _fs.readFile(p.join(projectDir, _planArchYamlPath));
+    final path = p.join(projectDir, _planArchYamlPath);
+    final content = await _fs.readFile(path);
     if (content == null) return null;
-    return _yaml.parse(content);
+    return _yaml.parse(content, source: path);
   }
 
   @override
   Future<Map<String, dynamic>?> readCurrentStructure(String projectDir) async {
-    final content =
-        await _fs.readFile(p.join(projectDir, _currentStructYamlPath));
+    final path = p.join(projectDir, _currentStructYamlPath);
+    final content = await _fs.readFile(path);
     if (content == null) return null;
-    return _yaml.parse(content);
+    return _yaml.parse(content, source: path);
   }
 
   @override

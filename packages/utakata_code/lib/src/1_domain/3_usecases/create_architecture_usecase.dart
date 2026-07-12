@@ -1,5 +1,6 @@
 import 'package:path/path.dart' as p;
 import '../messages/cli_messages.dart';
+import '../services/case_converter.dart';
 
 /// プロジェクトのローカルにアーキテクチャ定義のボイラープレートを作成するユースケース
 class CreateArchitectureUsecase {
@@ -32,19 +33,11 @@ class CreateArchitectureUsecase {
       throw Exception(_msg.architectureAlreadyExists(targetPath));
     }
 
-    final displayName = _toPascalCase(architectureId);
+    final displayName = CaseConverter.toPascalCase(architectureId);
     final boilerplate = _generateBoilerplate(architectureId, displayName);
 
     await _ensureDir(p.dirname(targetPath));
     await _writeFile(targetPath, boilerplate);
-  }
-
-  String _toPascalCase(String input) {
-    return input
-        .split(RegExp(r'[-_ ]'))
-        .where((s) => s.isNotEmpty)
-        .map((s) => s[0].toUpperCase() + s.substring(1))
-        .join();
   }
 
   String _generateBoilerplate(String id, String displayName) {

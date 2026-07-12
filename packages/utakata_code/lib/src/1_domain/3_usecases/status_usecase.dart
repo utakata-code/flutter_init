@@ -43,8 +43,9 @@ class StatusUsecase {
     ArchitectureDiffEntity? diff;
     try {
       diff = await _diffUsecase.execute(projectDir);
-    } catch (_) {
-      // plan_architecture.yaml がない場合は diff なし
+    } on Exception {
+      // plan_architecture.yaml がない場合は diff なし。
+      // Exception のみ捕捉し、プログラミングエラー(Error 系)は伝播させる(P6)。
     }
 
     // プロジェクト状態をスキャン

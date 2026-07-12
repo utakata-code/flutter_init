@@ -35,7 +35,8 @@ class PlanCommand extends BaseCommand {
         0,
         (acc, v) => acc + (v is Map ? v.length : 0),
       );
-    } catch (_) {
+    } on TypeError {
+      // plan の形が想定外だった場合のみ 0 にフォールバック(表示用カウントのため致命的ではない)
       return 0;
     }
   }

@@ -2,6 +2,7 @@ import 'package:path/path.dart' as p;
 
 import '../1_entities/project_status_entity.dart';
 import '../2_repositories/architecture_repository.dart';
+import '../exceptions/domain_exceptions.dart';
 
 /// プロジェクト状態をディスクスキャンで収集するユースケース
 ///
@@ -67,8 +68,8 @@ class ScanProjectStatusUsecase {
         coreModules[module.id] = _dirExists(modulePath) &&
             _hasDartFiles(modulePath);
       }
-    } catch (_) {
-      // arch_definition.yaml がない場合はスキップ
+    } on UtakataDomainException {
+      // arch_definition.yaml がない/壊れている場合はスキップ
     }
 
     // documents — テンプレートのみか編集済みか

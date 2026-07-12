@@ -1,17 +1,23 @@
 import 'package:yaml/yaml.dart';
 
+import '../../../1_domain/exceptions/domain_exceptions.dart';
+
 /// YAML 読み書きを担うデータソース
 class YamlDataSource {
   const YamlDataSource();
 
-  /// YAML 文字列を Map に変換する。解析失敗時は null を返す
-  Map<String, dynamic>? parse(String yamlStr) {
+  /// YAML 文字列を Map に変換する。
+  ///
+  /// 空文書は空 Map を返す。構文エラーは [YamlParseException] を送出する
+  /// (失敗を握りつぶさない。呼び出し元が「見つからない」と「壊れている」を
+  /// 区別できるようにする)。
+  Map<String, dynamic> parse(String yamlStr, {String source = '<unknown>'}) {
     try {
       final doc = loadYaml(yamlStr);
-      if (doc == null) return null;
+      if (doc == null) return {};
       return _yamlToMap(doc);
-    } catch (_) {
-      return null;
+    } on YamlException {
+      throw YamlParseException(source);
     }
   }
 

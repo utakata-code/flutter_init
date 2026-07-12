@@ -6,6 +6,8 @@ import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/3_usecases/add_feature_usecase.dart';
 import '../../1_domain/3_usecases/init_features_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../../1_domain/services/case_converter.dart';
+import 'base_command.dart';
 import 'logger.dart';
 
 /// utakata feature — フィーチャー操作コマンド群
@@ -33,7 +35,7 @@ class FeatureCommand extends Command<int> {
 }
 
 /// utakata feature add
-class _FeatureAddCommand extends Command<int> {
+class _FeatureAddCommand extends BaseCommand {
   final AddFeatureUsecase _usecase;
   final CliMessages _msg;
 
@@ -56,14 +58,14 @@ class _FeatureAddCommand extends Command<int> {
   }
 
   @override
-  Future<int> run() async {
+  Future<int> execute() async {
     if (argResults!.rest.isEmpty) {
       Logger.error(_msg.missingFeatureName);
       return 1;
     }
 
-    final featureName = _toSnakeCase(argResults!.rest.first);
-    final entityName = _toSnakeCase(
+    final featureName = CaseConverter.toSnakeCase(argResults!.rest.first);
+    final entityName = CaseConverter.toSnakeCase(
       (argResults!['entity'] as String?) ?? featureName,
     );
     final permission = argResults!['permission'] as String;
@@ -93,13 +95,10 @@ class _FeatureAddCommand extends Command<int> {
     Logger.success(_msg.featureAddDone(featureName));
     return 0;
   }
-
-  String _toSnakeCase(String input) =>
-      input.toLowerCase().replaceAll(RegExp(r'[\s\-]'), '_');
 }
 
 /// utakata feature init
-class _FeatureInitCommand extends Command<int> {
+class _FeatureInitCommand extends BaseCommand {
   final InitFeaturesUsecase _usecase;
   final CliMessages _msg;
 
@@ -114,7 +113,7 @@ class _FeatureInitCommand extends Command<int> {
   }
 
   @override
-  Future<int> run() async {
+  Future<int> execute() async {
     final dryRun = argResults!['dry-run'] as bool;
 
     Logger.section(_msg.sectionFeatureInit(dryRun));

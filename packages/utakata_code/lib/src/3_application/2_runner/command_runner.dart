@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 
+import '../../version.g.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
@@ -12,7 +13,7 @@ import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/validate_command.dart';
 
-const _version = '0.5.8';
+const _version = packageVersion;
 
 // ANSIカラーコード
 const _reset = '\x1B[0m';

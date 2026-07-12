@@ -47,14 +47,9 @@ Future<void> main(List<String> arguments) async {
   const fs = FilesystemDataSource();
   const yaml = YamlDataSource();
 
-  // flutter 実行ファイルのパスを環境変数 / PATH から自动解決
-  final ProcessDataSource process;
-  try {
-    process = await ProcessDataSource.create();
-  } catch (e) {
-    stderr.writeln('❌ ${msg.flutterNotFound}');
-    exit(1);
-  }
+  // flutter 実行ファイルのパスは初回使用時に遅延解決する
+  // (plan/check/status --brief 等 flutter を使わないコマンドを妨げない)。
+  const process = ProcessDataSource();
 
   // リポジトリ実装
   final archRepo = ArchitectureRepositoryImpl(fs, yaml);
@@ -154,7 +149,7 @@ Future<void> main(List<String> arguments) async {
   final validateUsecase = ValidateUsecase(
     archRepo: archRepo,
     projectRepo: projectRepo,
-    msg: msg,
+    listDartFilesRecursive: fs.listDartFilesRecursive,
   );
 
   final listArchitecturesUsecase = ListArchitecturesUsecase(

@@ -18,34 +18,10 @@ final class ArchitectureNotFoundException extends UtakataDomainException {
       : super('Architecture "$architectureId" not found.');
 }
 
-/// 指定したテンプレートが存在しない
-final class TemplateNotFoundException extends UtakataDomainException {
-  const TemplateNotFoundException(String templateId)
-      : super('Template "$templateId" not found.');
-}
-
 /// feature_request.yaml が存在しない
 final class FeatureRequestNotFoundException extends UtakataDomainException {
   const FeatureRequestNotFoundException(String path)
       : super('feature_request.yaml not found: $path');
-}
-
-/// plan_architecture.yaml が存在しない
-final class PlanArchitectureNotFoundException extends UtakataDomainException {
-  const PlanArchitectureNotFoundException(String path)
-      : super('plan_architecture.yaml not found: $path. Run `utakata plan` first.');
-}
-
-/// プロジェクトディレクトリが Flutter プロジェクトでない
-final class NotFlutterProjectException extends UtakataDomainException {
-  const NotFlutterProjectException(String dir)
-      : super('"$dir" is not a Flutter project root.');
-}
-
-/// フィーチャー名が不正
-final class InvalidFeatureNameException extends UtakataDomainException {
-  const InvalidFeatureNameException(String name)
-      : super('Invalid feature name "$name". Use snake_case.');
 }
 
 /// flutter コマンドが見つからない
