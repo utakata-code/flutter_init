@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 
 import '../../version.g.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../1_commands/agree_command.dart';
 import '../1_commands/apply_command.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
@@ -11,10 +12,12 @@ import '../1_commands/diff_command.dart';
 import '../1_commands/doc_command.dart';
 import '../1_commands/doctor_command.dart';
 import '../1_commands/feature_command.dart';
+import '../1_commands/impl_command.dart';
 import '../1_commands/log_command.dart';
 import '../1_commands/plan_command.dart';
 import '../1_commands/scan_command.dart';
 import '../1_commands/status_command.dart';
+import '../1_commands/summary_command.dart';
 import '../1_commands/validate_command.dart';
 
 const _version = packageVersion;
@@ -64,6 +67,9 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required DocCommand docCommand,
     required LogCommand logCommand,
     required DoctorCommand doctorCommand,
+    required AgreeCommand agreeCommand,
+    required ImplCommand implCommand,
+    required SummaryCommand summaryCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -91,6 +97,9 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(docCommand);
     addCommand(logCommand);
     addCommand(doctorCommand);
+    addCommand(agreeCommand);
+    addCommand(implCommand);
+    addCommand(summaryCommand);
   }
 
   @override

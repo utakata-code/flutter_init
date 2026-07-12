@@ -10,22 +10,31 @@ import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/doctor_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_core_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_doc_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/list_agreements_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/query_log_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/record_agreement_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/render_log_preview_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/render_summary_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/scan_project_status_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/status_usecase.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/filesystem_data_source.dart';
+import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/front_matter_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/jsonl_data_source.dart';
+import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/markdown_marker_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/yaml_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/yaml_edit_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/process_data_source.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/agreement_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/architecture_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/conversation_log_repository_impl.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/impl_plan_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/plan_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/project_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/structure_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/template_repository_impl.dart';
+import 'package:utakata/src/3_application/1_commands/agree_command.dart';
 import 'package:utakata/src/3_application/1_commands/apply_command.dart';
 import 'package:utakata/src/3_application/1_commands/check_command.dart';
 import 'package:utakata/src/3_application/1_commands/core_command.dart';
@@ -34,12 +43,15 @@ import 'package:utakata/src/3_application/1_commands/diff_command.dart';
 import 'package:utakata/src/3_application/1_commands/doc_command.dart';
 import 'package:utakata/src/3_application/1_commands/doctor_command.dart';
 import 'package:utakata/src/3_application/1_commands/feature_command.dart';
+import 'package:utakata/src/3_application/1_commands/impl_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
 import 'package:utakata/src/3_application/1_commands/scan_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
+import 'package:utakata/src/3_application/1_commands/summary_command.dart';
 import 'package:utakata/src/3_application/1_commands/validate_command.dart';
 import 'package:utakata/src/3_application/3_presenters/log_preview_presenter.dart';
+import 'package:utakata/src/3_application/3_presenters/summary_presenter.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_architectures_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/show_architecture_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/export_architecture_usecase.dart';
@@ -64,6 +76,8 @@ Future<void> main(List<String> arguments) async {
   // (plan/check/status --brief 等 flutter を使わないコマンドを妨げない)。
   const process = ProcessDataSource();
   const jsonl = JsonlDataSource();
+  const frontMatter = FrontMatterDataSource(yaml);
+  const marker = MarkdownMarkerDataSource();
 
   // リポジトリ実装
   final archRepo = ArchitectureRepositoryImpl(fs, yaml);
@@ -72,6 +86,8 @@ Future<void> main(List<String> arguments) async {
   final planRepo = PlanRepositoryImpl(fs, yaml, yamlEdit);
   final structureRepo = StructureRepositoryImpl(fs);
   final logRepo = ConversationLogRepositoryImpl(jsonl);
+  final agreementRepo = AgreementRepositoryImpl(jsonl);
+  final implPlanRepo = ImplPlanRepositoryImpl(fs, frontMatter);
 
   // ─── Domain UseCase の組み立て ───
   final generateGuidesUsecase = GenerateGuidesUsecase(
@@ -200,6 +216,19 @@ Future<void> main(List<String> arguments) async {
     listEntries: fs.listEntries,
   );
 
+  final recordAgreementUsecase = RecordAgreementUsecase(repo: agreementRepo);
+  final listAgreementsUsecase = ListAgreementsUsecase(repo: agreementRepo);
+
+  final implPlanUsecase = ImplPlanUsecase(repo: implPlanRepo);
+
+  final renderSummaryUsecase = RenderSummaryUsecase(
+    agreementRepo: agreementRepo,
+    readFile: fs.readFile,
+    writeFile: fs.writeFile,
+    replaceSection: marker.replaceSection,
+    renderAgreements: SummaryPresenter.renderAgreements,
+  );
+
   // ─── Application 層の組み立て ───
   final runner = UtakataCommandRunner(
     msg: msg,
@@ -223,6 +252,9 @@ Future<void> main(List<String> arguments) async {
     docCommand: DocCommand(initDocUsecase, msg),
     logCommand: LogCommand(addLogEntryUsecase, queryLogUsecase, renderLogPreviewUsecase, msg),
     doctorCommand: DoctorCommand(doctorUsecase, msg),
+    agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
+    implCommand: ImplCommand(implPlanUsecase, msg),
+    summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
   );
 
   // ─── 実行 ───
