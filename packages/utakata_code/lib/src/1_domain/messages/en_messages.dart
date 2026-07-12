@@ -53,6 +53,10 @@ class EnMessages implements CliMessages {
   String get optYes => 'Skip confirmation prompt';
   @override
   String get optDryRun => 'Preview without generating files';
+  @override
+  String get optBrief => 'Lightweight mode (skip flutter analyze/version)';
+  @override
+  String get optWriteReport => 'Update project_status.yaml/md';
 
   // ─── Logger.section headers ───
   @override
@@ -253,5 +257,160 @@ class EnMessages implements CliMessages {
   String coreDone(int count) => '✅ Generated $count Core module directories!';
   @override
   String coreModuleRow(String path) => '  ✅ $path';
+
+  // ─── check (v0.7) ───
+  @override
+  String get optJson => 'Output as JSON';
+  @override
+  String get optFile => 'Filter violations to the given path only';
+  @override
+  String get namingViolationsHeader => '⚠️ Naming violations:';
+  @override
+  String get checkClean => '✅ Structure matches the plan (no violations)';
+  @override
+  String checkSummary(int missing, int extra, int naming) =>
+      '⚠️ missing: $missing / extra: $extra / naming violations: $naming';
+  @override
+  String deprecatedAlias(String oldCmd, String newCmd) =>
+      '⚠️  `utakata $oldCmd` is deprecated. Use `utakata $newCmd` instead.';
+
+  // ─── apply (v0.7) ───
+  @override
+  String get cmdApplyDesc => 'Generate feature/core scaffolding missing from plan.yaml';
+  @override
+  String get optScope => 'Scope to generate (all|feature|core)';
+  @override
+  String get sectionApply => '🏗️ utakata apply — Generating structure';
+  @override
+  String applyFeatureRow(String path) => '  ✅ $path';
+  @override
+  String applyDone(int featureCount, int coreCount) =>
+      '✅ Generated $featureCount feature(s), $coreCount core module(s)';
+  @override
+  String get applyNothingToDo => 'Nothing to generate (plan.yaml not found or empty)';
+
+  // ─── plan adopt (v0.7) ───
+  @override
+  String get cmdPlanAdoptDesc => 'Detect unplanned features and append them to plan.yaml';
+  @override
+  String get sectionPlanAdopt => '🔍 utakata plan adopt — Detecting unplanned features';
+  @override
+  String get adoptNoneFound => 'No unplanned features found';
+  @override
+  String adoptCandidateRow(String permission, String name) => '  - $permission/$name';
+  @override
+  String adoptConfirm(String permission, String name) =>
+      'Add "$permission/$name" to plan.yaml? [y/N] ';
+  @override
+  String adoptDone(int count) => '✅ Added $count feature(s) to plan.yaml';
+
+  // ─── doc init (v0.8) ───
+  @override
+  String get cmdDocDesc => 'doc/ project workspace commands';
+  @override
+  String get cmdDocInitDesc => 'Create the doc/ workspace ahead of the app (pre-contract phase)';
+  @override
+  String get docInitDone => '✅ Created the doc/ workspace';
+  @override
+  String get docInitAlreadyExists => 'doc/ already exists';
+
+  // ─── log (v0.8) ───
+  @override
+  String get cmdLogDesc => 'Structured client conversation log (human-only writes)';
+  @override
+  String get cmdLogAddDesc => 'Append one log entry';
+  @override
+  String get cmdLogShowDesc => 'Show log entries';
+  @override
+  String get cmdLogRenderDesc => 'Regenerate the Markdown log preview';
+  @override
+  String logAddDone(String id) => '✅ Recorded $id';
+  @override
+  String get logShowEmpty => 'No matching log entries found';
+  @override
+  String get logRenderDone => '✅ Preview regenerated';
+
+  // ─── agree (v0.9) ───
+  @override
+  String get cmdAgreeDesc => 'Agreement tracking (client agreements, internal decisions)';
+  @override
+  String get cmdAgreeAddDesc => 'Append one agreement';
+  @override
+  String get cmdAgreeListDesc => 'List agreements';
+  @override
+  String get cmdAgreeStatusDesc => 'Update an agreement\'s status';
+  @override
+  String agreeAddDone(String id) => '✅ Recorded $id';
+  @override
+  String get agreeListEmpty => 'No agreements recorded';
+  @override
+  String agreeStatusDone(String id, String status) => '✅ Updated $id to $status';
+
+  // ─── impl (v0.9) ───
+  @override
+  String get cmdImplDesc => 'Feature implementation plan management';
+  @override
+  String get cmdImplNewDesc => 'Create a new implementation plan';
+  @override
+  String get cmdImplListDesc => 'List implementation plans';
+  @override
+  String get cmdImplDoneDesc => 'Mark an implementation plan as done';
+  @override
+  String get cmdImplArchiveDesc => 'Move a done implementation plan to archive/';
+  @override
+  String implNewDone(String id, String path) => '✅ Created $id: $path';
+  @override
+  String get implListEmpty => 'No implementation plans found';
+  @override
+  String implDoneDone(String id) => '✅ Marked $id as done';
+  @override
+  String implArchiveDone(String id) => '✅ Moved $id to archive/';
+
+  // ─── summary (v0.9) ───
+  @override
+  String get cmdSummaryDesc => 'Regenerate the marked sections of the project summary';
+  @override
+  String get summaryRenderDone => '✅ Regenerated the marked sections of summary.md';
+
+  // ─── guide (v1.0) ───
+  @override
+  String get cmdGuideDesc => 'Browse reference knowledge (GUIDE etc.) and start customizing';
+  @override
+  String get cmdGuideListDesc => 'List available guides';
+  @override
+  String get cmdGuideShowDesc => 'Show a guide\'s content';
+  @override
+  String get cmdGuideEjectDesc => 'Eject a guide locally to start customizing';
+  @override
+  String get guideListEmpty => 'No guides found';
+  @override
+  String guideEjectDone(String id, String path) => '✅ Ejected $id: $path';
+  @override
+  String get missingGuideId => 'Please specify a guide ID';
+
+  // ─── doctor (v1.0) ───
+  @override
+  String get cmdDoctorDesc => 'Diagnose environment/schema/layout and migrate';
+  @override
+  String get doctorOk => '✅ No issues found';
+  @override
+  String doctorIssueRow(String message) => '  ⚠️ $message';
+  @override
+  String get doctorMigrateNoneFound => 'Nothing to migrate';
+  @override
+  String doctorMigrateDone(int count) => '✅ Migrated $count item(s)';
+
+  // ─── mcp (v1.1) ───
+  @override
+  String get cmdMcpDesc => 'Start the MCP server (stdio, read-only)';
+
+  // ─── feature --template (v1.0) ───
+  @override
+  String get missingTemplateId => 'Please specify a template ID';
+  @override
+  String templateNotFound(String id) => 'Template "$id" was not found';
+  @override
+  String templateApplied(String id, String featureName) =>
+      '✅ Applied template "$id": $featureName';
 }
 

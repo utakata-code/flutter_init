@@ -1,12 +1,12 @@
-import '../1_entities/architecture_diff_entity.dart';
+import '../1_entities/structure/check_report.dart';
 import '../1_entities/project_status_entity.dart';
 import '../messages/cli_messages.dart';
-import 'diff_architecture_usecase.dart';
+import 'check_usecase.dart';
 import 'scan_project_status_usecase.dart';
 
 /// プロジェクトステータスを集計するユースケース
 class StatusUsecase {
-  final DiffArchitectureUsecase _diffUsecase;
+  final CheckUsecase _checkUsecase;
   final ScanProjectStatusUsecase _scanStatusUsecase;
   final CliMessages _msg;
 
@@ -17,20 +17,19 @@ class StatusUsecase {
   final Future<String> Function() _getFlutterVersion;
 
   const StatusUsecase({
-    required DiffArchitectureUsecase diffUsecase,
+    required CheckUsecase checkUsecase,
     required ScanProjectStatusUsecase scanStatusUsecase,
     required CliMessages msg,
     required Future<String> Function(String projectDir) runFlutterAnalyze,
     required Future<String> Function() getFlutterVersion,
-  })  : _diffUsecase = diffUsecase,
+  })  : _checkUsecase = checkUsecase,
         _scanStatusUsecase = scanStatusUsecase,
         _msg = msg,
         _runFlutterAnalyze = runFlutterAnalyze,
         _getFlutterVersion = getFlutterVersion;
 
-  /// ステータスを収集して返す
+  /// ステータスを収集して返す(flutter analyze・version を含む完全版)
   Future<ProjectStatusResult> execute(String projectDir) async {
-    // 並列で取得
     final results = await Future.wait([
       _getFlutterVersion(),
       _runFlutterAnalyze(projectDir),
@@ -38,26 +37,35 @@ class StatusUsecase {
 
     final flutterVersion = results[0];
     final analyzeOutput = results[1];
-
-    // diff 内部で自動的にスキャン＆保存されます
-    ArchitectureDiffEntity? diff;
-    try {
-      diff = await _diffUsecase.execute(projectDir);
-    } on Exception {
-      // plan_architecture.yaml がない場合は diff なし。
-      // Exception のみ捕捉し、プログラミングエラー(Error 系)は伝播させる(P6)。
-    }
-
-    // プロジェクト状態をスキャン
+    final check = await _tryCheck(projectDir);
     final projectStatus = await _scanStatusUsecase.execute(projectDir);
 
     return ProjectStatusResult(
       flutterVersion: flutterVersion,
       analyzeOutput: analyzeOutput,
-      diff: diff,
+      check: check,
       msg: _msg,
       projectStatus: projectStatus,
     );
+  }
+
+  /// `--brief` 用の軽量版。flutter analyze・version は呼び出さない
+  /// (SessionStart フック等、低レイテンシが要求される用途向け。仕様書 §11.2)。
+  Future<CheckReport?> executeBrief(String projectDir) => _tryCheck(projectDir);
+
+  /// project_status.yaml/md 更新のみを行う(flutter 呼び出しなし)。
+  /// `--brief --write-report`(Stop フック)向け。
+  Future<ProjectStatusEntity> scanProjectStatusOnly(String projectDir) =>
+      _scanStatusUsecase.execute(projectDir);
+
+  Future<CheckReport?> _tryCheck(String projectDir) async {
+    try {
+      return await _checkUsecase.execute(projectDir);
+    } on Exception {
+      // plan.yaml がない場合は check なし。
+      // Exception のみ捕捉し、プログラミングエラー(Error 系)は伝播させる(P6)。
+      return null;
+    }
   }
 }
 
@@ -65,7 +73,7 @@ class StatusUsecase {
 class ProjectStatusResult {
   final String flutterVersion;
   final String analyzeOutput;
-  final ArchitectureDiffEntity? diff;
+  final CheckReport? check;
   final CliMessages msg;
   final ProjectStatusEntity projectStatus;
 
@@ -74,6 +82,6 @@ class ProjectStatusResult {
     required this.analyzeOutput,
     required this.msg,
     required this.projectStatus,
-    this.diff,
+    this.check,
   });
 }

@@ -157,9 +157,17 @@ naming_rules:
     file_pattern: "^.+_model\\.dart$"
     description: "{name}_model.dart"
 
+  - dir_pattern: "2_infrastructure/2_data_sources/1_local/exceptions"
+    file_pattern: "^.+_local_exceptions?\\.dart$"
+    description: "{name}_local_exceptions.dart"
+
   - dir_pattern: "2_infrastructure/2_data_sources/1_local"
     file_pattern: "^.+_data_source\\.dart$"
     description: "{name}_data_source.dart"
+
+  - dir_pattern: "2_infrastructure/2_data_sources/2_remote/exceptions"
+    file_pattern: "^.+_remote_exceptions?\\.dart$"
+    description: "{name}_remote_exceptions.dart"
 
   - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
     file_pattern: "^.+_remote_data_source\\.dart$"

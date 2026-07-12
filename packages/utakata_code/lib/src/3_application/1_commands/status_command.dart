@@ -18,13 +18,43 @@ class StatusCommand extends BaseCommand {
   @override
   String get description => _msg.cmdStatusDesc;
 
-  StatusCommand(this._usecase, this._projectRepo, this._msg);
+  StatusCommand(this._usecase, this._projectRepo, this._msg) {
+    argParser
+      ..addFlag('brief', help: _msg.optBrief, negatable: false)
+      ..addFlag('write-report', help: _msg.optWriteReport, negatable: false);
+  }
 
   @override
   Future<int> execute() async {
+    final brief = argResults!['brief'] as bool;
+    final writeReport = argResults!['write-report'] as bool;
+    final projectDir = Directory.current.path;
+
+    if (brief) {
+      // SessionStart/Stop フック用の軽量パス。flutter analyze / version は呼び出さない。
+      final check = await _usecase.executeBrief(projectDir);
+      if (check == null) {
+        Logger.warn(_msg.statusNoPlan);
+      } else if (check.isClean) {
+        Logger.success(_msg.statusDiffClean);
+      } else {
+        Logger.warn(_msg.checkSummary(
+          check.missingPaths.length,
+          check.extraPaths.length,
+          check.namingViolations.length,
+        ));
+      }
+      if (writeReport) {
+        final projectStatus = await _usecase.scanProjectStatusOnly(projectDir);
+        await _projectRepo.writeProjectStatus(projectDir, projectStatus.toYamlMap());
+        await _projectRepo.writeProjectStatusMarkdown(projectDir, projectStatus.toMarkdown());
+      }
+      return 0;
+    }
+
     Logger.section(_msg.sectionStatus);
 
-    final result = await _usecase.execute(Directory.current.path);
+    final result = await _usecase.execute(projectDir);
     final msg = result.msg;
 
     // Flutter バージョン
@@ -41,18 +71,21 @@ class StatusCommand extends BaseCommand {
     }
 
     // アーキテクチャ差分
-    final diff = result.diff;
+    final check = result.check;
     Logger.info('\n${msg.statusArchHeader}');
-    if (diff == null) {
+    if (check == null) {
       Logger.warn(msg.statusNoPlan);
-    } else if (diff.isClean) {
+    } else if (check.isClean) {
       Logger.success(msg.statusDiffClean);
     } else {
-      Logger.warn(msg.diffSummary(diff.missingCount, diff.extraCount));
+      Logger.warn(msg.checkSummary(
+        check.missingPaths.length,
+        check.extraPaths.length,
+        check.namingViolations.length,
+      ));
     }
 
     // project_status.yaml + preview/project_status.md を更新
-    final projectDir = Directory.current.path;
     await _projectRepo.writeProjectStatus(
       projectDir,
       result.projectStatus.toYamlMap(),

@@ -3,6 +3,8 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
+import '../../../1_domain/1_entities/structure/structure_node.dart';
+
 /// ファイルシステム操作を担うデータソース
 ///
 /// dart:io を直接使用する。Domain 層はこのクラスに依存しない。
@@ -65,6 +67,34 @@ class FilesystemDataSource {
       }
     }
     return result;
+  }
+
+  /// ディレクトリ配下を再帰的にスキャンし、正準構造モデル
+  /// ([StructureDirNode] / [StructureFileNode])のツリーを返す。
+  ///
+  /// `scanDartFiles`(Map ベースの旧表現)の後継。ファイル種別
+  /// (source / generated)の判定は [StructureFileNode.kindOf] に一元化する。
+  StructureDirNode scanStructureTree(String dirPath) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) return StructureDirNode.empty;
+    return _scanStructureDir(dir);
+  }
+
+  StructureDirNode _scanStructureDir(Directory dir) {
+    final children = <String, StructureNode>{};
+    final entities = dir.listSync()..sort((a, b) => a.path.compareTo(b.path));
+
+    for (final entity in entities) {
+      final name = p.basename(entity.path);
+      if (name.startsWith('.') || name == '.gitkeep') continue;
+
+      if (entity is Directory) {
+        children[name] = _scanStructureDir(entity);
+      } else if (entity is File && name.endsWith('.dart')) {
+        children[name] = StructureFileNode(StructureFileNode.kindOf(name));
+      }
+    }
+    return StructureDirNode(children);
   }
 
   /// ディレクトリ配下の .dart ファイルを再帰的にフラットリストで返す

@@ -29,6 +29,8 @@ abstract interface class CliMessages {
   String get optPermission;
   String get optYes;
   String get optDryRun;
+  String get optBrief;
+  String get optWriteReport;
 
   // ─── Logger.section ヘッダー ───
   String sectionCreate(String name);
@@ -135,5 +137,92 @@ abstract interface class CliMessages {
   String get sectionCore;
   String coreDone(int count);
   String coreModuleRow(String path);
+
+  // ─── check (v0.7: diff+validate 統合) ───
+  String get optJson;
+  String get optFile;
+  String get namingViolationsHeader;
+  String get checkClean;
+  String checkSummary(int missing, int extra, int naming);
+  String deprecatedAlias(String oldCmd, String newCmd);
+
+  // ─── apply (v0.7: feature init + core 統合) ───
+  String get cmdApplyDesc;
+  String get optScope;
+  String get sectionApply;
+  String applyFeatureRow(String path);
+  String applyDone(int featureCount, int coreCount);
+  String get applyNothingToDo;
+
+  // ─── plan adopt (v0.7) ───
+  String get cmdPlanAdoptDesc;
+  String get sectionPlanAdopt;
+  String get adoptNoneFound;
+  String adoptCandidateRow(String permission, String name);
+  String adoptConfirm(String permission, String name);
+  String adoptDone(int count);
+
+  // ─── doc init (v0.8) ───
+  String get cmdDocDesc;
+  String get cmdDocInitDesc;
+  String get docInitDone;
+  String get docInitAlreadyExists;
+
+  // ─── log (v0.8) ───
+  String get cmdLogDesc;
+  String get cmdLogAddDesc;
+  String get cmdLogShowDesc;
+  String get cmdLogRenderDesc;
+  String logAddDone(String id);
+  String get logShowEmpty;
+  String get logRenderDone;
+
+  // ─── agree (v0.9) ───
+  String get cmdAgreeDesc;
+  String get cmdAgreeAddDesc;
+  String get cmdAgreeListDesc;
+  String get cmdAgreeStatusDesc;
+  String agreeAddDone(String id);
+  String get agreeListEmpty;
+  String agreeStatusDone(String id, String status);
+
+  // ─── impl (v0.9) ───
+  String get cmdImplDesc;
+  String get cmdImplNewDesc;
+  String get cmdImplListDesc;
+  String get cmdImplDoneDesc;
+  String get cmdImplArchiveDesc;
+  String implNewDone(String id, String path);
+  String get implListEmpty;
+  String implDoneDone(String id);
+  String implArchiveDone(String id);
+
+  // ─── summary (v0.9) ───
+  String get cmdSummaryDesc;
+  String get summaryRenderDone;
+
+  // ─── guide (v1.0) ───
+  String get cmdGuideDesc;
+  String get cmdGuideListDesc;
+  String get cmdGuideShowDesc;
+  String get cmdGuideEjectDesc;
+  String get guideListEmpty;
+  String guideEjectDone(String id, String path);
+  String get missingGuideId;
+
+  // ─── doctor (v1.0) ───
+  String get cmdDoctorDesc;
+  String get doctorOk;
+  String doctorIssueRow(String message);
+  String get doctorMigrateNoneFound;
+  String doctorMigrateDone(int count);
+
+  // ─── mcp (v1.1) ───
+  String get cmdMcpDesc;
+
+  // ─── feature --template (v1.0) ───
+  String get missingTemplateId;
+  String templateNotFound(String id);
+  String templateApplied(String id, String featureName);
 }
 

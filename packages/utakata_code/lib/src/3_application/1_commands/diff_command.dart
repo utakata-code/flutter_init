@@ -1,13 +1,17 @@
 import 'dart:io';
 
-import '../../1_domain/3_usecases/diff_architecture_usecase.dart';
+import '../../1_domain/3_usecases/check_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
-/// utakata diff — 計画と実績の差分を表示する
+/// utakata diff — `utakata check` へのエイリアス
+///
+/// `check` へ統合されたが、実案件の実装計画テンプレート文言
+/// (「utakata diff ゼロ維持」)との互換のため、他の非推奨コマンドと異なり
+/// v1.1 以降も委譲エイリアスとして残す(仕様書 §4)。
 class DiffCommand extends BaseCommand {
-  final DiffArchitectureUsecase _usecase;
+  final CheckUsecase _usecase;
   final CliMessages _msg;
 
   @override
@@ -20,31 +24,33 @@ class DiffCommand extends BaseCommand {
 
   @override
   Future<int> execute() async {
+    Logger.warn(_msg.deprecatedAlias('diff', 'check'));
     Logger.section(_msg.sectionDiff);
 
-    final diff = await _usecase.execute(Directory.current.path);
+    final report = await _usecase.execute(Directory.current.path);
 
-    if (diff.missingPaths.isNotEmpty) {
+    if (report.missingPaths.isNotEmpty) {
       Logger.info('\n${_msg.diffMissingHeader}');
-      for (final path in diff.missingPaths) {
+      for (final path in report.missingPaths) {
         Logger.step(path);
       }
     }
 
-    if (diff.extraPaths.isNotEmpty) {
+    if (report.extraPaths.isNotEmpty) {
       Logger.info('\n${_msg.diffExtraHeader}');
-      for (final path in diff.extraPaths) {
+      for (final path in report.extraPaths) {
         Logger.step(path);
       }
     }
 
     stdout.writeln();
-    if (diff.isClean) {
+    final isClean = report.missingPaths.isEmpty && report.extraPaths.isEmpty;
+    if (isClean) {
       Logger.success(_msg.diffClean);
     } else {
-      Logger.warn(_msg.diffSummary(diff.missingCount, diff.extraCount));
+      Logger.warn(_msg.diffSummary(report.missingPaths.length, report.extraPaths.length));
     }
 
-    return diff.missingCount > 0 ? 1 : 0;
+    return report.missingPaths.isNotEmpty ? 1 : 0;
   }
 }

@@ -50,13 +50,20 @@ void main() {
     });
   });
 
-  group('ArchitectureDiffEntity', () {
-    test('isClean は missingPaths と extraPaths が空の場合 true', () {
-      const diff = ArchitectureDiffEntity(
+  group('CheckReport', () {
+    test('isClean は missing/extra/namingViolations が全て空の場合 true', () {
+      const report = CheckReport(
         missingPaths: [],
         extraPaths: [],
+        namingViolations: [],
       );
-      expect(diff.isClean, isTrue);
+      expect(report.isClean, isTrue);
+    });
+
+    test('isClean はいずれかに要素があれば false', () {
+      const report = CheckReport(missingPaths: ['user/memo']);
+      expect(report.isClean, isFalse);
+      expect(report.violationCount, 1);
     });
   });
 

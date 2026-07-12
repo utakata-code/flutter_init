@@ -1,13 +1,13 @@
-import 'dart:io';
-
-import '../../1_domain/3_usecases/scan_structure_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
-/// utakata scan — 現在の lib/features/ 構造をスナップショット
+/// utakata scan — [廃止] no-op
+///
+/// スナップショット方式(current_structure.yaml)を廃止し、`check`/`apply`
+/// が毎回その場で実構造をスキャンするようになったため、本コマンドは
+/// 何もしない(仕様書 §3/§14)。v1.1 で削除予定。
 class ScanCommand extends BaseCommand {
-  final ScanStructureUsecase _usecase;
   final CliMessages _msg;
 
   @override
@@ -16,13 +16,11 @@ class ScanCommand extends BaseCommand {
   @override
   String get description => _msg.cmdScanDesc;
 
-  ScanCommand(this._usecase, this._msg);
+  ScanCommand(this._msg);
 
   @override
   Future<int> execute() async {
-    Logger.section(_msg.sectionScan);
-    await _usecase.execute(Directory.current.path);
-    Logger.success(_msg.scanDone);
+    Logger.warn(_msg.deprecatedAlias('scan', 'check'));
     return 0;
   }
 }

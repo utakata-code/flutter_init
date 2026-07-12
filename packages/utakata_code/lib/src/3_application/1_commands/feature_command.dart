@@ -4,7 +4,7 @@ import 'package:args/command_runner.dart';
 
 import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/3_usecases/add_feature_usecase.dart';
-import '../../1_domain/3_usecases/init_features_usecase.dart';
+import '../../1_domain/3_usecases/apply_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../../1_domain/services/case_converter.dart';
 import 'base_command.dart';
@@ -13,7 +13,7 @@ import 'logger.dart';
 /// utakata feature — フィーチャー操作コマンド群
 class FeatureCommand extends Command<int> {
   final AddFeatureUsecase _addUsecase;
-  final InitFeaturesUsecase _initUsecase;
+  final ApplyUsecase _applyUsecase;
   final CliMessages _msg;
 
   @override
@@ -22,9 +22,9 @@ class FeatureCommand extends Command<int> {
   @override
   String get description => _msg.cmdFeatureDesc;
 
-  FeatureCommand(this._addUsecase, this._initUsecase, this._msg) {
+  FeatureCommand(this._addUsecase, this._applyUsecase, this._msg) {
     addSubcommand(_FeatureAddCommand(_addUsecase, _msg));
-    addSubcommand(_FeatureInitCommand(_initUsecase, _msg));
+    addSubcommand(_FeatureInitCommand(_applyUsecase, _msg));
   }
 
   @override
@@ -97,9 +97,9 @@ class _FeatureAddCommand extends BaseCommand {
   }
 }
 
-/// utakata feature init
+/// utakata feature init — [非推奨] `utakata apply --scope feature` へのエイリアス
 class _FeatureInitCommand extends BaseCommand {
-  final InitFeaturesUsecase _usecase;
+  final ApplyUsecase _usecase;
   final CliMessages _msg;
 
   @override
@@ -116,23 +116,28 @@ class _FeatureInitCommand extends BaseCommand {
   Future<int> execute() async {
     final dryRun = argResults!['dry-run'] as bool;
 
+    Logger.warn(_msg.deprecatedAlias('feature init', 'apply --scope feature'));
     Logger.section(_msg.sectionFeatureInit(dryRun));
 
-    final specs = await _usecase.execute(Directory.current.path, dryRun: dryRun);
+    final result = await _usecase.execute(
+      Directory.current.path,
+      scope: 'feature',
+      dryRun: dryRun,
+    );
 
-    if (specs.isEmpty) {
+    if (result.features.isEmpty) {
       Logger.warn(_msg.featureInitNone);
       return 0;
     }
 
-    for (final spec in specs) {
+    for (final spec in result.features) {
       Logger.step(dryRun
           ? _msg.featureDryRunRow(spec.relativePath)
           : '✅ ${spec.relativePath}');
     }
 
     if (!dryRun) {
-      Logger.success(_msg.featureInitDone(specs.length));
+      Logger.success(_msg.featureInitDone(result.features.length));
     }
     return 0;
   }

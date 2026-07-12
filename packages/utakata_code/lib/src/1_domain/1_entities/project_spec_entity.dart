@@ -20,9 +20,6 @@ class ProjectSpecEntity {
   /// 使用するアーキテクチャの識別子
   final String architectureId;
 
-  /// レイアウトテンプレートの識別子（null = なし）
-  final String? layoutId;
-
   const ProjectSpecEntity({
     required this.appName,
     required this.projectName,
@@ -30,7 +27,6 @@ class ProjectSpecEntity {
     this.platforms = 'android,ios,web,macos',
     this.description = 'Flutter app',
     this.architectureId = 'clean_architecture',
-    this.layoutId,
   });
 
   @override

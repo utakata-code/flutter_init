@@ -1,54 +1,42 @@
-// 既知バグの回帰テスト(v0.6.0)。
+// 既知バグの回帰テスト。
 //
-// AI/specs/current_state_and_issues.md §3.3 に記録された保留バグのうち、
-// 実際に現行コードで再現するものを固定する。
+// v0.6.0 では旧 diff/validate の実装を直接動かして2件のバグ
+// (①validate の direct 未補償、②非決定的命名ディレクトリの extra 誤検知)
+// を実証した。v0.7.0 で正準構造モデル(StructureChecker)へ載せ替えた後は、
+// 同じシナリオを新 CheckUsecase で実行し、両方とも解消されていることを
+// 回帰テストとして固定する。
 import 'package:test/test.dart';
-import 'package:utakata/src/1_domain/2_repositories/architecture_repository.dart';
-import 'package:utakata/src/1_domain/2_repositories/project_repository.dart';
-import 'package:utakata/src/1_domain/3_usecases/diff_architecture_usecase.dart';
-import 'package:utakata/src/1_domain/3_usecases/validate_usecase.dart';
 import 'package:utakata/src/1_domain/1_entities/architecture_definition_entity.dart';
+import 'package:utakata/src/1_domain/1_entities/plan/plan_intent.dart';
+import 'package:utakata/src/1_domain/1_entities/structure/structure_node.dart';
+import 'package:utakata/src/1_domain/1_entities/structure/structure_snapshot.dart';
+import 'package:utakata/src/1_domain/2_repositories/architecture_repository.dart';
+import 'package:utakata/src/1_domain/2_repositories/plan_repository.dart';
+import 'package:utakata/src/1_domain/2_repositories/structure_repository.dart';
+import 'package:utakata/src/1_domain/3_usecases/check_usecase.dart';
 import 'package:utakata/src/1_domain/messages/ja_messages.dart';
 
-/// テスト専用の in-memory ProjectRepository フェイク
-class _FakeProjectRepository implements ProjectRepository {
-  Map<String, dynamic>? plan;
-  Map<String, dynamic> currentStructure;
-
-  _FakeProjectRepository({this.plan, required this.currentStructure});
+class _FakePlanRepository implements PlanRepository {
+  final PlanIntent plan;
+  _FakePlanRepository(this.plan);
 
   @override
-  Future<Map<String, dynamic>> readFeatureRequest(String projectDir) async =>
-      throw UnimplementedError();
+  Future<PlanIntent?> read(String projectDir) async => plan;
 
   @override
-  Future<void> writePlanArchitecture(
-          String projectDir, Map<String, dynamic> plan) async =>
-      throw UnimplementedError();
+  Future<void> write(String projectDir, PlanIntent plan) async {}
 
   @override
-  Future<Map<String, dynamic>?> readPlanArchitecture(String projectDir) async =>
-      plan;
+  Future<void> adoptFeature(String projectDir, PlanFeatureIntent feature) async {}
+}
+
+class _FakeStructureRepository implements StructureRepository {
+  final StructureDirNode root;
+  _FakeStructureRepository(this.root);
 
   @override
-  Future<Map<String, dynamic>?> readCurrentStructure(String projectDir) async =>
-      currentStructure;
-
-  @override
-  Future<void> writeCurrentStructure(
-      String projectDir, Map<String, dynamic> structure) async {}
-
-  @override
-  Future<Map<String, dynamic>> scanFeaturesStructure(String projectDir) async =>
-      currentStructure;
-
-  @override
-  Future<void> writeProjectStatus(
-      String projectDir, Map<String, dynamic> status) async {}
-
-  @override
-  Future<void> writeProjectStatusMarkdown(
-      String projectDir, String markdown) async {}
+  Future<StructureSnapshot> scan(String projectDir) async =>
+      StructureSnapshot(root: root, scannedAt: DateTime(2026, 1, 1));
 }
 
 class _FakeArchitectureRepository implements ArchitectureRepository {
@@ -56,8 +44,7 @@ class _FakeArchitectureRepository implements ArchitectureRepository {
   _FakeArchitectureRepository(this.definition);
 
   @override
-  Future<ArchitectureDefinitionEntity> getById(String architectureId) async =>
-      definition;
+  Future<ArchitectureDefinitionEntity> getById(String architectureId) async => definition;
 
   @override
   Future<List<ArchitectureDefinitionEntity>> getAll() async => [definition];
@@ -69,131 +56,217 @@ class _FakeArchitectureRepository implements ArchitectureRepository {
 void main() {
   final msg = JaMessages();
 
-  group('既知バグ回帰: validate は direct パーミッションを補償しない', () {
-    // plan_architecture_usecase が生成する plan は
-    // {'features': {'direct': {featureName: {...layers}}}} という形で
-    // direct フィーチャーをネストする。一方 diff_architecture_usecase は
-    // 比較前に 'direct' キーをトップレベルへフラット展開して物理構造
-    // (lib/features/{featureName}/...、権限フォルダを挟まない)に合わせる。
-    // validate_usecase はこのフラット展開を行わないため、direct フィーチャーが
-    // 完全に一致していても「missing: direct」「extra: {featureName}」を
-    // 誤検知する。
-    test('diff は direct を正しくフラット展開し差分なしと判定する', () async {
-      final plan = {
-        'features': {
-          'direct': {
-            'auth': {
-              '1_domain': {'1_entities': <String, dynamic>{}},
-            },
-          },
-        },
-      };
-      final current = {
-        'auth': {
-          '1_domain': {'1_entities': <String, dynamic>{}},
-        },
-      };
-      final repo = _FakeProjectRepository(plan: plan, currentStructure: current);
-      final usecase = DiffArchitectureUsecase(projectRepo: repo, msg: msg);
-
-      final diff = await usecase.execute('/tmp/fake');
-
-      expect(diff.isClean, isTrue,
-          reason: 'diff は direct を展開して current と一致させるはず');
-    });
-
-    test(
-        '[既知バグ] validate は direct を展開しないため一致していても誤検知する',
-        () async {
-      final plan = {
-        'features': {
-          'direct': {
-            'auth': {
-              '1_domain': {'1_entities': <String, dynamic>{}},
-            },
-          },
-        },
-      };
-      final current = {
-        'auth': {
-          '1_domain': {'1_entities': <String, dynamic>{}},
-        },
-      };
-      final repo = _FakeProjectRepository(plan: plan, currentStructure: current);
-      final usecase = ValidateUsecase(
-        archRepo: _FakeArchitectureRepository(const ArchitectureDefinitionEntity(
-          id: 'clean_architecture',
-          displayName: 'Clean Architecture',
-          layers: [],
-          namingRules: [],
-          guides: [],
-          dependencies: {},
-          devDependencies: {},
-          coreModules: [],
-        )),
-        projectRepo: repo,
-        listDartFilesRecursive: (_) => const [],
+  group('回帰: direct パーミッションの feature が正しく検証される(旧バグ解消)', () {
+    // 旧 validate_usecase は 'direct' パーミッションの補償展開を行わず、
+    // plan と実構造が完全一致していても missing/extra を誤検知していた
+    // (known_bugs_test.dart の v0.6.0 版で実証済み)。
+    // 正準モデルは ExpectedStructureBuilder が direct を最初からフラットな
+    // トップレベルとして構築するため、この種の食い違いが構造的に発生しない。
+    test('direct feature が実構造と一致していれば check はクリーン', () async {
+      final arch = const ArchitectureDefinitionEntity(
+        id: 'clean_architecture',
+        displayName: 'Clean Architecture',
+        layers: [LayerDefinitionEntity(name: '1_domain', dirs: ['1_entities'])],
+        namingRules: [],
+        guides: [],
+        dependencies: {},
+        devDependencies: {},
+        coreModules: [],
       );
 
-      final result = await usecase.execute('/tmp/fake');
+      final plan = PlanIntent(
+        defaultArchitectureId: 'clean_architecture',
+        features: [
+          const PlanFeatureIntent(name: 'auth', permission: 'direct'),
+        ],
+      );
 
-      // 現状の(バグのある)挙動を固定する回帰ケース。
-      // 本来は plan と current が完全一致しているため missing/extra は
-      // 空であるべきだが、direct の補償展開がないため誤検知が発生する。
-      expect(result.missingDirs, contains('direct'));
-      expect(result.extraDirs, contains('auth'));
+      final snapshot = StructureDirNode({
+        'auth': StructureDirNode({
+          '1_domain': StructureDirNode({
+            '1_entities': StructureDirNode.empty,
+          }),
+        }),
+      });
+
+      final usecase = CheckUsecase(
+        planRepo: _FakePlanRepository(plan),
+        archRepo: _FakeArchitectureRepository(arch),
+        structureRepo: _FakeStructureRepository(snapshot),
+        msg: msg,
+      );
+
+      final report = await usecase.execute('/tmp/fake');
+
+      expect(report.isClean, isTrue,
+          reason: 'direct feature は正準モデルでは常にトップレベル展開されるため一致するはず');
     });
   });
 
-  group(
-      '既知バグ回帰: diff は __files__ 未宣言ディレクトリの実ファイルを常に extra 判定する',
-      () {
-    // plan_architecture_usecase は _resolveFileName が null を返す場合
-    // (description に {verb} や "|" を含む、例: usecases/ の複数ファイル)
-    // __files__ キー自体を生成しない(空の Map になる)。
-    // このとき diff/validate の _collectMissing は「plan 側に __files__ が
-    // なければ actualList を空とみなす」ため、実際に存在するファイルが
-    // 全て extra として誤検知される。本来は「plan がファイル名を指定して
-    // いないディレクトリでは、規則に合う任意のファイルを許可する」のが
-    // 正しい挙動のはず(v0.7 の allowRules 設計で解消予定)。
-    test('[既知バグ] 命名が非決定的なディレクトリの実ファイルは extra 誤検知される',
+  group('回帰: 命名が非決定的なディレクトリの実ファイルが extra 誤検知されない(旧バグ解消)', () {
+    // 旧 diff/validate は plan 側に __files__ が宣言されていない
+    // ディレクトリ(usecases 等、ファイル名が非決定的)の実ファイルを
+    // 常に extra として誤検知していた。正準モデルは allowRules 方式により、
+    // 命名規則に合致するファイルは列挙不要で valid とみなす。
+    test('naming rule に合致するファイルは required files が空でも extra にならない',
         () async {
-      final plan = {
-        'features': {
-          'user': {
-            'memo': {
-              '1_domain': {
-                '3_usecases': <String, dynamic>{}, // ファイル名は非決定的なので空
-              },
-            },
-          },
-        },
-      };
-      final current = {
-        'user': {
-          'memo': {
-            '1_domain': {
-              '3_usecases': {
-                '__files__': ['create_memo_usecase.dart', 'delete_memo_usecase.dart'],
-              },
-            },
-          },
-        },
-      };
-      final repo = _FakeProjectRepository(plan: plan, currentStructure: current);
-      final usecase = DiffArchitectureUsecase(projectRepo: repo, msg: msg);
-
-      final diff = await usecase.execute('/tmp/fake');
-
-      // 現状の(バグのある)挙動を固定する回帰ケース。
-      // 本来この2ファイルは正当な実装ファイルであり extra ではない。
-      expect(
-        diff.extraPaths,
-        containsAll([
-          'user/memo/1_domain/3_usecases/create_memo_usecase.dart',
-          'user/memo/1_domain/3_usecases/delete_memo_usecase.dart',
-        ]),
+      final arch = const ArchitectureDefinitionEntity(
+        id: 'clean_architecture',
+        displayName: 'Clean Architecture',
+        layers: [LayerDefinitionEntity(name: '1_domain', dirs: ['3_usecases'])],
+        namingRules: [
+          NamingRuleEntity(
+            dirPattern: '1_domain/3_usecases',
+            filePattern: r'^.+_usecase\.dart$',
+            description: '{verb}_{name}_usecase.dart',
+          ),
+        ],
+        guides: [],
+        dependencies: {},
+        devDependencies: {},
+        coreModules: [],
       );
+
+      final plan = PlanIntent(
+        defaultArchitectureId: 'clean_architecture',
+        features: [
+          const PlanFeatureIntent(name: 'memo', permission: 'user', entities: ['memo']),
+        ],
+      );
+
+      final snapshot = StructureDirNode({
+        'user': StructureDirNode({
+          'memo': StructureDirNode({
+            '1_domain': StructureDirNode({
+              '3_usecases': StructureDirNode({
+                'create_memo_usecase.dart': const StructureFileNode(FileKind.source),
+                'delete_memo_usecase.dart': const StructureFileNode(FileKind.source),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      final usecase = CheckUsecase(
+        planRepo: _FakePlanRepository(plan),
+        archRepo: _FakeArchitectureRepository(arch),
+        structureRepo: _FakeStructureRepository(snapshot),
+        msg: msg,
+      );
+
+      final report = await usecase.execute('/tmp/fake');
+
+      expect(report.extraPaths, isEmpty,
+          reason: '命名規則に合致する実装ファイルは非決定的ディレクトリでも正当とみなされるはず');
+      expect(report.isClean, isTrue);
+    });
+
+    test('naming rule に合致しないファイルは naming violation として検出される', () async {
+      final arch = const ArchitectureDefinitionEntity(
+        id: 'clean_architecture',
+        displayName: 'Clean Architecture',
+        layers: [LayerDefinitionEntity(name: '1_domain', dirs: ['3_usecases'])],
+        namingRules: [
+          NamingRuleEntity(
+            dirPattern: '1_domain/3_usecases',
+            filePattern: r'^.+_usecase\.dart$',
+            description: '{verb}_{name}_usecase.dart',
+          ),
+        ],
+        guides: [],
+        dependencies: {},
+        devDependencies: {},
+        coreModules: [],
+      );
+
+      final plan = PlanIntent(
+        defaultArchitectureId: 'clean_architecture',
+        features: [
+          const PlanFeatureIntent(name: 'memo', permission: 'user', entities: ['memo']),
+        ],
+      );
+
+      final snapshot = StructureDirNode({
+        'user': StructureDirNode({
+          'memo': StructureDirNode({
+            '1_domain': StructureDirNode({
+              '3_usecases': StructureDirNode({
+                'memo_helper.dart': const StructureFileNode(FileKind.source),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      final usecase = CheckUsecase(
+        planRepo: _FakePlanRepository(plan),
+        archRepo: _FakeArchitectureRepository(arch),
+        structureRepo: _FakeStructureRepository(snapshot),
+        msg: msg,
+      );
+
+      final report = await usecase.execute('/tmp/fake');
+
+      expect(report.namingViolations, hasLength(1));
+      expect(report.namingViolations.first.filePath,
+          'user/memo/1_domain/3_usecases/memo_helper.dart');
+    });
+  });
+
+  group('回帰: exceptions/ サブディレクトリが専用の命名規則で検証される(旧バグ解消)', () {
+    // 旧 validate_usecase は `dirPath.contains('/exceptions')` の場合に
+    // 検証を丸ごとスキップしていた。これにより 1_domain/exceptions に
+    // 定義された専用ルールも適用されなくなっていた。
+    // NameRuleMatcher はパスセグメント末尾一致で最も具体的な規則を選ぶため、
+    // スキップなしで正しく検証できる。
+    test('1_domain/exceptions は親(存在しない)ではなく自身の規則で検証される', () async {
+      final arch = const ArchitectureDefinitionEntity(
+        id: 'clean_architecture',
+        displayName: 'Clean Architecture',
+        layers: [LayerDefinitionEntity(name: '1_domain', dirs: ['exceptions'])],
+        namingRules: [
+          NamingRuleEntity(
+            dirPattern: '1_domain/exceptions',
+            filePattern: r'^.+_exceptions?\.dart$|^domain_exceptions\.dart$',
+            description: '{name}_exceptions.dart or domain_exceptions.dart',
+          ),
+        ],
+        guides: [],
+        dependencies: {},
+        devDependencies: {},
+        coreModules: [],
+      );
+
+      final plan = PlanIntent(
+        defaultArchitectureId: 'clean_architecture',
+        features: [
+          const PlanFeatureIntent(name: 'memo', permission: 'user', entities: ['memo']),
+        ],
+      );
+
+      final snapshot = StructureDirNode({
+        'user': StructureDirNode({
+          'memo': StructureDirNode({
+            '1_domain': StructureDirNode({
+              'exceptions': StructureDirNode({
+                'memo_exceptions.dart': const StructureFileNode(FileKind.source),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      final usecase = CheckUsecase(
+        planRepo: _FakePlanRepository(plan),
+        archRepo: _FakeArchitectureRepository(arch),
+        structureRepo: _FakeStructureRepository(snapshot),
+        msg: msg,
+      );
+
+      final report = await usecase.execute('/tmp/fake');
+
+      expect(report.isClean, isTrue,
+          reason: 'memo_exceptions.dart は 1_domain/exceptions 専用ルールに合致するはず');
     });
   });
 }

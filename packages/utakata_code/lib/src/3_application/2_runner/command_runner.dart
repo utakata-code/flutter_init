@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 
 import '../../version.g.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../1_commands/apply_command.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
 import '../1_commands/core_command.dart';
@@ -52,6 +53,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required ScanCommand scanCommand,
     required DiffCommand diffCommand,
     required CheckCommand checkCommand,
+    required ApplyCommand applyCommand,
     required StatusCommand statusCommand,
     required ValidateCommand validateCommand,
     required CoreCommand coreCommand,
@@ -75,6 +77,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(scanCommand);
     addCommand(diffCommand);
     addCommand(checkCommand);
+    addCommand(applyCommand);
     addCommand(statusCommand);
     addCommand(validateCommand);
     addCommand(coreCommand);

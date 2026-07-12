@@ -47,6 +47,10 @@ class JaMessages implements CliMessages {
   String get optYes => '確認プロンプトをスキップ';
   @override
   String get optDryRun => '実際には生成せず対象を確認するだけ';
+  @override
+  String get optBrief => '軽量モード(flutter analyze/version を呼ばない)';
+  @override
+  String get optWriteReport => 'project_status.yaml/md を更新する';
 
   // ─── Logger.section ───
   @override
@@ -242,5 +246,160 @@ class JaMessages implements CliMessages {
   String coreDone(int count) => '✅ $count 件の Core モジュールディレクトリを生成しました！';
   @override
   String coreModuleRow(String path) => '  ✅ $path';
+
+  // ─── check (v0.7) ───
+  @override
+  String get optJson => 'JSON 形式で出力する';
+  @override
+  String get optFile => '指定したパス配下の違反のみに絞り込む';
+  @override
+  String get namingViolationsHeader => '⚠️ 命名規則違反:';
+  @override
+  String get checkClean => '✅ 構造は計画と一致しています(違反なし)';
+  @override
+  String checkSummary(int missing, int extra, int naming) =>
+      '⚠️ missing: $missing / extra: $extra / naming violations: $naming';
+  @override
+  String deprecatedAlias(String oldCmd, String newCmd) =>
+      '⚠️  `utakata $oldCmd` は非推奨です。`utakata $newCmd` を使用してください。';
+
+  // ─── apply (v0.7) ───
+  @override
+  String get cmdApplyDesc => 'plan.yaml から未生成の feature/core を生成する';
+  @override
+  String get optScope => '生成範囲(all|feature|core)';
+  @override
+  String get sectionApply => '🏗️ utakata apply — 構造の生成';
+  @override
+  String applyFeatureRow(String path) => '  ✅ $path';
+  @override
+  String applyDone(int featureCount, int coreCount) =>
+      '✅ feature: $featureCount 件、core: $coreCount 件を生成しました';
+  @override
+  String get applyNothingToDo => '生成対象がありません(plan.yaml が見つからないか、空です)';
+
+  // ─── plan adopt (v0.7) ───
+  @override
+  String get cmdPlanAdoptDesc => '未計画の feature を検出し plan.yaml へ追記する';
+  @override
+  String get sectionPlanAdopt => '🔍 utakata plan adopt — 未計画 feature の検出';
+  @override
+  String get adoptNoneFound => '未計画の feature は見つかりませんでした';
+  @override
+  String adoptCandidateRow(String permission, String name) => '  - $permission/$name';
+  @override
+  String adoptConfirm(String permission, String name) =>
+      '"$permission/$name" を plan.yaml に追記しますか？ [y/N] ';
+  @override
+  String adoptDone(int count) => '✅ $count 件の feature を plan.yaml に追記しました';
+
+  // ─── doc init (v0.8) ───
+  @override
+  String get cmdDocDesc => 'doc/ 案件ワークスペース操作コマンド群';
+  @override
+  String get cmdDocInitDesc => 'doc/ 案件ワークスペースを先行作成する(契約前フェーズ用)';
+  @override
+  String get docInitDone => '✅ doc/ ワークスペースを作成しました';
+  @override
+  String get docInitAlreadyExists => 'doc/ は既に存在します';
+
+  // ─── log (v0.8) ───
+  @override
+  String get cmdLogDesc => 'お客様会話ログの構造化記録(人間専用)';
+  @override
+  String get cmdLogAddDesc => '会話ログを1件追記する';
+  @override
+  String get cmdLogShowDesc => '会話ログを表示する';
+  @override
+  String get cmdLogRenderDesc => '会話ログの Markdown プレビューを再生成する';
+  @override
+  String logAddDone(String id) => '✅ $id を記録しました';
+  @override
+  String get logShowEmpty => '該当する会話ログが見つかりませんでした';
+  @override
+  String get logRenderDone => '✅ プレビューを再生成しました';
+
+  // ─── agree (v0.9) ───
+  @override
+  String get cmdAgreeDesc => '合意トラッキング(お客様合意・内部決定)';
+  @override
+  String get cmdAgreeAddDesc => '合意を1件追記する';
+  @override
+  String get cmdAgreeListDesc => '合意の一覧を表示する';
+  @override
+  String get cmdAgreeStatusDesc => '合意の状態を更新する';
+  @override
+  String agreeAddDone(String id) => '✅ $id を記録しました';
+  @override
+  String get agreeListEmpty => '合意が記録されていません';
+  @override
+  String agreeStatusDone(String id, String status) => '✅ $id の状態を $status に更新しました';
+
+  // ─── impl (v0.9) ───
+  @override
+  String get cmdImplDesc => 'feature 実装計画の管理';
+  @override
+  String get cmdImplNewDesc => '実装計画書を新規作成する';
+  @override
+  String get cmdImplListDesc => '実装計画の一覧を表示する';
+  @override
+  String get cmdImplDoneDesc => '実装計画を完了にする';
+  @override
+  String get cmdImplArchiveDesc => '完了済みの実装計画を archive/ へ移動する';
+  @override
+  String implNewDone(String id, String path) => '✅ $id を作成しました: $path';
+  @override
+  String get implListEmpty => '実装計画が見つかりませんでした';
+  @override
+  String implDoneDone(String id) => '✅ $id を完了にしました';
+  @override
+  String implArchiveDone(String id) => '✅ $id を archive/ へ移動しました';
+
+  // ─── summary (v0.9) ───
+  @override
+  String get cmdSummaryDesc => '案件整理サマリーのマーカー区間を再生成する';
+  @override
+  String get summaryRenderDone => '✅ summary.md のマーカー区間を再生成しました';
+
+  // ─── guide (v1.0) ───
+  @override
+  String get cmdGuideDesc => '参照型ナレッジ(GUIDE 等)の閲覧・カスタム開始';
+  @override
+  String get cmdGuideListDesc => '利用可能なガイドの一覧を表示する';
+  @override
+  String get cmdGuideShowDesc => 'ガイドの内容を表示する';
+  @override
+  String get cmdGuideEjectDesc => 'ガイドをローカルへ書き出しカスタムを開始する';
+  @override
+  String get guideListEmpty => 'ガイドが見つかりませんでした';
+  @override
+  String guideEjectDone(String id, String path) => '✅ $id を書き出しました: $path';
+  @override
+  String get missingGuideId => 'ガイド ID を指定してください';
+
+  // ─── doctor (v1.0) ───
+  @override
+  String get cmdDoctorDesc => '環境・スキーマ・レイアウトの診断と移行';
+  @override
+  String get doctorOk => '✅ 問題は見つかりませんでした';
+  @override
+  String doctorIssueRow(String message) => '  ⚠️ $message';
+  @override
+  String get doctorMigrateNoneFound => '移行対象が見つかりませんでした';
+  @override
+  String doctorMigrateDone(int count) => '✅ $count 件を移行しました';
+
+  // ─── mcp (v1.1) ───
+  @override
+  String get cmdMcpDesc => 'MCP サーバーを起動する(stdio・読み取り専用)';
+
+  // ─── feature --template (v1.0) ───
+  @override
+  String get missingTemplateId => 'テンプレート ID を指定してください';
+  @override
+  String templateNotFound(String id) => 'テンプレート "$id" が見つかりませんでした';
+  @override
+  String templateApplied(String id, String featureName) =>
+      '✅ テンプレート "$id" を適用しました: $featureName';
 }
 

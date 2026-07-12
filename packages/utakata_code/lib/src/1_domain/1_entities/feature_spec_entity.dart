@@ -21,9 +21,6 @@ class FeatureSpecEntity {
     this.architectureId = 'clean_architecture',
   });
 
-  /// featureName と entityName が一致しているか
-  bool get isEntitySameAsFeature => featureName == entityName;
-
   /// フィーチャーのベースパス（lib/features/ 以下の相対パス）
   String get relativePath {
     if (permission == 'direct') return 'lib/features/$featureName';
