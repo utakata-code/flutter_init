@@ -1,7 +1,7 @@
 # utakata
 
-**utakata** は **[utakata code](https://github.com/utakata-code)** が開発する Dart CLI ツールです。  
-人間と AI エージェントが**仕様駆動開発**によって Flutter アプリを共同構築するために設計されています。
+**utakata** は **[utakata code](https://github.com/utakata-code)** が開発する Dart CLI ツールです。
+**お客様・開発者・AI エージェント**が**仕様駆動開発**によって Flutter アプリを共同構築するために設計されています。
 
 > English documentation: [README.md](README.md)
 
@@ -12,11 +12,12 @@
 
 ## 特徴
 
-- 🤖 **AI ネイティブ開発**: 人間と AI エージェントの両方向けに設計されたコマンド群。`.agent/` ルールと `AI/guides/` を組み合わせることで、AI がアーキテクチャから逸脱せずに開発できます。
-- 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch create` や `arch_definition.yaml` で独自アーキテクチャも定義可能。
-- 🔍 **構造・命名規則の検証**: `utakata validate` で命名規則違反とディレクトリ構造違反を `arch_definition.yaml` に基づいて検出します。
-- 📋 **仕様駆動**: `feature_request.yaml` にフィーチャーを定義し、計画書を生成、全層を一括スキャフォールドします。
-- 📊 **ファイルレベル差分**: `utakata diff` がディレクトリだけでなくファイル名も比較し、正確な進捗追跡が可能。
+- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバーを提供し、AI が構造・計画・会話ログ・合意を「書き込まずに」参照できます。
+- 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
+- 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
+- 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけを生成します。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
+- 💬 **お客様との会話の記録**: `utakata log` がお客様との会話を記録します(人間のみ書き込み・JSONL・追記専用)。`utakata agree` は合意をトラッキングします — AI は読めても書けない記録です。
+- 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。
 - 🌐 **多言語対応**: CLI メッセージは日本語・英語に対応しています。
 
 ---
@@ -34,16 +35,32 @@ dart pub global activate utakata
 ## クイックスタート
 
 ```sh
-# Flutter プロジェクトを新規作成（.agent/ と AI/ テンプレート込み）
+# (任意)アプリがまだ存在しない段階(契約前フェーズ)で doc/ ワークスペースを先行作成
+utakata doc init
+
+# Flutter プロジェクトを新規作成(.mcp.json + .claude/ も同時生成)
 utakata create my_app --org com.example
 
-# AI/specs/feature_request.yaml にフィーチャーを定義後:
-utakata plan          # アーキテクチャ計画書を生成
-utakata feature init  # 全フィーチャーを一括生成
+# doc/specs/plan.yaml に feature を宣言してから生成
+utakata apply --scope feature
 
-# 構造・命名規則を検証
-utakata validate
+# 構造・命名規則・必須ファイルを1回で検証
+utakata check
 ```
+
+`doc/specs/plan.yaml`:
+
+```yaml
+schema: 1
+project:
+  architecture: clean_architecture
+features:
+  - name: todo
+    permission: user
+    entities: [todo]
+```
+
+旧 `AI/` ベースのレイアウトを使っている既存プロジェクトは `utakata doctor --migrate` で移行できます(既定は dry-run)。
 
 ---
 
@@ -59,104 +76,89 @@ utakata arch show mvvm    # レイヤー構造と命名規則を表示
 | `clean_architecture` | 4 | Domain → Infrastructure → Application → Presentation |
 | `mvvm` | 3 | Model → ViewModel → View |
 
-`feature_request.yaml` で指定：
+`plan.yaml` で feature 単位のアーキテクチャ上書きも可能です:
 
 ```yaml
-project:
-  name: "my_app"
-  architecture: "mvvm"     # プロジェクト全体のデフォルト
-
 features:
-  todo:
-    entity: todo
-    # architecture: "clean_architecture"  # フィーチャー単位で上書き可能
+  - name: todo
+    permission: user
+    entities: [todo]
+    architecture: clean_architecture   # プロジェクト既定を上書き
 ```
 
 ---
 
 ## コマンドリファレンス
 
-### `utakata create`
+### プロジェクトセットアップ
 
-選択したアーキテクチャの基本構造と AI ワークフローテンプレートを含む Flutter プロジェクトを作成します。
+| コマンド | 説明 |
+|---|---|
+| `utakata doc init` | Flutter プロジェクト本体より先に `doc/` ワークスペース(specs/records/preview/impl/knowledge/archive)+ `utakata.yaml` を作成する |
+| `utakata create <name> [--org] [--platforms] [--arch]` | 選択したアーキテクチャで Flutter プロジェクトを新規作成し、`.mcp.json` + `.claude/` も生成する |
+| `utakata doctor [--migrate]` | プロジェクトを診断する。`--migrate` は旧 `AI/` ベースのレイアウト(または独自運用の `doc/`)を現行レイアウトへ移行する |
 
-```sh
-utakata create my_app --org com.example
-```
+### 構造
 
-### `utakata plan`
+| コマンド | 説明 |
+|---|---|
+| `utakata feature add <name> [--entity] [--permission] [--template <id>]` | feature を1つスキャフォールドする。`--template` は feature プリセット(プロジェクトまたは `~/.utakata/feature_templates/` から解決する `manifest.yaml`)を適用し、同じ操作で `plan.yaml` にも登録する |
+| `utakata apply [--scope all\|feature\|core] [--dry-run]` | `plan.yaml` が宣言していて `lib/` に無いものを生成する |
+| `utakata plan adopt [-y]` | `lib/features/` にあるが `plan.yaml` に無い feature を検出し追記する(既存のコメント・書式は保持) |
+| `utakata check [--json] [--file <path>]` | 不足ファイル・余分なファイル・命名規則違反を1回の走査で報告する |
+| `utakata status [--brief] [--write-report]` | Flutter バージョン + lint + check サマリー。`--brief` は flutter 呼び出しを一切行わない(Claude Code フック用) |
+| `utakata arch list\|show\|eject\|export` | アーキテクチャ定義の確認、またはローカルへの書き出し(カスタマイズ開始) |
 
-`AI/specs/feature_request.yaml` を読み込み、`arch_definition.yaml` に基づいて構造化されたアーキテクチャ計画書を動的に生成します。
+### お客様・記録系(人間が書き、AI が読む)
 
-```sh
-utakata plan
-```
+| コマンド | 説明 |
+|---|---|
+| `utakata log add "..." -s client\|developer\|system\|third_party [--at] [--thread] [--tag] [--reply-to] [--draft]` | 会話を1件追記する(`doc/records/log/YYYY-MM.jsonl`) |
+| `utakata log show [--date] [--thread] [--tag]` / `utakata log render` | 会話の検索 / `doc/preview/` 配下の Markdown プレビュー再生成 |
+| `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg id>]` | 合意を記録する(`doc/records/agreements.jsonl`・追記専用) |
+| `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | 合意の状態更新・訂正(supersede)・反映記録・未反映合意の一覧 |
+| `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | feature 実装計画のライフサイクル管理(`doc/impl/PLAN-NNNN_{feature}.md`) |
+| `utakata summary` | `doc/summary.md` の合意ログ区間を再生成する(手書き部分はそのまま) |
 
-### `utakata feature`
+### ナレッジ
 
-```sh
-# フィーチャーを1つ追加
-utakata feature add <feature_name> [--permission user|admin|shared|direct]
+| コマンド | 説明 |
+|---|---|
+| `utakata guide list\|show\|eject [--arch]` | レイヤーのガイドを閲覧、またはローカルへ書き出してカスタマイズを開始する |
 
-# plan_architecture.yaml に定義された全フィーチャーを一括生成
-utakata feature init
-```
+### AI 統合
 
-### `utakata validate`
+| コマンド | 説明 |
+|---|---|
+| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`) |
 
-`arch_definition.yaml` に基づいて命名規則とディレクトリ構造を検証します。アーキテクチャは `feature_request.yaml` から自動検出されます。
-
-```sh
-utakata validate
-utakata validate --arch mvvm  # 明示的に指定
-```
-
-### `utakata scan / diff / check`
-
-```sh
-utakata scan    # 現在の lib/ 構造をスキャン
-utakata diff    # 計画と実際の構造を比較（ディレクトリ + ファイル）
-utakata check   # diff を実行して違反を報告
-```
-
-### `utakata arch`
-
-```sh
-utakata arch list              # 利用可能なアーキテクチャ一覧
-utakata arch show <id>         # レイヤー構造と命名規則を表示
-utakata arch create <id>       # ローカルにカスタムアーキテクチャを作成
-utakata arch export <id>       # 生の YAML 定義をエクスポート
-```
-
-### `utakata status`
-
-Flutter バージョン・lint 状態・アーキテクチャ差分を一括確認します。
-
-```sh
-utakata status
-```
+`diff` は `check` への永続的なエイリアスとして残ります。`scan`・`validate`・`feature init`・`core`・`arch create` は v1.1.0/v1.0.0 で削除・改名されました。詳細は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ---
 
 ## AI エージェントへの案内
 
-生成されたプロジェクトには `.agent/rules/flutter.md` と `AI/guides/` が含まれています。
+`utakata create` は `.mcp.json` と `.claude/settings.json` を生成し、以下のフックを設定します:
 
-**ファイルを手動で作成せず、必ず `utakata` CLI を使ってプロジェクト構造を拡張してください。**  
-コミット前に `utakata validate` を実行してゼロ違反を維持してください。
+- **SessionStart** → `utakata status --brief`(プロジェクト状態の要約。flutter 呼び出しなし)
+- **PostToolUse**(Edit/Write) → `utakata check --quick --json`(編集直後のファイルへの即時フィードバック)
+- **Stop** → `utakata status --brief --write-report`
+- **deny ルール**: `doc/records/**` と `doc/preview/**` への `Edit`/`Write` を拒否 — 会話ログ・合意の書き込み経路は人間専用であり、ドキュメント上の約束ではなくホスト側で技術的に強制されます
+
+ファイルを手動で作成せず、`utakata` CLI でプロジェクト構造を拡張してください。コミット前に `utakata check` を実行することを推奨します。
 
 ---
 
 ## アーキテクチャ
 
-`utakata` 自体も Clean Architecture で実装されています：
+`utakata` 自体も Clean Architecture で実装されています:
 
 ```
 packages/utakata_code/lib/src/
-├── 0_templates/      # アーキテクチャテンプレート (clean_architecture, mvvm)
-├── 1_domain/         # エンティティ・リポジトリI/F・ユースケース
-├── 2_infrastructure/  # ファイルシステム・YAML・プロセス操作
-└── 3_application/    # コマンドハンドラ・Runner
+├── 0_templates/       # アーキテクチャテンプレート (clean_architecture, mvvm)
+├── 1_domain/          # エンティティ・リポジトリI/F・ユースケース・純関数サービス
+├── 2_infrastructure/  # ファイルシステム/YAML/JSONL/プロセスのデータソース・モデル・リポジトリ実装
+└── 3_application/     # コマンドハンドラ・Runner・プレゼンター・MCP サーバー
 ```
 
 ---
@@ -165,11 +167,11 @@ packages/utakata_code/lib/src/
 
 **デュアルライセンス**:
 
-1. **オープンソース (GNU GPL v3)**  
+1. **オープンソース (GNU GPL v3)**
    個人・オープンソースプロジェクトへの使用・フォーク・改変は [GNU GPL v3](LICENSE) のもとで無料で可能です。
 
-2. **商用利用**  
-   このツール、またはツールが生成したコードの商用利用には別途商用ライセンスが必要です。  
+2. **商用利用**
+   このツール、またはツールが生成したコードの商用利用には別途商用ライセンスが必要です。
    詳細は開発者 ([@code_utakata](https://x.com/code_utakata)) までご連絡ください。
 
 ---
