@@ -38,9 +38,29 @@ class InitDocUsecase {
   }
 
   String _defaultUtakataYaml() => '''
-# utakata プロジェクト設定
+# utakata プロジェクト設定(マスターファイル)
+# このファイルがプロジェクト全体のルールと座組を定義する。
+schema: 1
+
 project:
   architecture: clean_architecture
+  # リモートナレッジリポジトリ(オプトイン。未指定なら同梱テンプレートを使用)
+  # knowledge_repo:
+  #   url: "https://github.com/utakata-code/utakata_arch_lib.git"
+  #   ref: "v1.0.0"
+
+# .claude/skills/ に同期する SKILL の有効リスト(utakata skills sync)
+# skills:
+#   - utakata-structure
+
+# 登場人物と役割(AI が「誰の決定に従い、誰に判断を仰ぐか」を把握するための定義)
+# team:
+#   client: "お客様の名前(要件の決定権者。仕様変更はこの人の合意が必要)"
+#   developer: "開発者の名前(アーキテクチャの責任者。コードの最終レビューを行う)"
+#   ai_agents:
+#     - id: feature-builder
+#       role: "実装担当。plan.yaml と層ごとのガイドを読み込みコードを生成する。"
+
 enforcement:
   impl_plan: "on"
 records:

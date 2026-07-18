@@ -2,6 +2,14 @@
 
 > Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
 
+## 0.12.0
+
+* **feat(config)**: `utakata.yaml` is now the project's master config (`schema: 1`), parsed by every command. New optional sections: `project.knowledge_repo` (opt-in remote knowledge repo, used from 0.14.0), `skills` (list synced by the upcoming `skills sync`), and `team` (client/developer/ai_agents roles).
+* **feat(config)**: `project.architecture` in `utakata.yaml` now takes precedence over `doc/specs/plan.yaml`; a stderr warning is printed when both are explicitly set and disagree.
+* **feat(claude)**: `utakata create` now also generates a project-level `CLAUDE.md` — with a "who decides what" team-roles section when `team:` is defined — pointing the agent at `doc/summary.md`, `doc/specs/plan.yaml`, and the read-only `doc/records/`. An existing `CLAUDE.md` is never overwritten.
+* **feat(doctor)**: `utakata doctor` validates `utakata.yaml` (unknown top-level keys, unsupported future `schema`).
+* **feat(doc)**: `utakata doc init` writes the new master-config template with commented `team:`/`skills:`/`knowledge_repo:` examples.
+
 ## 0.11.0
 
 * **feat(mcp)**: New `utakata mcp` — stateless stdio JSON-RPC 2.0 MCP server (hand-rolled, no external SDK dependency). Exposes 6 read-only tools: `structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`. No write tools are exposed (AI stays read-only for records; see 0.8.0).

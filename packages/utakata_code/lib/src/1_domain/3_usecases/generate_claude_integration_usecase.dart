@@ -1,17 +1,30 @@
+import '../1_entities/config/utakata_config_entity.dart';
+import '../2_repositories/config_repository.dart';
+
 /// `create` 時に `.claude/` と `.mcp.json` を生成するユースケース(仕様書 §11)。
 ///
 /// フックは「速い検査ほど早いフックに」の原則で構成する:
 /// PreToolUse はパス判定のみ(utakata を起動しない)、PostToolUse は
 /// 単一ファイル粒度の check、Stop はブロックしない警告のみ。
+///
+/// v1.0.0(S1)から `CLAUDE.md` も生成する。`utakata.yaml` に `team:` が
+/// 定義されていれば「登場人物と役割」節を含め、AI が誰の決定に従うべきかを
+/// セッション冒頭から把握できるようにする。既存の CLAUDE.md は上書きしない。
 class GenerateClaudeIntegrationUsecase {
   final Future<void> Function(String path, String content) _writeFile;
   final Future<void> Function(String path) _ensureDir;
+  final bool Function(String path)? _fileExists;
+  final ConfigRepository? _configRepo;
 
   const GenerateClaudeIntegrationUsecase({
     required Future<void> Function(String path, String content) writeFile,
     required Future<void> Function(String path) ensureDir,
+    bool Function(String path)? fileExists,
+    ConfigRepository? configRepo,
   })  : _writeFile = writeFile,
-        _ensureDir = ensureDir;
+        _ensureDir = ensureDir,
+        _fileExists = fileExists,
+        _configRepo = configRepo;
 
   Future<void> execute(String projectDir) async {
     await _ensureDir('$projectDir/.claude/skills/utakata-structure');
@@ -32,6 +45,55 @@ class GenerateClaudeIntegrationUsecase {
       '$projectDir/.claude/agents/structure-auditor.md',
       _structureAuditorAgent(),
     );
+
+    final claudeMdPath = '$projectDir/CLAUDE.md';
+    final fileExists = _fileExists;
+    if (fileExists == null || !fileExists(claudeMdPath)) {
+      final config = await _configRepo?.read(projectDir);
+      await _writeFile(claudeMdPath, _claudeMd(config));
+    }
+  }
+
+  String _claudeMd(UtakataConfig? config) {
+    final buffer = StringBuffer()
+      ..writeln('# utakata プロジェクト')
+      ..writeln()
+      ..writeln('このプロジェクトは utakata CLI(仕様駆動開発)で管理されています。')
+      ..writeln()
+      ..writeln('## まず読むもの')
+      ..writeln()
+      ..writeln('- `doc/summary.md` — 案件整理サマリー(合意の台帳。ビジネス上の決定事項)')
+      ..writeln('- `doc/specs/plan.yaml` — feature の意図レベル計画')
+      ..writeln('- `doc/records/` — お客様との会話ログ・合意(**読み取り専用**。'
+          '書き込みは人間が `utakata log add` / `utakata agree add` で行う)')
+      ..writeln('- `utakata.yaml` — プロジェクトのマスター設定');
+
+    final team = config?.team;
+    if (team != null && !team.isEmpty) {
+      buffer
+        ..writeln()
+        ..writeln('## 登場人物と役割')
+        ..writeln();
+      if (team.client != null) buffer.writeln('- **お客様**: ${team.client}');
+      if (team.developer != null) buffer.writeln('- **開発者**: ${team.developer}');
+      for (final agent in team.aiAgents) {
+        buffer.writeln('- **AI (${agent.id})**: ${agent.role}');
+      }
+      buffer
+        ..writeln()
+        ..writeln('仕様に関わる判断はお客様・開発者に確認し、AI が独断で決定しないこと。');
+    }
+
+    buffer
+      ..writeln()
+      ..writeln('## 構造ルール')
+      ..writeln()
+      ..writeln('- 実装前に `utakata check --json` で構造違反を確認する')
+      ..writeln('- feature 追加は `utakata plan adopt` → `utakata apply --scope feature`')
+      ..writeln('- ファイルを手動作成せず、utakata CLI で構造を拡張する')
+      ..writeln('- コミット前に `utakata check` を実行する');
+
+    return buffer.toString();
   }
 
   String _mcpJson() => '''

@@ -31,6 +31,7 @@ import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/yaml_edit_da
 import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/process_data_source.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/agreement_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/architecture_repository_impl.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/config_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/conversation_log_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/feature_template_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/impl_plan_repository_impl.dart';
@@ -87,7 +88,8 @@ Future<void> main(List<String> arguments) async {
   final archRepo = ArchitectureRepositoryImpl(fs, yaml);
   final templateRepo = TemplateRepositoryImpl(fs);
   final projectRepo = ProjectRepositoryImpl(fs, yaml);
-  final planRepo = PlanRepositoryImpl(fs, yaml, yamlEdit);
+  const configRepo = ConfigRepositoryImpl(fs, yaml);
+  final planRepo = PlanRepositoryImpl(fs, yaml, yamlEdit, configRepo: configRepo);
   final structureRepo = StructureRepositoryImpl(fs);
   final logRepo = ConversationLogRepositoryImpl(jsonl);
   final agreementRepo = AgreementRepositoryImpl(jsonl);
@@ -212,6 +214,7 @@ Future<void> main(List<String> arguments) async {
 
   final doctorUsecase = DoctorUsecase(
     planRepo: planRepo,
+    configRepo: configRepo,
     fileExists: fs.fileExists,
     dirExists: fs.dirExists,
     readFile: fs.readFile,
@@ -245,6 +248,8 @@ Future<void> main(List<String> arguments) async {
   final generateClaudeIntegrationUsecase = GenerateClaudeIntegrationUsecase(
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
+    fileExists: fs.fileExists,
+    configRepo: configRepo,
   );
 
   final applyFeatureTemplateUsecase = ApplyFeatureTemplateUsecase(

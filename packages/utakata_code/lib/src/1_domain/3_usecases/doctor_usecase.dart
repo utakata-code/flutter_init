@@ -1,3 +1,4 @@
+import '../2_repositories/config_repository.dart';
 import '../2_repositories/plan_repository.dart';
 
 /// 1件の移行操作を表す(dry-run 表示・実行ログ共用)。
@@ -15,6 +16,7 @@ class MigrationAction {
 /// 人間の確認が前提のものは情報提示のみに留める)。
 class DoctorUsecase {
   final PlanRepository _planRepo;
+  final ConfigRepository? _configRepo;
 
   final bool Function(String path) _fileExists;
   final bool Function(String path) _dirExists;
@@ -26,6 +28,7 @@ class DoctorUsecase {
 
   const DoctorUsecase({
     required PlanRepository planRepo,
+    ConfigRepository? configRepo,
     required bool Function(String path) fileExists,
     required bool Function(String path) dirExists,
     required Future<String?> Function(String path) readFile,
@@ -34,6 +37,7 @@ class DoctorUsecase {
     required Future<void> Function(String from, String to) movePath,
     required List<String> Function(String dirPath) listEntries,
   })  : _planRepo = planRepo,
+        _configRepo = configRepo,
         _fileExists = fileExists,
         _dirExists = dirExists,
         _readFile = readFile,
@@ -42,7 +46,7 @@ class DoctorUsecase {
         _movePath = movePath,
         _listEntries = listEntries;
 
-  /// 診断のみ行う(環境チェック)。v0.7 時点では簡易実装。
+  /// 診断のみ行う(環境チェック + utakata.yaml スキーマ検証)。
   Future<List<String>> diagnose(String projectDir) async {
     final issues = <String>[];
     if (!_fileExists('$projectDir/utakata.yaml') &&
@@ -50,6 +54,10 @@ class DoctorUsecase {
         !_fileExists('$projectDir/AI/specs/feature_request.yaml')) {
       issues.add('doc/specs/plan.yaml も旧 feature_request.yaml も見つかりません。'
           '`utakata doc init` で doc/ ワークスペースを作成してください。');
+    }
+    final configRepo = _configRepo;
+    if (configRepo != null) {
+      issues.addAll(await configRepo.validate(projectDir));
     }
     return issues;
   }

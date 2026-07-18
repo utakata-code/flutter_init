@@ -1,6 +1,9 @@
+import 'dart:io' show stderr;
+
 import 'package:path/path.dart' as p;
 
 import '../../1_domain/1_entities/plan/plan_intent.dart';
+import '../../1_domain/2_repositories/config_repository.dart';
 import '../../1_domain/2_repositories/plan_repository.dart';
 import '../2_data_sources/1_local/filesystem_data_source.dart';
 import '../2_data_sources/1_local/yaml_data_source.dart';
@@ -12,12 +15,18 @@ import '../2_data_sources/1_local/yaml_edit_data_source.dart';
 /// `AI/specs/feature_request.yaml`(feature 名をキーにした Map 形式)を
 /// 読み取り専用でフォールバック解釈する。フォールバック時は
 /// ファイルへの書き戻しを一切行わない(v0.7 の後方互換; 仕様書 §6)。
+///
+/// アーキテクチャの既定値は `utakata.yaml`(マスター設定)が plan.yaml より
+/// 優先される(実装計画 D6)。両方に明示され食い違う場合は stderr に警告する。
 class PlanRepositoryImpl implements PlanRepository {
   final FilesystemDataSource _fs;
   final YamlDataSource _yaml;
   final YamlEditDataSource _yamlEdit;
+  final ConfigRepository? _configRepo;
 
-  const PlanRepositoryImpl(this._fs, this._yaml, this._yamlEdit);
+  const PlanRepositoryImpl(this._fs, this._yaml, this._yamlEdit,
+      {ConfigRepository? configRepo})
+      : _configRepo = configRepo;
 
   static const _planYamlPath = 'doc/specs/plan.yaml';
   static const _legacyFeatureRequestPath = 'AI/specs/feature_request.yaml';
@@ -28,7 +37,13 @@ class PlanRepositoryImpl implements PlanRepository {
     final planContent = await _fs.readFile(planPath);
     if (planContent != null) {
       final doc = _yaml.parse(planContent, source: planPath);
-      return PlanIntent.fromMap(doc);
+      final project = doc['project'];
+      final planSpecifiesArch = project is Map && project['architecture'] != null;
+      return _applyConfigOverride(
+        projectDir,
+        PlanIntent.fromMap(doc),
+        planSpecifiesArch: planSpecifiesArch,
+      );
     }
 
     final legacyPath = p.join(projectDir, _legacyFeatureRequestPath);
@@ -39,6 +54,31 @@ class PlanRepositoryImpl implements PlanRepository {
     }
 
     return null;
+  }
+
+  /// `utakata.yaml` の `project.architecture` が指定されていれば plan の既定値を
+  /// 上書きする。plan.yaml 側にも明示されていて食い違う場合のみ警告する
+  /// (plan 側が省略されている場合は正当な「マスター設定からの継承」)。
+  Future<PlanIntent> _applyConfigOverride(
+    String projectDir,
+    PlanIntent intent, {
+    required bool planSpecifiesArch,
+  }) async {
+    final config = await _configRepo?.read(projectDir);
+    final configArch = config?.architecture;
+    if (configArch == null || configArch.isEmpty) return intent;
+
+    if (planSpecifiesArch && intent.defaultArchitectureId != configArch) {
+      stderr.writeln('⚠️  utakata.yaml (architecture: $configArch) と '
+          'doc/specs/plan.yaml (architecture: ${intent.defaultArchitectureId}) が'
+          '食い違っています。utakata.yaml を優先します。plan.yaml 側の指定は削除を推奨。');
+    }
+
+    return PlanIntent(
+      schema: intent.schema,
+      defaultArchitectureId: configArch,
+      features: intent.features,
+    );
   }
 
   /// 旧 `feature_request.yaml`({featureName: {entity, permission, architecture}})
