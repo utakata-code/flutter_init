@@ -132,7 +132,7 @@ features:
 |---|---|
 | `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`) |
 
-`diff` は `check` への永続的なエイリアスとして残ります。`scan`・`validate`・`feature init`・`core`・`arch create` は v1.1.0/v1.0.0 で削除・改名されました。詳細は [CHANGELOG.md](CHANGELOG.md) を参照してください。
+`diff` は `check` への永続的なエイリアスとして残ります。`scan`・`validate`・`feature init`・`core`・`arch create` は削除・改名されました。詳細は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
 ---
 

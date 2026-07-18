@@ -1,12 +1,14 @@
 # Changelog
 
-## 1.1.0
+> Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
+
+## 0.11.0
 
 * **feat(mcp)**: New `utakata mcp` — stateless stdio JSON-RPC 2.0 MCP server (hand-rolled, no external SDK dependency). Exposes 6 read-only tools: `structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`. No write tools are exposed (AI stays read-only for records; see 0.8.0).
 * **chore**: Removed the deprecated `scan`, `validate`, `feature init`, `core` commands and their aliases. `diff` remains as a permanent alias for `check` (kept for compatibility with existing implementation-plan documents that reference "utakata diff").
 * **chore(templates)**: Stopped bundling `.agent/` and the deprecated `AI/scripts/*.sh` (superseded by CLI commands since 0.5.x) in generated projects; `AI/scripts/build/build_native_ios.sh` is kept as it has no CLI equivalent.
 
-## 1.0.0
+## 0.10.0
 
 * **feat(guide)**: New `utakata guide list/show/eject` — browse an architecture's layer guides and copy one locally to start customizing (single-file copy with an origin comment; no hash/manifest tracking).
 * **feat(arch)**: `arch create` renamed to `arch eject`; `arch create` kept as a deprecated alias.

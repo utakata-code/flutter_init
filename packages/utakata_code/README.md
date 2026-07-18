@@ -131,7 +131,7 @@ features:
 |---|---|
 | `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`) |
 
-`diff` remains as a permanent alias for `check`. `scan`, `validate`, `feature init`, `core`, and `arch create` have been removed/renamed as of v1.1.0/v1.0.0 — see [CHANGELOG.md](CHANGELOG.md).
+`diff` remains as a permanent alias for `check`. `scan`, `validate`, `feature init`, `core`, and `arch create` have been removed/renamed — see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 

@@ -27,6 +27,10 @@ coverage/
 mcp/node_modules/
 mcp/dist/
 
+# ナレッジリポジトリ(utakata_arch_lib)のローカル作業用クローン
+# 別リポジトリとして独立管理するため、本リポジトリの追跡対象には含めない
+packages/utakata_arch_lib/
+
 # Android 関連（生成物・秘密情報）
 android/.gradle/
 android/local.properties
