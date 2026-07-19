@@ -13,7 +13,7 @@
 
 ## このリポジトリについて
 
-**utakata code**(pub.dev: [`utakata`](https://pub.dev/packages/utakata))のモノレポです。
+**utakata CLI**(pub.dev: [`utakata`](https://pub.dev/packages/utakata))のモノレポです。
 utakata は、お客様・開発者・AIエージェントという異なるアクターが、一つの Flutter プロジェクトで安全に協働するためのプロジェクト・オーケストレーターです:
 
 - **マスター設定(`utakata.yaml`)** — アーキテクチャ、team(誰の決定に従うか)、AI スキル、任意のリモートナレッジリポジトリ(コミット SHA を `utakata.lock` に固定)を1ファイルで宣言
