@@ -2,6 +2,10 @@
 
 > Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
 
+## 0.17.0
+
+* **feat(log)**: New `utakata log import claude-session [--list|--last|--session <id>] [--full] [-y]` — human-driven import of Claude Code session transcripts into `doc/records/sessions/<date>_<id>.jsonl` (normalized `{ts, role, text, session, seq}` schema) with a Markdown preview under `doc/preview/sessions/`. Defaults keep only user/assistant text (thinking, tool calls, and subagent sidechains excluded; `--full` adds thinking and tool names, never tool results). Secret-looking content (API keys, bearer tokens, private keys, AWS keys, env assignments) is replaced with `[REDACTED]` and counted, and an interactive preview/confirmation guards every import. The AI-side deny rules on `doc/records/**` continue to apply — importing is a human action.
+
 ## 0.16.0
 
 * **feat(guide)**: New `utakata guide for <file> [--json]` — deterministically resolves the layer guide for a file path under `lib/features/` (permission and direct layouts, deepest guide wins). Intended as fix-context for lint errors: pass the reported file, get the guide to follow.

@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 
 import '../../1_domain/1_entities/record/log_entry.dart';
 import '../../1_domain/3_usecases/add_log_entry_usecase.dart';
+import '../../1_domain/3_usecases/import_claude_session_usecase.dart';
 import '../../1_domain/3_usecases/query_log_usecase.dart';
 import '../../1_domain/3_usecases/render_log_preview_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
@@ -29,6 +30,7 @@ class LogCommand extends Command<int> {
     addSubcommand(_LogAddCommand(addUsecase, _msg));
     addSubcommand(_LogShowCommand(queryUsecase, _msg));
     addSubcommand(_LogRenderCommand(renderUsecase, _msg));
+    addSubcommand(_LogImportCommand());
   }
 
   @override
@@ -153,6 +155,133 @@ class _LogRenderCommand extends BaseCommand {
   Future<int> execute() async {
     await _usecase.execute(Directory.current.path);
     Logger.success(_msg.logRenderDone);
+    return 0;
+  }
+}
+
+/// utakata log import claude-session — Claude Code セッションの人間駆動取り込み
+class _LogImportCommand extends BaseCommand {
+  @override
+  String get name => 'import';
+
+  @override
+  String get description =>
+      'Claude Code セッション生ログを doc/records/sessions/ に取り込む(人間専用)';
+
+  _LogImportCommand() {
+    argParser
+      ..addFlag('list', help: 'このプロジェクトのセッション一覧を表示する', negatable: false)
+      ..addOption('session', help: 'セッション ID(先頭一致可)を指定して取り込む')
+      ..addFlag('last', help: '最新のセッションを取り込む', negatable: false)
+      ..addFlag('full', help: 'thinking / tool_use も含める(tool_result は常に除外)', negatable: false)
+      ..addFlag('yes', abbr: 'y', help: '確認プロンプトをスキップする', negatable: false);
+  }
+
+  @override
+  Future<int> execute() async {
+    if (argResults!.rest.isEmpty || argResults!.rest.first != 'claude-session') {
+      Logger.error('取り込み元を指定してください: utakata log import claude-session [--list|--last|--session <id>]');
+      return 64;
+    }
+
+    final projectDir = Directory.current.path;
+    final home = Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '';
+    final key = ImportClaudeSessionUsecase.projectKeyOf(projectDir);
+    final sourceDir = Directory('$home/.claude/projects/$key');
+    if (!sourceDir.existsSync()) {
+      Logger.error('Claude Code のセッションが見つかりません: ${sourceDir.path}');
+      return 66;
+    }
+
+    final files = sourceDir
+        .listSync()
+        .whereType<File>()
+        .where((f) => f.path.endsWith('.jsonl'))
+        .toList()
+      ..sort((a, b) => a.lastModifiedSync().compareTo(b.lastModifiedSync()));
+
+    if (argResults!['list'] as bool) {
+      for (final f in files) {
+        final id = f.uri.pathSegments.last.replaceAll('.jsonl', '');
+        Logger.info('${f.lastModifiedSync().toIso8601String().substring(0, 16)}  $id');
+      }
+      if (files.isEmpty) Logger.warn('セッションがありません。');
+      return 0;
+    }
+
+    File? target;
+    final sessionArg = argResults!['session'] as String?;
+    if (sessionArg != null) {
+      for (final f in files) {
+        if (f.uri.pathSegments.last.startsWith(sessionArg)) target = f;
+      }
+      if (target == null) {
+        Logger.error('セッション "$sessionArg" が見つかりません(--list で確認)');
+        return 66;
+      }
+    } else if (argResults!['last'] as bool) {
+      target = files.isEmpty ? null : files.last;
+      if (target == null) {
+        Logger.error('セッションがありません。');
+        return 66;
+      }
+    } else {
+      Logger.error('--list / --last / --session <id> のいずれかを指定してください。');
+      return 64;
+    }
+
+    final sessionId = target.uri.pathSegments.last.replaceAll('.jsonl', '');
+    final result = ImportClaudeSessionUsecase.parse(
+      target.readAsLinesSync(),
+      sessionId: sessionId,
+      includeAll: argResults!['full'] as bool,
+    );
+
+    if (result.entries.isEmpty) {
+      Logger.warn('取り込めるエントリがありません(user/assistant のテキストが空)。');
+      return 0;
+    }
+
+    // 取り込み前プレビューと確認(実装計画 S6: 必ず確認を挟む)
+    final first = result.entries.first;
+    final last = result.entries.last;
+    Logger.section('取り込みプレビュー — $sessionId');
+    Logger.info('  エントリ数: ${result.entries.length}(user: '
+        '${result.entries.where((e) => e.role == 'user').length} / assistant: '
+        '${result.entries.where((e) => e.role == 'assistant').length})');
+    Logger.info('  期間: ${first.ts} 〜 ${last.ts}');
+    Logger.info('  冒頭: ${first.text.split('\n').first.substring(0, first.text.split('\n').first.length.clamp(0, 60))}');
+    if (result.redactedCount > 0) {
+      Logger.warn('  秘密情報らしい記述を ${result.redactedCount} 箇所 [REDACTED] に置換しました。');
+    }
+    if (result.skippedLines > 0) {
+      Logger.dim('  パース不能行 ${result.skippedLines} 件をスキップしました。');
+    }
+
+    if (!(argResults!['yes'] as bool)) {
+      stdout.write('doc/records/sessions/ に取り込みますか? [y/N]: ');
+      final answer = stdin.readLineSync()?.trim().toLowerCase();
+      if (answer != 'y' && answer != 'yes') {
+        Logger.info('中止しました。');
+        return 0;
+      }
+    }
+
+    final date = (first.ts.isNotEmpty ? first.ts : DateTime.now().toIso8601String()).substring(0, 10);
+    final baseName = '${date}_${sessionId.substring(0, sessionId.length.clamp(0, 8))}';
+    final recordPath = '$projectDir/doc/records/sessions/$baseName.jsonl';
+    final previewPath = '$projectDir/doc/preview/sessions/$baseName.md';
+
+    File(recordPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(ImportClaudeSessionUsecase.toJsonl(result.entries));
+    File(previewPath)
+      ..parent.createSync(recursive: true)
+      ..writeAsStringSync(
+          ImportClaudeSessionUsecase.toMarkdown(result.entries, sessionId));
+
+    Logger.success('取り込みました: doc/records/sessions/$baseName.jsonl '
+        '(プレビュー: doc/preview/sessions/$baseName.md)');
     return 0;
   }
 }
