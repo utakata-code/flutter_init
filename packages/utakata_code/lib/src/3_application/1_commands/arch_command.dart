@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as p;
 
+import '../../1_domain/2_repositories/config_repository.dart';
+import '../../1_domain/2_repositories/knowledge_repository.dart';
 import '../../1_domain/3_usecases/create_architecture_usecase.dart';
 import '../../1_domain/3_usecases/export_architecture_usecase.dart';
 import '../../1_domain/3_usecases/list_architectures_usecase.dart';
@@ -30,13 +32,18 @@ class ArchCommand extends Command<int> {
     this._showUsecase,
     this._exportUsecase,
     this._createUsecase,
-    this._msg,
-  ) {
+    this._msg, {
+    ConfigRepository? configRepo,
+    KnowledgeRepository? knowledgeRepo,
+  }) {
     addSubcommand(_ArchListCommand(_listUsecase, _msg));
     addSubcommand(_ArchShowCommand(_showUsecase, _msg));
     addSubcommand(_ArchExportCommand(_exportUsecase, _msg));
     addSubcommand(_ArchEjectCommand(_createUsecase, _msg));
     addSubcommand(_ArchCreateCommand(_createUsecase, _msg));
+    if (configRepo != null && knowledgeRepo != null) {
+      addSubcommand(_ArchGetCommand(configRepo, knowledgeRepo));
+    }
   }
 
   @override
@@ -218,6 +225,55 @@ class _ArchCreateCommand extends BaseCommand {
     await _usecase.execute(archId, projectDir);
     final targetPath = p.join(projectDir, 'AI', 'architecture', 'arch_definition.yaml');
     Logger.success(_msg.archCreateSuccess(archId, targetPath));
+    return 0;
+  }
+}
+
+/// utakata arch get — utakata.yaml の knowledge_repo をフェッチし SHA を lock する
+class _ArchGetCommand extends BaseCommand {
+  final ConfigRepository _configRepo;
+  final KnowledgeRepository _knowledgeRepo;
+
+  @override
+  String get name => 'get';
+
+  @override
+  String get description =>
+      'utakata.yaml の project.knowledge_repo をフェッチして utakata.lock に SHA を固定する';
+
+  _ArchGetCommand(this._configRepo, this._knowledgeRepo) {
+    argParser.addFlag('update',
+        help: 'ref を再解決して lock を更新する', negatable: false);
+  }
+
+  @override
+  Future<int> execute() async {
+    final projectDir = Directory.current.path;
+    final config = await _configRepo.read(projectDir);
+    final repoRef = config?.knowledgeRepo;
+    if (repoRef == null) {
+      Logger.warn('utakata.yaml に project.knowledge_repo が指定されていません。'
+          'デフォルトの同梱テンプレートを使用中のため、フェッチは不要です。');
+      return 0;
+    }
+
+    final update = argResults!['update'] as bool;
+    final result = await _knowledgeRepo.fetch(projectDir, repoRef, update: update);
+
+    if (!result.refetched) {
+      Logger.success('キャッシュ済み (sha: ${result.lock.sha.substring(0, 12)})。'
+          '更新するには --update を指定してください。');
+      return 0;
+    }
+
+    if (result.previousSha != null) {
+      Logger.warn('SHA が変わりました: '
+          '${result.previousSha!.substring(0, 12)} → ${result.lock.sha.substring(0, 12)}。'
+          '内容の差分を確認してからコミットしてください。');
+    }
+    Logger.success('フェッチ完了: ${repoRef.url} '
+        '(ref: ${result.lock.ref.isEmpty ? "default" : result.lock.ref}, '
+        'sha: ${result.lock.sha.substring(0, 12)}) → utakata.lock に固定しました。');
     return 0;
   }
 }

@@ -17,7 +17,19 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
   final FilesystemDataSource _fs;
   final YamlDataSource _yaml;
 
-  const ArchitectureRepositoryImpl(this._fs, this._yaml);
+  /// テンプレートパス解決の上書き(S3: リモートキャッシュ→同梱の順)。
+  /// 未指定なら同梱テンプレートのみを見る。
+  final Future<String> Function(String relativePath)? _resolveTemplatePath;
+
+  const ArchitectureRepositoryImpl(this._fs, this._yaml,
+      {Future<String> Function(String relativePath)? resolveTemplatePath})
+      : _resolveTemplatePath = resolveTemplatePath;
+
+  Future<String> _resolve(String relativePath) {
+    final resolver = _resolveTemplatePath;
+    if (resolver != null) return resolver(relativePath);
+    return _fs.resolvePackageTemplatePath(relativePath);
+  }
 
   @override
   Future<ArchitectureDefinitionEntity> getById(String architectureId) async {
@@ -45,7 +57,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
       }
     }
 
-    final templateBase = await _fs.resolvePackageTemplatePath(
+    final templateBase = await _resolve(
       p.join('architectures', architectureId, 'arch_definition.yaml'),
     );
 
@@ -61,18 +73,28 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
 
   @override
   Future<List<ArchitectureDefinitionEntity>> getAll() async {
-    final archsDir = await _fs.resolvePackageTemplatePath('architectures');
-    final dir = Directory(archsDir);
-    if (!dir.existsSync()) return [];
+    // 同梱とリモートキャッシュ(あれば)の両方を列挙し、id で重複排除する
+    // (getById は remote-first で解決するため、重複時はリモート定義が勝つ)。
+    final roots = <String>{
+      await _fs.resolvePackageTemplatePath('architectures'),
+      await _resolve('architectures'),
+    };
+    final ids = <String>{};
+    for (final root in roots) {
+      final dir = Directory(root);
+      if (!dir.existsSync()) continue;
+      for (final entry in dir.listSync().whereType<Directory>()) {
+        ids.add(p.basename(entry.path));
+      }
+    }
 
     final result = <ArchitectureDefinitionEntity>[];
-    final entries = dir.listSync().whereType<Directory>().toList();
-    for (final entry in entries) {
+    for (final id in ids.toList()..sort()) {
       try {
-        result.add(await getById(p.basename(entry.path)));
+        result.add(await getById(id));
       } on UtakataDomainException catch (e) {
         // 壊れた定義はスキップするが、黙殺せず stderr に警告する(P6)
-        stderr.writeln('⚠️  Skipping broken architecture "${p.basename(entry.path)}": $e');
+        stderr.writeln('⚠️  Skipping broken architecture "$id": $e');
       }
     }
     return result;
@@ -231,7 +253,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
       }
     }
 
-    final templateBase = await _fs.resolvePackageTemplatePath(
+    final templateBase = await _resolve(
       p.join('architectures', architectureId, 'arch_definition.yaml'),
     );
 

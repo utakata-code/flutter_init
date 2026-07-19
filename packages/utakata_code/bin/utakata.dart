@@ -28,7 +28,9 @@ import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/jsonl_data_s
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/markdown_marker_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/yaml_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/yaml_edit_data_source.dart';
+import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/git_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/process_data_source.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/knowledge_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/agreement_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/architecture_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/config_repository_impl.dart';
@@ -85,7 +87,26 @@ Future<void> main(List<String> arguments) async {
   const marker = MarkdownMarkerDataSource();
 
   // リポジトリ実装
-  final archRepo = ArchitectureRepositoryImpl(fs, yaml);
+  final knowledgeRepo = KnowledgeRepositoryImpl(
+    const GitDataSource(),
+    yaml,
+    Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.',
+  );
+
+  // テンプレートパス解決: lock 済みリモートキャッシュ(knowledge_repo 指定時のみ)
+  // → 同梱テンプレート の順で解決する(実装計画 S3。未指定なら従来と同一挙動)。
+  Future<String> resolveTemplatePath(String relativePath) async {
+    final remoteRoot = await knowledgeRepo.materializedRoot(Directory.current.path);
+    if (remoteRoot != null) {
+      final candidate = '$remoteRoot/$relativePath';
+      if (File(candidate).existsSync() || Directory(candidate).existsSync()) {
+        return candidate;
+      }
+    }
+    return fs.resolvePackageTemplatePath(relativePath);
+  }
+
+  final archRepo = ArchitectureRepositoryImpl(fs, yaml, resolveTemplatePath: resolveTemplatePath);
   final templateRepo = TemplateRepositoryImpl(fs);
   final projectRepo = ProjectRepositoryImpl(fs, yaml);
   const configRepo = ConfigRepositoryImpl(fs, yaml);
@@ -101,7 +122,7 @@ Future<void> main(List<String> arguments) async {
     readFile: fs.readFile,
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
-    resolvePackageTemplatePath: fs.resolvePackageTemplatePath,
+    resolvePackageTemplatePath: resolveTemplatePath,
   );
 
   final addFeatureUsecase = AddFeatureUsecase(
@@ -242,7 +263,7 @@ Future<void> main(List<String> arguments) async {
     readFile: fs.readFile,
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
-    resolvePackageTemplatePath: fs.resolvePackageTemplatePath,
+    resolvePackageTemplatePath: resolveTemplatePath,
   );
 
   final generateClaudeIntegrationUsecase = GenerateClaudeIntegrationUsecase(
@@ -283,6 +304,8 @@ Future<void> main(List<String> arguments) async {
       exportArchitectureUsecase,
       createArchitectureUsecase,
       msg,
+      configRepo: configRepo,
+      knowledgeRepo: knowledgeRepo,
     ),
     docCommand: DocCommand(initDocUsecase, msg),
     logCommand: LogCommand(addLogEntryUsecase, queryLogUsecase, renderLogPreviewUsecase, msg),
