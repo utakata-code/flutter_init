@@ -2,6 +2,12 @@
 
 > Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
 
+## 0.13.0
+
+* **refactor(templates)**: Bundled templates are now synced from [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) via `tool/sync_arch_lib.dart` (single source of truth). New bundle layout: `architectures/<id>/{arch_definition.yaml, principles/, layers/, dependencies/, skills/}` — the legacy `AI/` and `.agent/` trees are gone.
+* **refactor(create)**: Generated projects no longer receive a copy of the knowledge tree (`AI/`). Knowledge is reference-only: `utakata guide show/eject` and the MCP `guide_get` tool resolve it from the bundle (or, later, a fetched knowledge repo). Projects now consist of the Flutter app + `doc/` + `utakata.yaml` + `.claude/` + `CLAUDE.md` only.
+* **chore(templates)**: `.tmpl` files are abolished. `feature add`/`apply` scaffold directories and dynamically generated GUIDE.md from `arch_definition.yaml`; local `.tmpl` overrides in a project's `AI/architecture/features/` still work. The last bundled script (`build_native_ios.sh`) is no longer shipped.
+
 ## 0.12.0
 
 * **feat(config)**: `utakata.yaml` is now the project's master config (`schema: 1`), parsed by every command. New optional sections: `project.knowledge_repo` (opt-in remote knowledge repo, used from 0.14.0), `skills` (list synced by the upcoming `skills sync`), and `team` (client/developer/ai_agents roles).

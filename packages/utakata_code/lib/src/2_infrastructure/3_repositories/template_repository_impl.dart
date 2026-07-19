@@ -8,22 +8,17 @@ import '../2_data_sources/1_local/filesystem_data_source.dart';
 
 /// テンプレートリポジトリの実装
 ///
-/// lib/src/0_templates/architectures/{archId}/ 配下のテンプレートを読み込む。
-/// すべてのリソースがアーキテクチャ単位でまとまっている:
+/// lib/src/0_templates/architectures/{archId}/ 配下(utakata_arch_lib から
+/// tool/sync_arch_lib.dart が同期した同梱コピー)を読み込む:
 ///   architectures/{archId}/
-///     .agent/         — 旧 AI エージェント設定(v1.0 で生成停止。Claude Code
-///                        統合(.claude/ + .mcp.json)が後継。ディレクトリ自体は
-///                        参考資料として残るが getProjectTemplates では読まない)
-///     AI/             — AI ガイド・テンプレート・仕様書
-///       architecture/  — アーキテクチャ固有リソース
-///         arch_definition.yaml
-///         features/    — フィーチャー用 .tmpl + GUIDE.md
-///         guides/      — アーキテクチャガイド
-///         core/        — Core 層ガイド
-///       specs/         — 仕様書テンプレート
-///       scripts/       — ユーティリティスクリプト
-///       snapshots/     — スナップショット
-///       logs/          — ログ
+///     arch_definition.yaml — 機械可読定義(構造・命名規則・ガイド)
+///     principles/          — 絶対遵守ルール
+///     layers/              — レイヤーごとの GUIDE.md
+///     dependencies/        — 推奨パッケージ
+///     skills/              — Claude Code SKILL(skills sync が同期)
+///
+/// v1.0.0(S2)から、ナレッジはプロジェクトへコピーせず参照する
+/// (getProjectTemplates は空を返す。guide show/eject・MCP guide_get が後継)。
 class TemplateRepositoryImpl implements TemplateRepository {
   final FilesystemDataSource _fs;
 
@@ -43,33 +38,17 @@ class TemplateRepositoryImpl implements TemplateRepository {
     }
 
     final basePath = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'AI', 'architecture', 'features'),
+      p.join('architectures', architectureId, 'layers', 'features'),
     );
     return _loadTemplates(basePath, tmplOnly: true);
   }
 
   @override
   Future<List<TemplateFileEntity>> getProjectTemplates(String architectureId) async {
-    final archBasePath = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId),
-    );
-
-    final results = <TemplateFileEntity>[];
-
-    // AI/ ディレクトリ全体（プレフィックス付きで展開: AI/guides/... のように）
-    // features/*.tmpl は .tmpl 拡張子をそのまま保持して展開される
-    final aiDir = Directory(p.join(archBasePath, 'AI'));
-    if (aiDir.existsSync()) {
-      results.addAll(await _loadTemplates(
-        aiDir.path,
-        addBaseDirPrefix: true,
-      ));
-    }
-
-    // .agent/ は v1.0 で生成を停止した(仕様書 §11.3)。
-    // Claude Code 統合(.claude/ + .mcp.json)が後継。
-
-    return results;
+    // v1.0.0(S2)からナレッジの丸ごとコピーを廃止(コンテキスト分離)。
+    // ガイドは guide show/eject・MCP guide_get で参照し、プロジェクトには
+    // doc/(doc init)と .claude/(create)だけが生成される。
+    return const [];
   }
 
   /// ディレクトリ配下のファイルを再帰的に読み込む

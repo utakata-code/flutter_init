@@ -1,0 +1,71 @@
+// utakata_arch_lib のローカルチェックアウトから lib/src/0_templates/architectures/
+// へ同梱テンプレートを同期する(実装計画 D1: Single Source of Truth は arch_lib)。
+//
+// 実行: dart run tool/sync_arch_lib.dart <path-to-utakata_arch_lib>
+//
+// 変換はこのスクリプトだけが行い、CLI 実行時コードには入れない:
+//   - `_starter`(独自アーキテクチャ雛形)は同梱しない
+//   - arch_definition.yaml の detail_content_path をパッケージ内解決用の
+//     フルパス(architectures/<id>/...)へ書き換える
+import 'dart:io';
+
+void main(List<String> args) {
+  if (args.isEmpty) {
+    stderr.writeln('usage: dart run tool/sync_arch_lib.dart <path-to-utakata_arch_lib>');
+    exit(64);
+  }
+
+  final archLibDir = Directory('${args.first}/arches');
+  if (!archLibDir.existsSync()) {
+    stderr.writeln('not an arch_lib checkout (missing arches/): ${args.first}');
+    exit(66);
+  }
+
+  final targetRoot = Directory('lib/src/0_templates/architectures');
+  if (!targetRoot.parent.existsSync()) {
+    stderr.writeln('run from packages/utakata_code (missing lib/src/0_templates)');
+    exit(66);
+  }
+
+  var synced = 0;
+  for (final entry in archLibDir.listSync().whereType<Directory>()) {
+    final id = entry.uri.pathSegments.where((s) => s.isNotEmpty).last;
+    if (id.startsWith('_') || id.startsWith('.')) continue;
+
+    final target = Directory('${targetRoot.path}/$id');
+    if (target.existsSync()) target.deleteSync(recursive: true);
+    _copyTree(entry, target, archId: id);
+    synced++;
+    stdout.writeln('synced: $id');
+  }
+
+  if (synced == 0) {
+    stderr.writeln('no architectures found under ${archLibDir.path}');
+    exit(65);
+  }
+}
+
+void _copyTree(Directory from, Directory to, {required String archId}) {
+  to.createSync(recursive: true);
+  for (final entity in from.listSync(recursive: true)) {
+    final relative = entity.path.substring(from.path.length + 1);
+    if (relative.split(Platform.pathSeparator).any((s) => s.startsWith('.git'))) {
+      continue;
+    }
+    final targetPath = '${to.path}/$relative';
+    if (entity is Directory) {
+      Directory(targetPath).createSync(recursive: true);
+    } else if (entity is File) {
+      File(targetPath).parent.createSync(recursive: true);
+      if (relative == 'arch_definition.yaml') {
+        final content = entity.readAsStringSync().replaceAll(
+              RegExp(r'detail_content_path:\s*"(?!architectures/)'),
+              'detail_content_path: "architectures/$archId/',
+            );
+        File(targetPath).writeAsStringSync(content);
+      } else {
+        entity.copySync(targetPath);
+      }
+    }
+  }
+}

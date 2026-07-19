@@ -12,7 +12,7 @@ import '../2_data_sources/1_local/yaml_data_source.dart';
 
 /// アーキテクチャ定義リポジトリの実装
 ///
-/// lib/src/0_templates/architectures/{id}/AI/architecture/arch_definition.yaml を読み込む。
+/// lib/src/0_templates/architectures/{id}/arch_definition.yaml を読み込む。
 class ArchitectureRepositoryImpl implements ArchitectureRepository {
   final FilesystemDataSource _fs;
   final YamlDataSource _yaml;
@@ -46,7 +46,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     }
 
     final templateBase = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'AI', 'architecture', 'arch_definition.yaml'),
+      p.join('architectures', architectureId, 'arch_definition.yaml'),
     );
 
     final content = await _fs.readFile(templateBase);
@@ -232,7 +232,7 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     }
 
     final templateBase = await _fs.resolvePackageTemplatePath(
-      p.join('architectures', architectureId, 'AI', 'architecture', 'arch_definition.yaml'),
+      p.join('architectures', architectureId, 'arch_definition.yaml'),
     );
 
     final content = await _fs.readFile(templateBase);

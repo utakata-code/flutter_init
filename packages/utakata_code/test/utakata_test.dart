@@ -143,15 +143,12 @@ naming_rules: []
       expect(templates.first.content, '// My Local Custom Template: {{EntityName}}');
     });
 
-    test('TemplateRepositoryImpl.getFeatureTemplates falls back to package templates if local does not exist', () async {
-      // No local features directory created. It should load package defaults
+    test('TemplateRepositoryImpl.getFeatureTemplates package fallback is empty (.tmpl abolished in S2)', () async {
+      // .tmpl は同梱テンプレートから廃止された(v0.13.0)。feature 生成は
+      // arch_definition.yaml 駆動のディレクトリ + 動的 GUIDE 生成で完結し、
+      // ローカルに .tmpl を置いた場合のみ(前のテスト)ファイル展開が走る。
       final templates = await templateRepo.getFeatureTemplates('clean_architecture');
-      
-      // Package defaults has multiple templates (like entities, repositories, usecases, etc.)
-      expect(templates.isNotEmpty, isTrue);
-      // Verify some package default exists in the returned list
-      final hasDomainEntity = templates.any((t) => t.relativePath.contains('1_domain') && t.relativePath.contains('1_entities'));
-      expect(hasDomainEntity, isTrue);
+      expect(templates, isEmpty);
     });
   });
 
