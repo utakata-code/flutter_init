@@ -2,6 +2,10 @@
 
 > Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
 
+## 0.15.0
+
+* **feat(skills)**: New `utakata skills sync [--force]` — syncs the architecture's bundled SKILLs listed under `skills:` in `utakata.yaml` into `.claude/skills/`, with a managed marker (`<!-- utakata:managed from=<arch>/<id> hash=... -->`). Conflict rules: files without the marker (human-created) are never touched, even with `--force`; unmodified managed files are updated in place; human-edited managed files are skipped unless `--force`. Delisted managed skills are reported as removal candidates but never auto-deleted.
+
 ## 0.14.0
 
 * **feat(arch)**: New `utakata arch get [--update]` — fetches the opt-in `project.knowledge_repo` declared in `utakata.yaml` (git, depth-1) into `~/.utakata/cache/knowledge/`, materializes it into the bundled-template layout, and pins the resolved commit SHA in `utakata.lock`. Idempotent while the lock and cache are valid; `--update` re-resolves the ref and reports the SHA change.

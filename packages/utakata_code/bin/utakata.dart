@@ -22,6 +22,7 @@ import 'package:utakata/src/1_domain/3_usecases/render_log_preview_usecase.dart'
 import 'package:utakata/src/1_domain/3_usecases/render_summary_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/scan_project_status_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/status_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/sync_skills_usecase.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/filesystem_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/front_matter_data_source.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/jsonl_data_source.dart';
@@ -54,6 +55,7 @@ import 'package:utakata/src/3_application/1_commands/impl_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
 import 'package:utakata/src/3_application/1_commands/mcp_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
+import 'package:utakata/src/3_application/1_commands/skills_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
 import 'package:utakata/src/3_application/1_commands/summary_command.dart';
 import 'package:utakata/src/3_application/3_presenters/log_preview_presenter.dart';
@@ -280,6 +282,17 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final syncSkillsUsecase = SyncSkillsUsecase(
+    configRepo: configRepo,
+    planRepo: planRepo,
+    resolveTemplatePath: resolveTemplatePath,
+    readFile: fs.readFile,
+    writeFile: fs.writeFile,
+    ensureDir: fs.ensureDir,
+    dirExists: fs.dirExists,
+    listEntries: fs.listEntries,
+  );
+
   final mcpServer = McpServer(
     checkUsecase: checkUsecase,
     planRepo: planRepo,
@@ -315,6 +328,7 @@ Future<void> main(List<String> arguments) async {
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
     guideCommand: GuideCommand(guideUsecase, msg),
     mcpCommand: McpCommand(mcpServer, msg),
+    skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
   );
 
   // ─── 実行 ───
