@@ -1,6 +1,6 @@
 # utakata — by utakata code
 
-> **仕様駆動開発 + AIと人間の境なき共作 + 複数人/複数AI でのプロジェクト進行をスムーズにする**
+> **お客様・開発者・AIエージェントが共作する、Flutter の仕様駆動開発**
 
 [![pub.dev](https://img.shields.io/pub/v/utakata.svg)](https://pub.dev/packages/utakata)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
@@ -13,92 +13,63 @@
 
 ## このリポジトリについて
 
-このリポジトリは、かつて **`flutter_init`** という名前の Flutter 新規プロジェクト用テンプレートとして始まりました。
+**utakata CLI**(pub.dev: [`utakata`](https://pub.dev/packages/utakata))のモノレポです。
+utakata は、お客様・開発者・AIエージェントという異なるアクターが、一つの Flutter プロジェクトで安全に協働するためのプロジェクト・オーケストレーターです:
 
-当初は `.agent/` と `AI/` を中心とした「AIエージェントと人間が共同作業するための初期テンプレート」でしたが、  
-開発が進む中で以下のような変遷を経て現在の形に至っています。
+- **マスター設定(`utakata.yaml`)** — アーキテクチャ、team(誰の決定に従うか)、AI スキル、任意のリモートナレッジリポジトリ(コミット SHA を `utakata.lock` に固定)を1ファイルで宣言
+- **意図レベルの計画(`doc/specs/plan.yaml`)** + 1回の走査で構造を検証(`check` / `apply`)
+- **人間専用の記録系** — お客様との会話ログ・合意台帳・feature 別実装計画。AI は読めるが書けない(ホスト側の deny ルールで技術的に強制)
+- **参照型ナレッジ** — ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理し、リリース時に同梱。プロジェクトへはコピーしない
+- **Claude Code ネイティブ** — `.mcp.json`・フック・managed スキル・`CLAUDE.md`・読み取り専用 MCP サーバー(8ツール)
 
-### 変遷の概要
+コマンドの詳細: [packages/utakata_code/README_ja.md](packages/utakata_code/README_ja.md)
 
-| バージョン | 内容 |
+### 変遷
+
+| バージョン | 説明 |
 |---|---|
-| `flutter_init` 初期 | Flutter 新規プロジェクト用テンプレート（.agent/ + AI/）|
-| `flutter_init` v2.0 | Clean Architecture 対応・スキル / ワークフロー体系を整備 |
-| `utakata` v0.2.0 | テンプレートのロジックを Dart CLI ツール（pub.dev: utakata）として切り出し |
-| `utakata` v0.3.0 | CLI を `utakata_code` パッケージに昇格・モノレポへ統合・アーキテクチャ非依存化 |
-| `utakata` v0.4.0 | `AI/architecture/` 再構成・GUIDE.md 動的生成・依存関係自動挿入 |
-| `utakata` v0.5.0（現在） | **マルチアーキテクチャ完全対応**・MVVM テンプレート追加・ファイルレベル差分比較 |
+| `flutter_init` | `.agent/` + `AI/` 中心の Flutter 新規プロジェクトテンプレート(人間とAIの共同作業) |
+| `utakata` v0.2–0.3 | テンプレートロジックを Dart CLI 化、モノレポ統合、アーキテクチャ非依存化 |
+| `utakata` v0.4–0.5 | マルチアーキテクチャ対応(Clean Architecture / MVVM)、動的 GUIDE 生成 |
+| `utakata` **v1.0.0**(現行) | プロジェクト・オーケストレーター化: マスター設定、正準構造モデル、記録系、ナレッジ外部化、Claude Code 統合 |
 
 ---
 
-## リポジトリ構造
+## リポジトリ構成
 
 ```
 utakata/
-├── .agent/              # AIエージェント向けルール・ワークフロー定義
-├── AI/                  # AIと人間が共同参照する仕様書ハブ
-│   ├── architecture/    # アーキテクチャ定義（arch_definition.yaml + ガイド）
-│   ├── specs/           # プロジェクト仕様書（プロジェクト作成時に生成）
-│   └── snapshots/       # utakata CLI が自動更新する現在の状態
+├── AI/                    # このリポジトリ自身の作業ドキュメント
+│   ├── specs/             # 設計文書(アプリケーション仕様書・構造計画書・実装計画書)
+│   └── logs/              # 開発会話ログ
 ├── packages/
-│   ├── utakata_code/    # CLI ツール本体（pub.dev: utakata）
-│   └── utakata_studio/  # 開発支援 Flutter アプリ
-└── doc/                 # 実装ドキュメント
+│   └── utakata_code/      # CLI ツール本体(pub.dev: utakata)
+├── v1.0.0.md              # v1.0.0 コンセプト文書
+├── v1.0.0_review.md       # 実装前レビュー(日付付き追記あり)
+└── v1.0.0_result.md       # 実装後の答え合わせ
 ```
+
+関連リポジトリ: [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) — アーキテクチャナレッジライブラリ(Clean Architecture / MVVM / 独自アーキテクチャ用 `_starter` 雛形)。内容はリリース時に CLI の同梱テンプレートへ同期され、プロジェクト単位で `utakata.yaml` の `knowledge_repo` により差し替えもできます。
 
 ---
 
-## 🤖 AIエージェント連携
-
-`utakata create` で生成されるプロジェクトには `.agent/` と `AI/` が自動的に含まれます。
-
-### `.agent/` — AIへの指示定義
-AI エージェント（Claude, Gemini 等）向けのルールとワークフロー定義。
-
-```
-.agent/
-├── rules/flutter.md          # trigger: always_on（常時参照）
-└── workflows/                # /validate, /scan 等のスラッシュコマンド
-```
-
-### `AI/` — Single Source of Truth
-AIと人間が共同参照する仕様書ハブ。
-
-```
-AI/
-├── architecture/
-│   ├── arch_definition.yaml  # アーキテクチャ定義（層・命名規則・ガイド）
-│   ├── guides/               # 各層の実装ガイド（動的生成）
-│   └── features/             # フィーチャーテンプレート
-├── specs/                    # アプリ仕様書・フィーチャー定義
-└── snapshots/                # utakata が自動更新する構造スナップショット
-```
-
----
-
-## 📦 utakata code CLI
+## クイックスタート
 
 ```bash
-# インストール
 dart pub global activate utakata
+
+utakata doc init                       # doc/ ワークスペース + utakata.yaml(契約前フェーズ)
+utakata create my_app --org com.example
+utakata apply --scope feature          # plan.yaml の宣言どおりに生成
+utakata check                          # 不足・余分・命名違反を1回で検証
 ```
 
-| コマンド | 説明 |
-|---|---|
-| `utakata create <app_name>` | Flutter プロジェクトを作成（.agent/ と AI/ 込み） |
-| `utakata feature add <name>` | フィーチャーを追加 |
-| `utakata feature init` | 計画書に基づき全フィーチャーを一括生成 |
-| `utakata plan` | feature_request.yaml + arch_definition.yaml から計画書を動的生成 |
-| `utakata scan` | 現在の構造をスキャン |
-| `utakata validate` | 命名規則・ディレクトリ構造を検証（アーキ自動検出） |
-| `utakata diff` | 計画との差分を確認（ディレクトリ + ファイル名） |
-| `utakata arch list / show / create` | アーキテクチャの確認・管理 |
-| `utakata status` | 総合ステータスを確認 |
-
-詳細: [pub.dev/packages/utakata](https://pub.dev/packages/utakata)
+詳細: [packages/utakata_code/README_ja.md](packages/utakata_code/README_ja.md) · [pub.dev/packages/utakata](https://pub.dev/packages/utakata)
 
 ---
 
 ## ライセンス
 
-[GNU General Public License v3.0](LICENSE) — © [utakata code](https://github.com/utakata-code)
+デュアルライセンス: 個人・オープンソース用途は [GNU GPL v3](LICENSE)、商用利用は別途ライセンスが必要です — [@code_utakata](https://x.com/code_utakata) までご連絡ください。
+
+© [utakata code](https://github.com/utakata-code)
