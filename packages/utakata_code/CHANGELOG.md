@@ -1,6 +1,8 @@
 # Changelog
 
-> Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
+## 1.0.0
+
+**First public release.** utakata is now a project orchestrator for client + developer + AI-agent collaboration on Flutter apps: a master config (`utakata.yaml`) with team roles, an intent-level plan (`doc/specs/plan.yaml`), one-pass structural checking, human-write-only client records with agreement tracking, reference-only knowledge synced from [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) (optionally overridden per-project and SHA-pinned via `utakata.lock`), and first-class Claude Code integration (hooks, managed skills, `CLAUDE.md`, and a read-only MCP server). The 0.6.0–0.17.0 entries below are the unreleased development milestones that make up this release.
 
 ## 0.17.0
 

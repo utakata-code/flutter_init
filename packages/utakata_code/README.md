@@ -11,10 +11,12 @@
 
 ## Features
 
-- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent). `utakata mcp` exposes a read-only, stateless MCP server so an agent can inspect structure/plan/logs/agreements without ever writing to them.
+- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent) + a project `CLAUDE.md`. `utakata mcp` exposes a read-only, stateless MCP server (8 tools) so an agent can inspect structure/plan/logs/agreements/config without ever writing to them.
+- 🧭 **Master config (`utakata.yaml`)**: one file declares the architecture, the `team` (client / developer / AI agents and who decides what), the `skills` to sync into `.claude/skills/`, and an optional remote `knowledge_repo` — pinned by commit SHA in `utakata.lock` via `utakata arch get`. Without it, everything ships bundled and fully offline.
 - 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)**. Customize by ejecting a definition with `utakata arch eject <id>`.
 - 🔍 **One Structural Check**: `utakata check` reports missing files, unexpected files, and naming violations in a single pass against your `arch_definition.yaml` — with GUIDE excerpts inline so the fix is obvious.
 - 📋 **Intent-Level Plan**: Declare features (name, permission, entities) in `doc/specs/plan.yaml`; `utakata apply` scaffolds exactly what's missing. `utakata plan adopt` detects code that isn't in the plan yet and appends it, format-preserving.
+- 📚 **Knowledge stays out of your repo**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) (bundled at release; overridable per-project via `knowledge_repo`). Projects contain only the app + `doc/` + config — no copied guide tree.
 - 💬 **Client Conversation Tracking**: `utakata log` records client conversations (human-only writes, JSONL, append-only) and `utakata agree` tracks agreements — the record an AI agent can read but never write to.
 - 📝 **Implementation Plans & Summary**: `utakata impl` manages a per-feature implementation-plan lifecycle; `utakata summary` regenerates the agreement ledger section of your project summary automatically.
 - 🌐 **Internationalized**: CLI messages support English and Japanese.
@@ -107,6 +109,7 @@ features:
 | `utakata check [--json] [--file <path>]` | Report missing files, extra files, and naming violations in one pass |
 | `utakata status [--brief] [--write-report]` | Flutter version + lint + `check` summary. `--brief` skips flutter calls entirely (used by Claude Code hooks) |
 | `utakata arch list\|show\|eject\|export` | Inspect architecture definitions or eject one locally to customize |
+| `utakata arch get [--update]` | Fetch the opt-in `knowledge_repo` from `utakata.yaml` and pin its commit SHA in `utakata.lock` |
 
 ### Client & records (human writes, AI reads)
 
@@ -114,6 +117,7 @@ features:
 |---|---|
 | `utakata log add "..." -s client\|developer\|system\|third_party [--at] [--thread] [--tag] [--reply-to] [--draft]` | Append one conversation entry (`doc/records/log/YYYY-MM.jsonl`) |
 | `utakata log show [--date] [--thread] [--tag]` / `utakata log render` | Query entries / regenerate the Markdown preview under `doc/preview/` |
+| `utakata log import claude-session [--list\|--last\|--session <id>] [--full] [-y]` | Human-driven import of a Claude Code session transcript into `doc/records/sessions/` (user/assistant text only by default, secrets `[REDACTED]`, interactive confirmation) |
 | `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg ids>]` | Record an agreement (`doc/records/agreements.jsonl`, append-only) |
 | `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | Update, supersede, or link an agreement; list unreflected ones |
 | `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | Manage a feature's implementation-plan lifecycle (`doc/impl/PLAN-NNNN_{feature}.md`) |
@@ -124,12 +128,14 @@ features:
 | Command | Description |
 |---|---|
 | `utakata guide list\|show\|eject [--arch]` | Browse a layer's guide, or eject one locally to start customizing |
+| `utakata guide for <file> [--json]` | Deterministically resolve the layer guide for a file under `lib/features/` (fix-context for lint errors) |
 
 ### AI integration
 
 | Command | Description |
 |---|---|
-| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`) |
+| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`) |
+| `utakata skills sync [--force]` | Sync the architecture's bundled SKILLs listed in `utakata.yaml` into `.claude/skills/` (managed-marker protection: human files are never overwritten) |
 
 `diff` remains as a permanent alias for `check`. `scan`, `validate`, `feature init`, `core`, and `arch create` have been removed/renamed — see [CHANGELOG.md](CHANGELOG.md).
 

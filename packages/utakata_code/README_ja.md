@@ -12,10 +12,12 @@
 
 ## 特徴
 
-- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバーを提供し、AI が構造・計画・会話ログ・合意を「書き込まずに」参照できます。
+- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)+ プロジェクト `CLAUDE.md` を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバー(8ツール)を提供し、AI が構造・計画・会話ログ・合意・設定を「書き込まずに」参照できます。
+- 🧭 **マスター設定(`utakata.yaml`)**: アーキテクチャ、`team`(お客様・開発者・AI の役割と決定権)、`.claude/skills/` に同期する `skills`、任意のリモート `knowledge_repo`(`utakata arch get` でコミット SHA を `utakata.lock` に固定)を1ファイルで宣言。未指定なら全て同梱・完全オフラインで動作します。
 - 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
 - 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけを生成します。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
+- 📚 **ナレッジはリポジトリの外**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理(リリース時に同梱・プロジェクト単位で `knowledge_repo` により差し替え可能)。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残ります。
 - 💬 **お客様との会話の記録**: `utakata log` がお客様との会話を記録します(人間のみ書き込み・JSONL・追記専用)。`utakata agree` は合意をトラッキングします — AI は読めても書けない記録です。
 - 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。
 - 🌐 **多言語対応**: CLI メッセージは日本語・英語に対応しています。
@@ -108,6 +110,7 @@ features:
 | `utakata check [--json] [--file <path>]` | 不足ファイル・余分なファイル・命名規則違反を1回の走査で報告する |
 | `utakata status [--brief] [--write-report]` | Flutter バージョン + lint + check サマリー。`--brief` は flutter 呼び出しを一切行わない(Claude Code フック用) |
 | `utakata arch list\|show\|eject\|export` | アーキテクチャ定義の確認、またはローカルへの書き出し(カスタマイズ開始) |
+| `utakata arch get [--update]` | `utakata.yaml` の `knowledge_repo`(オプトイン)をフェッチしてコミット SHA を `utakata.lock` に固定する |
 
 ### お客様・記録系(人間が書き、AI が読む)
 
@@ -115,6 +118,7 @@ features:
 |---|---|
 | `utakata log add "..." -s client\|developer\|system\|third_party [--at] [--thread] [--tag] [--reply-to] [--draft]` | 会話を1件追記する(`doc/records/log/YYYY-MM.jsonl`) |
 | `utakata log show [--date] [--thread] [--tag]` / `utakata log render` | 会話の検索 / `doc/preview/` 配下の Markdown プレビュー再生成 |
+| `utakata log import claude-session [--list\|--last\|--session <id>] [--full] [-y]` | Claude Code セッション生ログを人間の操作で `doc/records/sessions/` に取り込む(既定は user/assistant テキストのみ・秘密情報は `[REDACTED]`・確認プロンプト付き) |
 | `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg id>]` | 合意を記録する(`doc/records/agreements.jsonl`・追記専用) |
 | `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | 合意の状態更新・訂正(supersede)・反映記録・未反映合意の一覧 |
 | `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | feature 実装計画のライフサイクル管理(`doc/impl/PLAN-NNNN_{feature}.md`) |
@@ -125,12 +129,14 @@ features:
 | コマンド | 説明 |
 |---|---|
 | `utakata guide list\|show\|eject [--arch]` | レイヤーのガイドを閲覧、またはローカルへ書き出してカスタマイズを開始する |
+| `utakata guide for <file> [--json]` | `lib/features/` 配下のファイルパスから該当レイヤーのガイドを決定論的に解決する(lint エラー修正のコンテキスト供給用) |
 
 ### AI 統合
 
 | コマンド | 説明 |
 |---|---|
-| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`) |
+| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`・`guide_for_file`・`config_get`) |
+| `utakata skills sync [--force]` | `utakata.yaml` の `skills` リストをアーキテクチャ同梱 SKILL から `.claude/skills/` に同期する(managed マーカー保護: 人間の作ったファイルは絶対に上書きしない) |
 
 `diff` は `check` への永続的なエイリアスとして残ります。`scan`・`validate`・`feature init`・`core`・`arch create` は削除・改名されました。詳細は [CHANGELOG.md](CHANGELOG.md) を参照してください。
 
