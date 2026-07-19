@@ -12,6 +12,7 @@ import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/doctor_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_claude_integration_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_core_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/guide_for_file_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/guide_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_doc_usecase.dart';
@@ -282,6 +283,13 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final guideForFileUsecase = GuideForFileUsecase(
+    archRepo: archRepo,
+    configRepo: configRepo,
+    planRepo: planRepo,
+    showGuide: guideUsecase.show,
+  );
+
   final syncSkillsUsecase = SyncSkillsUsecase(
     configRepo: configRepo,
     planRepo: planRepo,
@@ -299,6 +307,8 @@ Future<void> main(List<String> arguments) async {
     queryLogUsecase: queryLogUsecase,
     listAgreementsUsecase: listAgreementsUsecase,
     guideUsecase: guideUsecase,
+    guideForFileUsecase: guideForFileUsecase,
+    configRepo: configRepo,
   );
 
   // ─── Application 層の組み立て ───
@@ -326,7 +336,7 @@ Future<void> main(List<String> arguments) async {
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
     implCommand: ImplCommand(implPlanUsecase, msg),
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
-    guideCommand: GuideCommand(guideUsecase, msg),
+    guideCommand: GuideCommand(guideUsecase, msg, guideForFileUsecase: guideForFileUsecase),
     mcpCommand: McpCommand(mcpServer, msg),
     skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
   );

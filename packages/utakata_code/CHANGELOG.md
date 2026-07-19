@@ -2,6 +2,11 @@
 
 > Versions 0.6.0 and later are unreleased development milestones toward the 1.0.0 public release.
 
+## 0.16.0
+
+* **feat(guide)**: New `utakata guide for <file> [--json]` — deterministically resolves the layer guide for a file path under `lib/features/` (permission and direct layouts, deepest guide wins). Intended as fix-context for lint errors: pass the reported file, get the guide to follow.
+* **feat(mcp)**: Two new read-only tools — `guide_for_file` (same resolution over MCP) and `config_get` (returns `utakata.yaml` including `team`, so an agent can learn who decides what without reading files).
+
 ## 0.15.0
 
 * **feat(skills)**: New `utakata skills sync [--force]` — syncs the architecture's bundled SKILLs listed under `skills:` in `utakata.yaml` into `.claude/skills/`, with a managed marker (`<!-- utakata:managed from=<arch>/<id> hash=... -->`). Conflict rules: files without the marker (human-created) are never touched, even with `--force`; unmodified managed files are updated in place; human-edited managed files are skipped unless `--force`. Delisted managed skills are reported as removal candidates but never auto-deleted.

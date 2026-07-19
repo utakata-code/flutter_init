@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
+import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
@@ -16,10 +18,14 @@ class GuideCommand extends Command<int> {
   @override
   String get description => _msg.cmdGuideDesc;
 
-  GuideCommand(GuideUsecase usecase, this._msg) {
+  GuideCommand(GuideUsecase usecase, this._msg,
+      {GuideForFileUsecase? guideForFileUsecase}) {
     addSubcommand(_GuideListCommand(usecase, _msg));
     addSubcommand(_GuideShowCommand(usecase, _msg));
     addSubcommand(_GuideEjectCommand(usecase, _msg));
+    if (guideForFileUsecase != null) {
+      addSubcommand(_GuideForCommand(guideForFileUsecase));
+    }
   }
 
   @override
@@ -107,6 +113,43 @@ class _GuideEjectCommand extends BaseCommand {
       layerPath,
     );
     Logger.success(_msg.guideEjectDone(layerPath, path));
+    return 0;
+  }
+}
+
+/// utakata guide for `<file>` — ファイルパスから該当レイヤーのガイドを解決する
+class _GuideForCommand extends BaseCommand {
+  final GuideForFileUsecase _usecase;
+
+  @override
+  String get name => 'for';
+
+  @override
+  String get description =>
+      'ファイルパスから該当レイヤーのガイドを決定論的に解決する(lint エラー修正のコンテキスト供給用)';
+
+  _GuideForCommand(this._usecase) {
+    argParser.addFlag('json', help: 'JSON で出力する', negatable: false);
+  }
+
+  @override
+  Future<int> execute() async {
+    if (argResults!.rest.isEmpty) {
+      Logger.error('ファイルパスを指定してください: utakata guide for <file>');
+      return 1;
+    }
+    final result =
+        await _usecase.execute(Directory.current.path, argResults!.rest.first);
+    if (result == null) {
+      Logger.warn('該当するレイヤーガイドが見つかりません(lib/features/ 配下のファイルを指定してください)');
+      return 1;
+    }
+    if (argResults!['json'] as bool) {
+      Logger.info(jsonEncode({'layer_path': result.layerPath, 'guide': result.guide}));
+    } else {
+      Logger.section('Guide: ${result.layerPath}');
+      Logger.info(result.guide);
+    }
     return 0;
   }
 }

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import '../../1_domain/1_entities/structure/check_report.dart';
 import '../../1_domain/3_usecases/check_usecase.dart';
+import '../../1_domain/2_repositories/config_repository.dart';
+import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/3_usecases/list_agreements_usecase.dart';
 import '../../1_domain/3_usecases/query_log_usecase.dart';
@@ -23,17 +25,24 @@ class McpServer {
   final ListAgreementsUsecase _listAgreementsUsecase;
   final GuideUsecase _guideUsecase;
 
+  final GuideForFileUsecase? _guideForFileUsecase;
+  final ConfigRepository? _configRepo;
+
   McpServer({
     required CheckUsecase checkUsecase,
     required PlanRepository planRepo,
     required QueryLogUsecase queryLogUsecase,
     required ListAgreementsUsecase listAgreementsUsecase,
     required GuideUsecase guideUsecase,
+    GuideForFileUsecase? guideForFileUsecase,
+    ConfigRepository? configRepo,
   })  : _checkUsecase = checkUsecase,
         _planRepo = planRepo,
         _queryLogUsecase = queryLogUsecase,
         _listAgreementsUsecase = listAgreementsUsecase,
-        _guideUsecase = guideUsecase;
+        _guideUsecase = guideUsecase,
+        _guideForFileUsecase = guideForFileUsecase,
+        _configRepo = configRepo;
 
   static const _protocolVersion = '2024-11-05';
 
@@ -86,6 +95,22 @@ class McpServer {
         },
         'required': ['layer_path'],
       },
+    },
+    {
+      'name': 'guide_for_file',
+      'description': 'ファイルパスから該当レイヤーのガイドを決定論的に解決する(lint エラー修正時のコンテキスト供給用)',
+      'inputSchema': {
+        'type': 'object',
+        'properties': {
+          'file_path': {'type': 'string', 'description': 'lib/features/ 配下のファイルパス'},
+        },
+        'required': ['file_path'],
+      },
+    },
+    {
+      'name': 'config_get',
+      'description': 'utakata.yaml(マスター設定)の内容を返す。team(誰の決定に従うか)を含む',
+      'inputSchema': {'type': 'object', 'properties': {}},
     },
   ];
 
@@ -166,6 +191,25 @@ class McpServer {
             (args['architecture_id'] as String?) ?? 'clean_architecture',
             args['layer_path'] as String,
           ),
+        'guide_for_file' => await _guideForFileUsecase
+            ?.execute(projectDir, args['file_path'] as String)
+            .then((r) => r == null
+                ? null
+                : {'layer_path': r.layerPath, 'guide': r.guide}),
+        'config_get' => await _configRepo?.read(projectDir).then((c) => c == null
+            ? null
+            : {
+                'schema': c.schema,
+                'architecture': c.architecture,
+                'skills': c.skills,
+                'team': {
+                  'client': c.team.client,
+                  'developer': c.team.developer,
+                  'ai_agents': [
+                    for (final a in c.team.aiAgents) {'id': a.id, 'role': a.role}
+                  ],
+                },
+              }),
         _ => null,
       };
 
