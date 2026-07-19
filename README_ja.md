@@ -13,7 +13,7 @@
 
 ## このリポジトリについて
 
-**utakata CLI**(pub.dev: [`utakata`](https://pub.dev/packages/utakata))のモノレポです。
+**utakata code**(pub.dev: [`utakata`](https://pub.dev/packages/utakata))のモノレポです。
 utakata は、お客様・開発者・AIエージェントという異なるアクターが、一つの Flutter プロジェクトで安全に協働するためのプロジェクト・オーケストレーターです:
 
 - **マスター設定(`utakata.yaml`)** — アーキテクチャ、team(誰の決定に従うか)、AI スキル、任意のリモートナレッジリポジトリ(コミット SHA を `utakata.lock` に固定)を1ファイルで宣言
@@ -31,7 +31,7 @@ utakata は、お客様・開発者・AIエージェントという異なるア�
 | `flutter_init` | `.agent/` + `AI/` 中心の Flutter 新規プロジェクトテンプレート(人間とAIの共同作業) |
 | `utakata` v0.2–0.3 | テンプレートロジックを Dart CLI 化、モノレポ統合、アーキテクチャ非依存化 |
 | `utakata` v0.4–0.5 | マルチアーキテクチャ対応(Clean Architecture / MVVM)、動的 GUIDE 生成 |
-| `utakata` **v1.0.0**(現行) | プロジェクト・オーケストレーター化: マスター設定、正準構造モデル、記録系、ナレッジ外部化、Claude Code 統合 |
+| `utakata` **v1.0.0**(dev) | プロジェクト・オーケストレーター化: マスター設定、正準構造モデル、記録系、ナレッジ外部化、Claude Code 統合 |
 
 ---
 
@@ -43,10 +43,7 @@ utakata/
 │   ├── specs/             # 設計文書(アプリケーション仕様書・構造計画書・実装計画書)
 │   └── logs/              # 開発会話ログ
 ├── packages/
-│   └── utakata_code/      # CLI ツール本体(pub.dev: utakata)
-├── v1.0.0.md              # v1.0.0 コンセプト文書
-├── v1.0.0_review.md       # 実装前レビュー(日付付き追記あり)
-└── v1.0.0_result.md       # 実装後の答え合わせ
+    └── utakata_code/      # CLI ツール本体(pub.dev: utakata)
 ```
 
 関連リポジトリ: [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) — アーキテクチャナレッジライブラリ(Clean Architecture / MVVM / 独自アーキテクチャ用 `_starter` 雛形)。内容はリリース時に CLI の同梱テンプレートへ同期され、プロジェクト単位で `utakata.yaml` の `knowledge_repo` により差し替えもできます。
