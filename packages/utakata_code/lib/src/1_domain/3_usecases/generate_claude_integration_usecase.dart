@@ -29,6 +29,7 @@ class GenerateClaudeIntegrationUsecase {
   Future<void> execute(String projectDir) async {
     await _ensureDir('$projectDir/.claude/skills/utakata-structure');
     await _ensureDir('$projectDir/.claude/skills/utakata-client-context');
+    await _ensureDir('$projectDir/.claude/skills/utakata-impl-flow');
     await _ensureDir('$projectDir/.claude/agents');
 
     await _writeFile('$projectDir/.mcp.json', _mcpJson());
@@ -40,6 +41,10 @@ class GenerateClaudeIntegrationUsecase {
     await _writeFile(
       '$projectDir/.claude/skills/utakata-client-context/SKILL.md',
       _clientContextSkill(),
+    );
+    await _writeFile(
+      '$projectDir/.claude/skills/utakata-impl-flow/SKILL.md',
+      _implFlowSkill(),
     );
     await _writeFile(
       '$projectDir/.claude/agents/structure-auditor.md',
@@ -129,7 +134,7 @@ class GenerateClaudeIntegrationUsecase {
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "utakata check --quick --json" }
+          { "type": "command", "command": "utakata check --json" }
         ]
       }
     ],
@@ -148,33 +153,114 @@ class GenerateClaudeIntegrationUsecase {
 ---
 name: utakata-structure
 description: |
-  utakata プロジェクトの構造を検証・生成するスキル。
-  「構造をチェックして」「feature を生成して」「check/apply を実行して」時に使用。
+  utakata プロジェクトの構造ワークフロー(計画→生成→検証)。
+  feature の追加・実装開始・構造やレイヤーの確認・命名/構造エラーの修正・
+  コミット前チェックのとき、コードやディレクトリを手で作る前に必ず使用。
 ---
 
-# utakata 構造スキル
+# utakata 構造ワークフロー
 
-- 実装前に `utakata check --json` で現状の違反を確認する
-- feature を新規追加する場合は `utakata plan adopt` で plan.yaml に登録してから
-  `utakata apply --scope feature` を実行する
-- 命名規則違反やディレクトリの過不足は `utakata check` の出力にある GUIDE 抜粋を参照する
-- MCP が利用できない場合は `utakata check --json` を Bash 経由で直接呼び出す
+このプロジェクトの `lib/` 構造は utakata CLI が管理する。
+**レイヤーディレクトリやファイルを手動で作らず、必ず以下のフローに従う。**
+
+## 基本フロー(計画 → 生成 → 検証)
+
+1. **計画**: feature は `doc/specs/plan.yaml` に宣言する(name / permission /
+   entities)。CLI でやるなら `utakata feature add <name> --entity <e> --permission user`
+   (`--template <id>` で feature プリセットも適用できる)
+2. **生成**: `utakata apply --scope feature` — plan.yaml が宣言していて `lib/` に
+   無いものだけを生成する(`--dry-run` で事前確認可)
+3. **検証**: `utakata check --json` — 不足・余分・命名規則違反を1回で報告する。
+   **コミット前に必ず `utakata check` を実行する**
+
+## すでに書いたコードが plan に無いとき
+
+- `utakata plan adopt` — `lib/features/` にあるが plan.yaml に無い feature を
+  検出して追記する(書式保持)。plan.yaml を手で書き換えるより先にこれを使う
+
+## エラー・違反を直すとき
+
+- 命名/構造違反や lint エラーが出たファイルは
+  `utakata guide for <file> --json` で**該当レイヤーのガイドを取得してから**直す
+- レイヤーの役割・依存方向は `utakata arch show <arch_id>` で確認する
+- ガイド一覧は `utakata guide list`、個別表示は `utakata guide show <layer_path>`
+
+## 設定の優先順位
+
+- マスター設定は `utakata.yaml`(`project.architecture` は plan.yaml より優先)。
+  内容は MCP の `config_get`、または直接読んで確認する
+- MCP ツール(`check_run`・`structure_get`・`plan_get`・`guide_for_file` 等)が
+  使えない場合は同名機能を Bash の `utakata` コマンドで代替する
 ''';
 
   String _clientContextSkill() => '''
 ---
 name: utakata-client-context
 description: |
-  お客様との会話・合意を参照して要件の根拠を確認するスキル。
-  「この要件の出典は？」「お客様と何を合意した？」時に使用。
+  お客様との会話・合意・過去セッションを参照して要件の根拠を確認するスキル。
+  「この要件の出典は？」「お客様と何を合意した？」「誰の決定に従う？」
+  「仕様の背景は？」のとき、および doc/records/ に触れる前に必ず使用。
 ---
 
 # utakata クライアントコンテキストスキル
 
-- 会話ログは `utakata log show --thread <トピック>` で参照する(読み取り専用)
-- 合意は `utakata agree list` で確認する。金額・ステータス・出典 MSG ID が含まれる
-- **書き込みは行わない**: `doc/records/**` への編集は人間のコマンド経由でのみ行われる。
-  記録が必要な場合は `utakata log add` / `utakata agree add` の実行を人間に提案する
+`doc/records/` はこの案件の**ビジネス上の正史**(お客様との会話・合意・過去セッション)。
+
+## 参照方法(すべて読み取り専用)
+
+- 会話ログ: `utakata log show [--thread <トピック>] [--tag <タグ>] [--date <日付>]`
+- 合意: `utakata agree list [--unreflected]` — ID・ステータス・タイトル・金額付き。
+  出典 MSG ID は `doc/records/agreements.jsonl` の記録と `utakata summary` が
+  再生成する `doc/summary.md` の「参照:」行で確認する。
+  未反映(--unreflected)の合意は実装に落ちていない決定事項なので特に注意する
+- 誰の決定に従うか: MCP `config_get`(または `utakata.yaml` の `team:`)。
+  仕様の変更・解釈は team に定義された決定権者に確認し、AI が独断で決めない
+- 過去の開発セッション記録: `doc/records/sessions/`(人間が取り込んだもの)
+- 人間向けプレビューは `doc/preview/` にあるが、正本は常に `doc/records/` の JSONL
+
+## 絶対ルール: AI は記録に書き込まない
+
+- `doc/records/**` と `doc/preview/**` への Edit/Write は deny 設定で拒否される
+- 記録が必要になったら、人間に次のコマンドの実行を**提案**する:
+  - 会話の記録: `utakata log add "..." -s client|developer`
+  - 合意の記録: `utakata agree add --title "..." --kind client_agreement`
+  - セッションの取り込み: `utakata log import claude-session --last`
+- `doc/summary.md` の合意台帳区間(`<!-- utakata:begin agreements -->`)は
+  `utakata summary` が再生成する。マーカー内は手で編集しない
+''';
+
+  String _implFlowSkill() => '''
+---
+name: utakata-impl-flow
+description: |
+  feature 単位の実装計画(impl plan)のライフサイクル管理。
+  feature の実装を開始する・実装方針を検討する・実装を完了する・
+  「どの feature が進行中？」のときに使用。
+---
+
+# utakata 実装計画フロー
+
+規模のある feature は、コードを書く前に feature ごとの実装計画を作る
+(`utakata.yaml` の `enforcement.impl_plan: "on"` が既定)。
+
+## ライフサイクル
+
+1. **着手前**: `utakata impl new <feature> [--agreement <AGR-id>] [--spec <path>]`
+   — `doc/impl/PLAN-NNNN_<feature>.md` が発行される。根拠になった合意が
+   あれば `--agreement` で紐づける
+2. **実装中**: 技術選定の理由・試行錯誤・途中の判断は**その feature の PLAN
+   ファイルの本文に書く**(他の feature の文脈と混ぜない = コンテキスト分離)。
+   frontmatter(機械管理部分)は編集しない
+3. **完了**: `utakata impl done <PLAN-id>` → 参照しなくなったら
+   `utakata impl archive <PLAN-id>`(`doc/impl/archive/` へ退避)
+4. **状況確認**: `utakata impl list` — 進行中/完了の一覧
+
+## 注意
+
+- `doc/impl/` は AI も編集できる(deny 対象は `doc/records/**` と `doc/preview/**`)。
+  ただし本文の追記に留め、既存の記述を書き換えない
+- 実装が仕様やお客様の合意に関わる場合は、着手前に utakata-client-context
+  スキルの手順で根拠を確認する
 ''';
 
   String _structureAuditorAgent() => '''
@@ -185,8 +271,9 @@ tools: Bash, Read, Edit
 ---
 
 `utakata check --json` を実行し、missing/extra/namingViolations を解析して
-修復方針を提案する。命名規則違反は該当ファイルをリネームし、missing は
-`utakata apply` で生成できるか確認する。plan.yaml 自体の変更は提案に留め、
-実行は人間の確認を経てから行う。
+修復方針を提案する。違反ファイルは `utakata guide for <file> --json` で該当
+レイヤーのガイドを取得してから直す。命名規則違反は該当ファイルをリネームし、
+missing は `utakata apply` で生成できるか確認する。plan.yaml 自体の変更は
+`utakata plan adopt` の提案に留め、実行は人間の確認を経てから行う。
 ''';
 }

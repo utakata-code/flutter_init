@@ -147,7 +147,7 @@ features:
 `utakata create` は `.mcp.json` と `.claude/settings.json` を生成し、以下のフックを設定します:
 
 - **SessionStart** → `utakata status --brief`(プロジェクト状態の要約。flutter 呼び出しなし)
-- **PostToolUse**(Edit/Write) → `utakata check --quick --json`(編集直後のファイルへの即時フィードバック)
+- **PostToolUse**(Edit/Write) → `utakata check --json`(編集直後のファイルへの即時フィードバック)
 - **Stop** → `utakata status --brief --write-report`
 - **deny ルール**: `doc/records/**` と `doc/preview/**` への `Edit`/`Write` を拒否 — 会話ログ・合意の書き込み経路は人間専用であり、ドキュメント上の約束ではなくホスト側で技術的に強制されます
 

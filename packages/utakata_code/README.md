@@ -145,7 +145,7 @@ features:
 
 `utakata create` writes `.mcp.json` and `.claude/settings.json` with:
 - **SessionStart** → `utakata status --brief` (project state, no flutter calls)
-- **PostToolUse** (Edit/Write) → `utakata check --quick --json` (immediate feedback on the file just touched)
+- **PostToolUse** (Edit/Write) → `utakata check --json` (immediate feedback on the file just touched)
 - **Stop** → `utakata status --brief --write-report`
 - **deny** rules on `Edit`/`Write` under `doc/records/**` and `doc/preview/**` — the write path for conversation logs and agreements is human-only, enforced by the host, not just documentation
 
