@@ -38,14 +38,8 @@ Full command reference: [packages/utakata_code/README.md](packages/utakata_code/
 
 ```
 utakata/
-├── AI/                    # This repo's own working documents
-│   ├── specs/             # Design docs (application spec, structure plan, implementation plan)
-│   └── logs/              # Development conversation log
-├── packages/
-│   └── utakata_code/      # The CLI tool (pub.dev: utakata)
-├── v1.0.0.md              # v1.0.0 concept document
-├── v1.0.0_review.md       # Pre-implementation review (with dated addenda)
-└── v1.0.0_result.md       # Post-implementation retrospective
+└── packages/
+    └── utakata_code/      # The CLI tool (pub.dev: utakata)
 ```
 
 Related repository: [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) — the architecture knowledge library (Clean Architecture / MVVM / `_starter` kit for user-defined architectures). Its content is synced into the CLI's bundled templates at release time; projects may override it via `utakata.yaml` → `knowledge_repo`.

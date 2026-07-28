@@ -39,10 +39,7 @@ utakata は、お客様・開発者・AIエージェントという異なるア�
 
 ```
 utakata/
-├── AI/                    # このリポジトリ自身の作業ドキュメント
-│   ├── specs/             # 設計文書(アプリケーション仕様書・構造計画書・実装計画書)
-│   └── logs/              # 開発会話ログ
-├── packages/
+└── packages/
     └── utakata_code/      # CLI ツール本体(pub.dev: utakata)
 ```
 
