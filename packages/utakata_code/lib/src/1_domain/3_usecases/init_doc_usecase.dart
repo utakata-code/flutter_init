@@ -49,9 +49,10 @@ project:
   #   url: "https://github.com/utakata-code/utakata_arch_lib.git"
   #   ref: "v1.0.0"
 
-# .claude/skills/ に同期する SKILL の有効リスト(utakata skills sync)
+# .claude/skills/ に同期するアーキテクチャ同梱 SKILL の有効リスト(utakata skills sync)
+# ※ create が生成する汎用スキル(utakata-structure 等)はここに書かない
 # skills:
-#   - utakata-structure
+#   - clean-arch-auditor
 
 # 登場人物と役割(AI が「誰の決定に従い、誰に判断を仰ぐか」を把握するための定義)
 # team:

@@ -63,6 +63,12 @@ class _SkillsSyncCommand extends BaseCommand {
     for (final id in result.notFound) {
       Logger.warn('SKILL "$id" がアーキテクチャに見つかりません(utakata.yaml の skills を確認)');
     }
+    if (result.notFound.isNotEmpty) {
+      Logger.info(result.availableIds.isEmpty
+          ? '  このアーキテクチャに同梱 SKILL はありません。'
+          : '  利用可能な SKILL: ${result.availableIds.join(', ')}');
+      Logger.info('  ※ create が生成する汎用スキル(utakata-structure 等)は同期対象外です(既に配置済み)。');
+    }
     for (final id in result.removalCandidates) {
       Logger.warn('削除候補(skills リストから外れた managed): .claude/skills/$id/ '
           '(自動削除はしません)');

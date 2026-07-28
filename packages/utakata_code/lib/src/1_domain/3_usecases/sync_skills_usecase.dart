@@ -11,12 +11,16 @@ class SyncSkillsResult {
   final List<String> notFound;
   final List<String> removalCandidates;
 
+  /// アーキテクチャが提供している SKILL id 一覧(notFound 時の案内用)。
+  final List<String> availableIds;
+
   const SyncSkillsResult({
     this.synced = const [],
     this.skippedUnmanaged = const [],
     this.skippedModified = const [],
     this.notFound = const [],
     this.removalCandidates = const [],
+    this.availableIds = const [],
   });
 }
 
@@ -70,6 +74,9 @@ class SyncSkillsUsecase {
     final notFound = <String>[];
 
     final skillsRoot = await _resolveTemplatePath('architectures/$archId/skills');
+    final availableIds = _dirExists(skillsRoot)
+        ? _listEntries(skillsRoot).where((e) => _dirExists('$skillsRoot/$e')).toList()
+        : const <String>[];
 
     for (final skillId in config.skills) {
       final sourceDir = '$skillsRoot/$skillId';
@@ -114,6 +121,7 @@ class SyncSkillsUsecase {
       skippedModified: skippedModified,
       notFound: notFound,
       removalCandidates: await _findRemovalCandidates(projectDir, config, archId),
+      availableIds: availableIds,
     );
   }
 
