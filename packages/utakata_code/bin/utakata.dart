@@ -46,6 +46,7 @@ import 'package:utakata/src/2_infrastructure/3_repositories/template_repository_
 import 'package:utakata/src/3_application/1_commands/agree_command.dart';
 import 'package:utakata/src/3_application/1_commands/apply_command.dart';
 import 'package:utakata/src/3_application/1_commands/check_command.dart';
+import 'package:utakata/src/3_application/1_commands/claude_command.dart';
 import 'package:utakata/src/3_application/1_commands/create_command.dart';
 import 'package:utakata/src/3_application/1_commands/diff_command.dart';
 import 'package:utakata/src/3_application/1_commands/doc_command.dart';
@@ -339,6 +340,7 @@ Future<void> main(List<String> arguments) async {
     guideCommand: GuideCommand(guideUsecase, msg, guideForFileUsecase: guideForFileUsecase),
     mcpCommand: McpCommand(mcpServer, msg),
     skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
+    claudeCommand: ClaudeCommand(generateClaudeIntegrationUsecase),
   );
 
   // ─── 実行 ───

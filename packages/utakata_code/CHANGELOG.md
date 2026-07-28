@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+* **feat(claude)**: New `utakata claude init [--force]` — adds or repairs the Claude Code integration (`.claude/` skills+agent+settings, `.mcp.json`, `CLAUDE.md`) in an existing project, so it's no longer only available at `create` time. Default mode writes missing files only (existing files, including user-edited skills, are untouched); `--force` regenerates everything including `CLAUDE.md`.
+* **fix(skills)**: `doc init`'s commented `skills:` example suggested `utakata-structure`, which is a create-generated generic skill, not an architecture skill — following the example made `skills sync` report not-found. The example now shows a real architecture skill id, and the not-found warning lists the architecture's actually-available skill ids.
+
 ## 1.0.0
 
 **First public release.** utakata is now a project orchestrator for client + developer + AI-agent collaboration on Flutter apps: a master config (`utakata.yaml`) with team roles, an intent-level plan (`doc/specs/plan.yaml`), one-pass structural checking, human-write-only client records with agreement tracking, reference-only knowledge synced from [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) (optionally overridden per-project and SHA-pinned via `utakata.lock`), and first-class Claude Code integration (hooks, managed skills, `CLAUDE.md`, and a read-only MCP server). The 0.6.0–0.17.0 entries below are the unreleased development milestones that make up this release.

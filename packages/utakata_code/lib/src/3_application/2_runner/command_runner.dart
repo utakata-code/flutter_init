@@ -6,6 +6,7 @@ import '../1_commands/agree_command.dart';
 import '../1_commands/apply_command.dart';
 import '../1_commands/arch_command.dart';
 import '../1_commands/check_command.dart';
+import '../1_commands/claude_command.dart';
 import '../1_commands/create_command.dart';
 import '../1_commands/diff_command.dart';
 import '../1_commands/doc_command.dart';
@@ -70,6 +71,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required GuideCommand guideCommand,
     required McpCommand mcpCommand,
     required SkillsCommand skillsCommand,
+    required ClaudeCommand claudeCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -100,6 +102,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(guideCommand);
     addCommand(mcpCommand);
     addCommand(skillsCommand);
+    addCommand(claudeCommand);
   }
 
   @override

@@ -78,6 +78,29 @@ team:
     expect(claudeMd, contains('doc/records/'));
   });
 
+  test('skipExisting repairs only missing files; force regenerates all', () async {
+    final dir = Directory.systemTemp.createTempSync('claude_integration_test');
+    addTearDown(() => dir.deleteSync(recursive: true));
+
+    await _buildUsecase().execute(dir.path);
+
+    // ユーザーがスキルを編集し、agent を削除したとする
+    final skillPath = '${dir.path}/.claude/skills/utakata-structure/SKILL.md';
+    File(skillPath).writeAsStringSync('edited by human');
+    File('${dir.path}/.claude/agents/structure-auditor.md').deleteSync();
+
+    // 既定(claude init): 欠けた agent だけ書き、編集済みスキルは保護
+    final repaired = await _buildUsecase().execute(dir.path, skipExisting: true);
+    expect(repaired, ['.claude/agents/structure-auditor.md']);
+    expect(File(skillPath).readAsStringSync(), 'edited by human');
+
+    // --force: CLAUDE.md 含め全て再生成
+    final forced = await _buildUsecase()
+        .execute(dir.path, skipExisting: false, forceClaudeMd: true);
+    expect(forced, contains('CLAUDE.md'));
+    expect(File(skillPath).readAsStringSync(), isNot('edited by human'));
+  });
+
   test('writes a generic CLAUDE.md without utakata.yaml, and never overwrites', () async {
     final dir = Directory.systemTemp.createTempSync('claude_integration_test');
     addTearDown(() => dir.deleteSync(recursive: true));

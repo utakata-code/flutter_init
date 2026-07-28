@@ -26,37 +26,47 @@ class GenerateClaudeIntegrationUsecase {
         _fileExists = fileExists,
         _configRepo = configRepo;
 
-  Future<void> execute(String projectDir) async {
+  /// [skipExisting] が true の場合、既に存在するファイルには一切触れない
+  /// (`claude init` の既定 = 欠けているものだけ補修する安全モード)。
+  /// false(create の既定・`claude init --force`)は CLAUDE.md 以外を上書きする。
+  /// [forceClaudeMd] は既存 CLAUDE.md も上書きする(`claude init --force` 専用)。
+  ///
+  /// 書き込んだ相対パスの一覧を返す。
+  Future<List<String>> execute(
+    String projectDir, {
+    bool skipExisting = false,
+    bool forceClaudeMd = false,
+  }) async {
     await _ensureDir('$projectDir/.claude/skills/utakata-structure');
     await _ensureDir('$projectDir/.claude/skills/utakata-client-context');
     await _ensureDir('$projectDir/.claude/skills/utakata-impl-flow');
     await _ensureDir('$projectDir/.claude/agents');
 
-    await _writeFile('$projectDir/.mcp.json', _mcpJson());
-    await _writeFile('$projectDir/.claude/settings.json', _settingsJson());
-    await _writeFile(
-      '$projectDir/.claude/skills/utakata-structure/SKILL.md',
-      _structureSkill(),
-    );
-    await _writeFile(
-      '$projectDir/.claude/skills/utakata-client-context/SKILL.md',
-      _clientContextSkill(),
-    );
-    await _writeFile(
-      '$projectDir/.claude/skills/utakata-impl-flow/SKILL.md',
-      _implFlowSkill(),
-    );
-    await _writeFile(
-      '$projectDir/.claude/agents/structure-auditor.md',
-      _structureAuditorAgent(),
-    );
+    final written = <String>[];
+    Future<void> write(String relativePath, String content) async {
+      final path = '$projectDir/$relativePath';
+      final fileExists = _fileExists;
+      if (skipExisting && fileExists != null && fileExists(path)) return;
+      await _writeFile(path, content);
+      written.add(relativePath);
+    }
+
+    await write('.mcp.json', _mcpJson());
+    await write('.claude/settings.json', _settingsJson());
+    await write('.claude/skills/utakata-structure/SKILL.md', _structureSkill());
+    await write(
+        '.claude/skills/utakata-client-context/SKILL.md', _clientContextSkill());
+    await write('.claude/skills/utakata-impl-flow/SKILL.md', _implFlowSkill());
+    await write('.claude/agents/structure-auditor.md', _structureAuditorAgent());
 
     final claudeMdPath = '$projectDir/CLAUDE.md';
     final fileExists = _fileExists;
-    if (fileExists == null || !fileExists(claudeMdPath)) {
+    if (forceClaudeMd || fileExists == null || !fileExists(claudeMdPath)) {
       final config = await _configRepo?.read(projectDir);
       await _writeFile(claudeMdPath, _claudeMd(config));
+      written.add('CLAUDE.md');
     }
+    return written;
   }
 
   String _claudeMd(UtakataConfig? config) {
