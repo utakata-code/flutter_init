@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+* **fix(doc)** ([#14](https://github.com/utakata-code/utakata/issues/14)): `utakata doc init` now generates `doc/specs/plan.yaml`. Previously it created an empty `doc/specs/` directory, so `check`/`apply` failed with "plan.yaml not found" immediately after init — the documented quick-start flow did not work. `doc init` is now file-wise idempotent: it fills in whatever is missing (including a deleted `plan.yaml` in an already-initialized project) and never overwrites existing files.
+* **fix(arch)** ([#11](https://github.com/utakata-code/utakata/issues/11)): `guide list/show/eject` ignored `project.architecture` in `utakata.yaml` and always used `clean_architecture`, so an MVVM project got Clean Architecture guides. Architecture resolution is now centralized in a single `ArchitectureResolver` (explicit `--arch` → `utakata.yaml` → `plan.yaml` → `clean_architecture`) and applied consistently to `guide list/show/eject`, `feature add --arch`, and the MCP `guide_get` tool (which had the same defect while its sibling `guide_for_file` resolved correctly).
+
 ## 1.0.1
 
 * **feat(claude)**: New `utakata claude init [--force]` — adds or repairs the Claude Code integration (`.claude/` skills+agent+settings, `.mcp.json`, `CLAUDE.md`) in an existing project, so it's no longer only available at `create` time. Default mode writes missing files only (existing files, including user-edited skills, are untouched); `--force` regenerates everything including `CLAUDE.md`.

@@ -4,6 +4,7 @@ import 'dart:io';
 import '../../1_domain/1_entities/structure/check_report.dart';
 import '../../1_domain/3_usecases/check_usecase.dart';
 import '../../1_domain/2_repositories/config_repository.dart';
+import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/3_usecases/list_agreements_usecase.dart';
@@ -27,6 +28,7 @@ class McpServer {
 
   final GuideForFileUsecase? _guideForFileUsecase;
   final ConfigRepository? _configRepo;
+  final ArchitectureResolver? _archResolver;
 
   McpServer({
     required CheckUsecase checkUsecase,
@@ -36,13 +38,15 @@ class McpServer {
     required GuideUsecase guideUsecase,
     GuideForFileUsecase? guideForFileUsecase,
     ConfigRepository? configRepo,
+    ArchitectureResolver? archResolver,
   })  : _checkUsecase = checkUsecase,
         _planRepo = planRepo,
         _queryLogUsecase = queryLogUsecase,
         _listAgreementsUsecase = listAgreementsUsecase,
         _guideUsecase = guideUsecase,
         _guideForFileUsecase = guideForFileUsecase,
-        _configRepo = configRepo;
+        _configRepo = configRepo,
+        _archResolver = archResolver;
 
   static const _protocolVersion = '2024-11-05';
 
@@ -187,8 +191,9 @@ class McpServer {
           ))
             .map((a) => {'id': a.id, 'title': a.title, 'status': a.status.name})
             .toList(),
+        // architecture_id 未指定なら utakata.yaml / plan.yaml から解決する(Issue #11)
         'guide_get' => await _guideUsecase.show(
-            (args['architecture_id'] as String?) ?? 'clean_architecture',
+            await _resolveArchId(projectDir, args['architecture_id'] as String?),
             args['layer_path'] as String,
           ),
         'guide_for_file' => await _guideForFileUsecase
@@ -230,6 +235,14 @@ class McpServer {
         ],
       });
     }
+  }
+
+  Future<String> _resolveArchId(String projectDir, String? explicit) async {
+    final resolver = _archResolver;
+    if (resolver == null) {
+      return explicit ?? ArchitectureResolver.fallbackArchitectureId;
+    }
+    return resolver.resolve(projectDir, explicit: explicit);
   }
 
   Map<String, dynamic> _checkReportToMap(CheckReport report) => {

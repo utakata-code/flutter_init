@@ -14,11 +14,13 @@ class InitDocUsecase {
         _fileExists = fileExists;
 
   /// 既に存在していれば false、新規作成したら true を返す。
+  ///
+  /// ファイル単位で「既にあれば触らない」を守るため、`utakata.yaml` が
+  /// 無いのに `plan.yaml` だけある(またはその逆の)半端な状態でも、
+  /// 欠けているものだけが補われる。
   Future<bool> execute(String projectDir) async {
     final utakataYamlPath = '$projectDir/utakata.yaml';
-    if (_fileExists(utakataYamlPath)) {
-      return false;
-    }
+    final alreadyInitialized = _fileExists(utakataYamlPath);
 
     for (final dir in [
       '$projectDir/doc/specs',
@@ -31,10 +33,17 @@ class InitDocUsecase {
       await _ensureDir(dir);
     }
 
-    await _writeFile(utakataYamlPath, _defaultUtakataYaml());
-    await _writeFile('$projectDir/doc/summary.md', _defaultSummaryMd());
+    await _writeIfAbsent(utakataYamlPath, _defaultUtakataYaml());
+    await _writeIfAbsent('$projectDir/doc/summary.md', _defaultSummaryMd());
+    // plan.yaml が無いと直後の check / apply が失敗するため、雛形を必ず置く。
+    await _writeIfAbsent('$projectDir/doc/specs/plan.yaml', _defaultPlanYaml());
 
-    return true;
+    return !alreadyInitialized;
+  }
+
+  Future<void> _writeIfAbsent(String path, String content) async {
+    if (_fileExists(path)) return;
+    await _writeFile(path, content);
   }
 
   String _defaultUtakataYaml() => '''
@@ -74,5 +83,25 @@ lang: ja
 
 <!-- utakata:begin agreements -->
 <!-- utakata:end -->
+''';
+
+  String _defaultPlanYaml() => '''
+# 意図レベルの計画 — 「何を作りたいか」だけを宣言する。
+# 具象的なディレクトリ構造は utakata が arch_definition.yaml から毎回導出するため、
+# ここには書かない。
+#
+# 生成: utakata apply --scope feature
+# 検証: utakata check
+# 既存コードの取り込み: utakata plan adopt
+schema: 1
+
+# アーキテクチャは utakata.yaml の project.architecture が優先される。
+# feature 単位で上書きしたい場合のみ、各 feature に architecture: を書く。
+
+features: []
+# features:
+#   - name: todo
+#     permission: user        # admin | user | shared | direct
+#     entities: [todo]
 ''';
 }

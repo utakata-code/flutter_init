@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
+import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
@@ -19,10 +20,11 @@ class GuideCommand extends Command<int> {
   String get description => _msg.cmdGuideDesc;
 
   GuideCommand(GuideUsecase usecase, this._msg,
-      {GuideForFileUsecase? guideForFileUsecase}) {
-    addSubcommand(_GuideListCommand(usecase, _msg));
-    addSubcommand(_GuideShowCommand(usecase, _msg));
-    addSubcommand(_GuideEjectCommand(usecase, _msg));
+      {GuideForFileUsecase? guideForFileUsecase,
+      required ArchitectureResolver archResolver}) {
+    addSubcommand(_GuideListCommand(usecase, _msg, archResolver));
+    addSubcommand(_GuideShowCommand(usecase, _msg, archResolver));
+    addSubcommand(_GuideEjectCommand(usecase, _msg, archResolver));
     if (guideForFileUsecase != null) {
       addSubcommand(_GuideForCommand(guideForFileUsecase));
     }
@@ -44,13 +46,18 @@ class _GuideListCommand extends BaseCommand {
   @override
   String get description => _msg.cmdGuideListDesc;
 
-  _GuideListCommand(this._usecase, this._msg) {
-    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  final ArchitectureResolver _archResolver;
+
+  _GuideListCommand(this._usecase, this._msg, this._archResolver) {
+    argParser.addOption('arch',
+        help: '未指定なら utakata.yaml / plan.yaml から解決する');
   }
 
   @override
   Future<int> execute() async {
-    final guides = await _usecase.list(argResults!['arch'] as String);
+    final archId = await _archResolver.resolve(Directory.current.path,
+        explicit: argResults!['arch'] as String?);
+    final guides = await _usecase.list(archId);
     if (guides.isEmpty) {
       Logger.warn(_msg.guideListEmpty);
       return 0;
@@ -71,8 +78,11 @@ class _GuideShowCommand extends BaseCommand {
   @override
   String get description => _msg.cmdGuideShowDesc;
 
-  _GuideShowCommand(this._usecase, this._msg) {
-    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  final ArchitectureResolver _archResolver;
+
+  _GuideShowCommand(this._usecase, this._msg, this._archResolver) {
+    argParser.addOption('arch',
+        help: '未指定なら utakata.yaml / plan.yaml から解決する');
   }
 
   @override
@@ -81,7 +91,9 @@ class _GuideShowCommand extends BaseCommand {
       Logger.error(_msg.missingGuideId);
       return 1;
     }
-    final content = await _usecase.show(argResults!['arch'] as String, argResults!.rest.first);
+    final archId = await _archResolver.resolve(Directory.current.path,
+        explicit: argResults!['arch'] as String?);
+    final content = await _usecase.show(archId, argResults!.rest.first);
     stdout.writeln(content);
     return 0;
   }
@@ -96,8 +108,11 @@ class _GuideEjectCommand extends BaseCommand {
   @override
   String get description => _msg.cmdGuideEjectDesc;
 
-  _GuideEjectCommand(this._usecase, this._msg) {
-    argParser.addOption('arch', defaultsTo: 'clean_architecture');
+  final ArchitectureResolver _archResolver;
+
+  _GuideEjectCommand(this._usecase, this._msg, this._archResolver) {
+    argParser.addOption('arch',
+        help: '未指定なら utakata.yaml / plan.yaml から解決する');
   }
 
   @override
@@ -107,9 +122,11 @@ class _GuideEjectCommand extends BaseCommand {
       return 1;
     }
     final layerPath = argResults!.rest.first;
+    final archId = await _archResolver.resolve(Directory.current.path,
+        explicit: argResults!['arch'] as String?);
     final path = await _usecase.eject(
       Directory.current.path,
-      argResults!['arch'] as String,
+      archId,
       layerPath,
     );
     Logger.success(_msg.guideEjectDone(layerPath, path));

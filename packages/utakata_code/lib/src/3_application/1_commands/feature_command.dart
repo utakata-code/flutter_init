@@ -4,6 +4,7 @@ import 'package:args/command_runner.dart';
 
 import '../../1_domain/1_entities/feature_spec_entity.dart';
 import '../../1_domain/3_usecases/add_feature_usecase.dart';
+import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/apply_feature_template_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
 import '../../1_domain/services/case_converter.dart';
@@ -22,8 +23,10 @@ class FeatureCommand extends Command<int> {
   @override
   String get description => _msg.cmdFeatureDesc;
 
-  FeatureCommand(this._addUsecase, this._templateUsecase, this._msg) {
-    addSubcommand(_FeatureAddCommand(_addUsecase, _templateUsecase, _msg));
+  FeatureCommand(this._addUsecase, this._templateUsecase, this._msg,
+      {required ArchitectureResolver archResolver}) {
+    addSubcommand(
+        _FeatureAddCommand(_addUsecase, _templateUsecase, _msg, archResolver));
   }
 
   @override
@@ -45,7 +48,10 @@ class _FeatureAddCommand extends BaseCommand {
   @override
   String get description => _msg.cmdFeatureAddDesc;
 
-  _FeatureAddCommand(this._usecase, this._templateUsecase, this._msg) {
+  final ArchitectureResolver _archResolver;
+
+  _FeatureAddCommand(
+      this._usecase, this._templateUsecase, this._msg, this._archResolver) {
     argParser
       ..addOption('entity', abbr: 'e', help: _msg.optEntity)
       ..addOption('permission',
@@ -53,7 +59,7 @@ class _FeatureAddCommand extends BaseCommand {
           defaultsTo: 'user',
           allowed: ['admin', 'user', 'shared', 'direct'],
           help: _msg.optPermission)
-      ..addOption('arch', defaultsTo: 'clean_architecture', help: _msg.optArch)
+      ..addOption('arch', help: _msg.optArch)
       ..addOption('template', help: 'feature プリセットテンプレート ID を適用する')
       ..addFlag('yes', abbr: 'y', help: _msg.optYes);
   }
@@ -67,6 +73,9 @@ class _FeatureAddCommand extends BaseCommand {
 
     final featureName = CaseConverter.toSnakeCase(argResults!.rest.first);
     final templateId = argResults!['template'] as String?;
+    // --arch 未指定なら utakata.yaml / plan.yaml から解決する(Issue #11)
+    final archId = await _archResolver.resolve(Directory.current.path,
+        explicit: argResults!['arch'] as String?);
 
     if (templateId != null) {
       Logger.section(_msg.sectionFeatureAdd(featureName));
@@ -74,7 +83,7 @@ class _FeatureAddCommand extends BaseCommand {
         Directory.current.path,
         featureName,
         templateId,
-        architectureId: argResults!['arch'] as String,
+        architectureId: archId,
       );
       Logger.success(_msg.templateApplied(templateId, spec.relativePath));
       return 0;
@@ -91,7 +100,7 @@ class _FeatureAddCommand extends BaseCommand {
       featureName: featureName,
       entityName: entityName,
       permission: permission,
-      architectureId: argResults!['arch'] as String,
+      architectureId: archId,
     );
 
     Logger.info(_msg.featureAddPath(spec.relativePath));

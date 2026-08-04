@@ -6,6 +6,7 @@ import 'package:utakata/src/1_domain/3_usecases/add_log_entry_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/adopt_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/apply_feature_template_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/apply_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/architecture_resolver.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
@@ -284,6 +285,11 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  final archResolver = ArchitectureResolver(
+    configRepo: configRepo,
+    planRepo: planRepo,
+  );
+
   final guideForFileUsecase = GuideForFileUsecase(
     archRepo: archRepo,
     configRepo: configRepo,
@@ -310,13 +316,15 @@ Future<void> main(List<String> arguments) async {
     guideUsecase: guideUsecase,
     guideForFileUsecase: guideForFileUsecase,
     configRepo: configRepo,
+    archResolver: archResolver,
   );
 
   // ─── Application 層の組み立て ───
   final runner = UtakataCommandRunner(
     msg: msg,
     createCommand: CreateCommand(createProjectUsecase, generateClaudeIntegrationUsecase, msg),
-    featureCommand: FeatureCommand(addFeatureUsecase, applyFeatureTemplateUsecase, msg),
+    featureCommand: FeatureCommand(addFeatureUsecase, applyFeatureTemplateUsecase, msg,
+        archResolver: archResolver),
     planCommand: PlanCommand(adoptPlanUsecase, msg),
     diffCommand: DiffCommand(checkUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
@@ -337,7 +345,8 @@ Future<void> main(List<String> arguments) async {
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
     implCommand: ImplCommand(implPlanUsecase, msg),
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
-    guideCommand: GuideCommand(guideUsecase, msg, guideForFileUsecase: guideForFileUsecase),
+    guideCommand: GuideCommand(guideUsecase, msg,
+        guideForFileUsecase: guideForFileUsecase, archResolver: archResolver),
     mcpCommand: McpCommand(mcpServer, msg),
     skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
     claudeCommand: ClaudeCommand(generateClaudeIntegrationUsecase),
