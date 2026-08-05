@@ -103,5 +103,11 @@ features: []
 #   - name: todo
 #     permission: user        # admin | user | shared | direct
 #     entities: [todo]
+#
+#     # 層ごとの明示宣言(任意)。書かなければ entities から自動導出される。
+#     # `utakata plan expand` で現在の自動導出を書き出してから編集するのが楽。
+#     layers:
+#       1_domain/3_usecases: [get_todo, save_todo]   # 必要なものだけを列挙
+#       2_infrastructure/2_data_sources/2_remote: [] # 空リスト = この層は不要
 ''';
 }

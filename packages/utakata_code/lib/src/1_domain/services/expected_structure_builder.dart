@@ -63,7 +63,12 @@ abstract final class ExpectedStructureBuilder {
           arch.namingRules,
         );
       }
-      layerChildren[layer.name] = ExpectedDir(name: layer.name, children: children);
+      layerChildren[layer.name] = ExpectedDir(
+        name: layer.name,
+        children: children,
+        // 層まるごとの不要宣言(例: `4_presentation: []`)に対応する
+        required: !feature.isOptedOut(layer.name),
+      );
     }
     return ExpectedDir(name: feature.name, children: layerChildren);
   }
@@ -82,7 +87,21 @@ abstract final class ExpectedStructureBuilder {
     final fullPath = pathSoFar.isEmpty ? segment : '$pathSoFar/$segment';
     final isLeaf = remainingParts.length == 1;
     final rule = NameRuleMatcher.findFor(fullPath, namingRules);
-    final requiredFiles = isLeaf ? _resolveFileNames(rule, feature) : <String>{};
+
+    // plan.yaml の `layers` 宣言(Issue #12)。宣言があればそれが優先され、
+    // 無ければ従来どおり entities から導出する。
+    final optedOut = feature.isOptedOut(fullPath);
+    final declaration = feature.declarationFor(fullPath);
+    final Set<String> requiredFiles;
+    if (optedOut) {
+      requiredFiles = const {};
+    } else if (declaration != null && declaration.isNotEmpty) {
+      requiredFiles = declaration.map((item) => _fileNameFor(rule, item)).toSet();
+    } else if (isLeaf) {
+      requiredFiles = _resolveFileNames(rule, feature);
+    } else {
+      requiredFiles = const {};
+    }
 
     final existing = parent[segment];
     final children = <String, ExpectedDir>{...(existing?.children ?? const {})};
@@ -95,7 +114,35 @@ abstract final class ExpectedStructureBuilder {
       children: children,
       requiredFiles: {...(existing?.requiredFiles ?? const {}), ...requiredFiles},
       allowRule: rule,
+      // 空リスト宣言された層(とその配下)は存在しなくてもよい。
+      // 既に必須と決まっている場合は必須のまま(同一パスへの複数宣言時の安全側)。
+      required: (existing?.required ?? false) || !optedOut,
     );
+  }
+
+  /// 項目名(例: `save_purchase_record`)を、その層の命名規則に沿った
+  /// ファイル名に変換する。
+  ///
+  /// 規則の description からプレースホルダ部分を除いた接尾辞を取り出し、
+  /// 項目名に連結する:
+  ///   `{name}_entity.dart`        + `todo`               → `todo_entity.dart`
+  ///   `{verb}_{name}_usecase.dart`+ `save_purchase`      → `save_purchase_usecase.dart`
+  ///   `{name}_exceptions.dart or domain_exceptions.dart` → 先頭の候補を採用
+  ///
+  /// 項目名が `.dart` で終わる場合はファイル名そのものとして扱う(逃げ道)。
+  static String _fileNameFor(NamingRuleEntity? rule, String item) {
+    if (item.endsWith('.dart')) return item;
+    if (rule == null) return '$item.dart';
+
+    // "A or B" / "A|B" は先頭の候補を正とする
+    var pattern = rule.description.split(_alternationPattern).first.split('|').first.trim();
+    final lastPlaceholder = pattern.lastIndexOf('}');
+    if (lastPlaceholder < 0) {
+      // プレースホルダを持たない固定名の規則(例: router.dart)はそのまま使う
+      return pattern;
+    }
+    final suffix = pattern.substring(lastPlaceholder + 1);
+    return '$item$suffix';
   }
 
   /// naming rule の description からファイル名を解決する。

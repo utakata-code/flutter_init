@@ -1,0 +1,185 @@
+# feature_request.yaml
+# AI書き込み用 — フィーチャーの要件定義のみを記載する
+# AI/scripts/generate/generate_plan.sh に渡すと AI/snapshots/plan_architecture.yaml が生成される
+#
+# 使い方:
+#   1. AIがこのファイルにフィーチャー情報を記載する
+#   2. ./AI/scripts/generate/generate_plan.sh を実行する
+#   3. バリデーション通過後、plan_architecture.yaml が自動生成される
+#
+# 最終更新: 2026-05-31
+# 根拠ドキュメント: AI/specs/structure_plan.md
+
+# ── プロジェクト情報 ──
+project:
+  name: "sugusumu"      # プロジェクト名（必須）
+  version: "0.2.0+2"    # バージョン（必須）
+
+# ── フィーチャー一覧 ──
+features:
+
+  # ────────────────────────────────────────
+  # 仕入れ入力フィーチャー（コア機能）
+  # ────────────────────────────────────────
+  - name: purchase
+    permission: user
+    description: "1レシート=1入力データの仕入れ入力・レシート撮影・個人用除外計算・一部経費計上モード・画面①②フロー"
+    entities:
+      - purchase_record        # purchase_record_entity.dart
+      - exclusion_item         # exclusion_item_entity.dart
+      - supplier_history       # supplier_history_entity.dart
+    repositories:
+      - purchase               # purchase_repository.dart
+      - receipt_upload          # receipt_upload_repository.dart
+      - supplier_history       # supplier_history_repository.dart
+    usecases:
+      - save_purchase_record           # save_purchase_record_usecase.dart
+      - get_daily_summary              # get_daily_summary_usecase.dart（画面①用）
+      - calculate_billing_amount       # calculate_billing_amount_usecase.dart
+    data_sources:
+      local: true              # purchase_local_data_source / receipt_local_file / receipt_upload_local / supplier_local
+      remote: true             # firebase_receipt_upload_service.dart
+    pages:
+      - daily_summary          # daily_summary_page.dart（画面①：1日のまとめ）
+      - purchase_form          # purchase_form_page.dart（画面②：詳細入力・PopScope実装）
+    widgets:
+      atoms:
+        - section_title              # セクション見出し
+        - receipt_photo_picker       # レシート画像選択エリア
+      molecules:
+        - basic_info_section         # 基本情報入力セクション（カテゴリ・金額など）
+        - exclusion_item_inline      # 除外品インライン入力
+        - expense_item_inline        # 経費項目インライン入力
+        - purchase_record_list_item  # 画面①のレシート一覧の各行（カード）
+        - empty_record_state         # 画面①のレシート空状態UI
+        - receipt_viewer_dialog      # レシート画像ダイアログ表示
+        - supplier_typeahead         # 仕入れ先タイプアヘッドサジェスト
+      organisms:
+        - exclusion_item_modal       # 個人利用分入力モーダル（除外品追加）
+        - purchase_form_footer       # 画面②のフッター（合計金額・保存ボタン）
+        - daily_summary_header       # 画面①のヘッダー（日付切替・サマリー）
+        - purchase_record_list       # 画面①のレシート一覧全体リスト
+
+  # ────────────────────────────────────────
+  # 履歴閲覧フィーチャー（ドリルダウン3階層）
+  # ────────────────────────────────────────
+  - name: history
+    permission: user
+    description: "今日/月/年の3タブで期間を切り替えて履歴を閲覧し、レシート単位の詳細確認を行う"
+    entities:
+      - history_summary        # history_summary_entity.dart（集計エンティティ）
+    repositories:
+      - history                # history_repository.dart
+    usecases:
+      - get_monthly_summaries         # get_monthly_summaries_usecase.dart（年ビュー用：月別合計）
+      - get_daily_summaries           # get_daily_summaries_usecase.dart（月ビュー用：日別合計）
+      - get_daily_receipts            # get_daily_receipts_usecase.dart（日ビュー用：レシート一覧）
+    data_sources:
+      local: true              # history_local_data_source.dart
+      remote: false
+    pages:
+      - history_tab            # history_tab_page.dart（履歴タブ：今日/月/年の3タブ統合）
+      - history_month          # history_month_page.dart（月ビュー）
+      - history_day            # history_day_page.dart（日ビュー）
+    widgets:
+      molecules:
+        - history_summary_card       # 集計カードウィジェット
+
+  # ────────────────────────────────────────
+  # CSV出力フィーチャー（月次/年次）
+  # ────────────────────────────────────────
+  - name: output
+    permission: user
+    description: "月単位または年単位でCSV/ZIPを生成し、OS標準共有メニューで送付する。列構成：日付・仕入れ先・カテゴリ・支払い方法・合計金額・個人利用分・仕入れ計上額・レシート画像の有無"
+    entities:
+      - output_record          # output_record_entity.dart（出力用エンティティ）
+    repositories:
+      - output                 # output_repository.dart
+    usecases:
+      - generate_csv           # generate_csv_usecase.dart（CSV生成）
+      - generate_zip           # generate_zip_usecase.dart（ZIP生成・レシート画像込み）
+    data_sources:
+      local: true              # output_local_data_source.dart
+      remote: false
+    pages:
+      - output                 # output_page.dart（出力タブページ）
+    widgets: {}
+
+  # ────────────────────────────────────────
+  # RevenueCat課金管理フィーチャー
+  # ────────────────────────────────────────
+  - name: subscription
+    permission: user
+    description: "31日間無料トライアル（カード登録不要）→期限後の新規入力ロック→月額/年額プラン選択→初回購入後は自動更新型サブスクとして継続課金。RevenueCat SDK + アプリ内タイマーの組み合わせで実装"
+    entities:
+      - subscription_status    # subscription_status_entity.dart
+    repositories:
+      - subscription           # subscription_repository.dart
+    usecases:
+      - check_subscription_status    # check_subscription_status_usecase.dart
+      - purchase_subscription        # purchase_subscription_usecase.dart
+    data_sources:
+      local: true              # trial_timer_local_data_source.dart（SharedPrefsによる31日タイマー）
+      remote: true             # revenue_cat_remote_data_source.dart
+    pages:
+      - paywall                # paywall_page.dart（課金誘導モーダル）
+    widgets:
+      organisms:
+        - subscription_lock_banner   # ロック状態時のバナー表示
+
+  # ────────────────────────────────────────
+  # 設定フィーチャー（最小構成）
+  # ────────────────────────────────────────
+  - name: settings
+    permission: user
+    description: "会員ID（Firebase UID）の表示・コピー、プラン情報、バージョン情報、法的情報（利用規約/PP/ライセンス）。お問い合わせはPP内メールアドレスに集約"
+    entities:
+      - app_setting             # （settingsは実質エンティティ不要だが、バリデーション上1つ必要）
+    usecases: []
+    data_sources:
+      local: false
+      remote: false
+    pages:
+      - settings               # settings_page.dart（設定タブページ）
+      - legal                  # legal_page.dart（法的情報ページ）
+    widgets:
+      molecules:
+        - settings_list_item   # 設定項目行ウィジェット
+
+# ── Core層の追加設定 ──
+core:
+  api:
+    files: []                  # 将来拡張用
+  config:
+    files:
+      - service_config         # service_config.dart（RevenueCat Public API Key / Entitlement ID 定数）
+  routing:
+    files:
+      - app_router             # app_router.dart（GoRouterインスタンス・ShellRoute定義）
+    paths:
+      - app_paths              # app_paths.dart（パス定数：/purchase, /history/:year/:month 等）
+  theme:
+    files:
+      - app_theme              # app_theme.dart（Material3テーマ・カラースキーム）
+  exceptions:
+    files:
+      - base_exception         # base_exception.dart（アプリ共通例外基底クラス）
+      - network_exception      # network_exception.dart（ネットワーク例外）
+      - storage_exception      # storage_exception.dart（ストレージ例外）
+  database:
+    tables:
+      - purchase_records       # purchase_records_table.dart（PurchaseRecords）
+      - exclusion_items        # exclusion_items_table.dart（ExclusionItems）
+      - supplier_histories     # supplier_histories_table.dart（SupplierHistories）
+    migration: true            # migration/ ディレクトリ
+  debug:
+    widgets:
+      - trial_debug_banner     # trial_debug_banner.dart（デバッグ用トライアルバナー）
+  services:
+    files:
+      - firebase_auth_service  # firebase_auth_service.dart（Firebase匿名認証）
+      - upload_retry_service   # upload_retry_service.dart（アプリ起動時アップロードリトライ）
+  widgets:
+    files:
+      - app_logo               # app_logo.dart（アプリロゴウィジェット）
+      - logo_app_bar            # logo_app_bar.dart（ロゴ付きAppBar）

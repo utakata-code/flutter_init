@@ -17,6 +17,7 @@
 - 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
 - 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけを生成します。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
+- 🎚️ **層ごとの粒度指定**: feature を宣言しても「全層が必須」にはなりません。必要な層だけを `layers:` に書き、使わない層は空リスト(`[]`)で除外し、命名が自由な層でもファイルを明示できます。`utakata plan expand` で自動導出の結果を書き出してから編集できます。
 - 📚 **ナレッジはリポジトリの外**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理(リリース時に同梱・プロジェクト単位で `knowledge_repo` により差し替え可能)。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残ります。
 - 💬 **お客様との会話の記録**: `utakata log` がお客様との会話を記録します(人間のみ書き込み・JSONL・追記専用)。`utakata agree` は合意をトラッキングします — AI は読めても書けない記録です。
 - 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。
@@ -107,6 +108,8 @@ features:
 | `utakata feature add <name> [--entity] [--permission] [--template <id>]` | feature を1つスキャフォールドする。`--template` は feature プリセット(プロジェクトまたは `~/.utakata/feature_templates/` から解決する `manifest.yaml`)を適用し、同じ操作で `plan.yaml` にも登録する |
 | `utakata apply [--scope all\|feature\|core] [--dry-run]` | `plan.yaml` が宣言していて `lib/` に無いものを生成する |
 | `utakata plan adopt [-y]` | `lib/features/` にあるが `plan.yaml` に無い feature を検出し追記する(既存のコメント・書式は保持) |
+| `utakata plan expand [--dry-run] [--feature <name>]` | 自動導出されている層ごとのファイル構成を `plan.yaml` に書き出す(以後は手で増減できる) |
+| `utakata plan add <feature> <layer> <item...>` / `remove <feature> <layer> <item>` | 層の項目を1件追加・削除する(AI エージェント/スクリプト向け。書式は保持) |
 | `utakata check [--json] [--file <path>]` | 不足ファイル・余分なファイル・命名規則違反を1回の走査で報告する |
 | `utakata status [--brief] [--write-report]` | Flutter バージョン + lint + check サマリー。`--brief` は flutter 呼び出しを一切行わない(Claude Code フック用) |
 | `utakata arch list\|show\|eject\|export` | アーキテクチャ定義の確認、またはローカルへの書き出し(カスタマイズ開始) |

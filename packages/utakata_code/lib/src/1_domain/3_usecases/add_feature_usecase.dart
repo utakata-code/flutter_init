@@ -39,7 +39,9 @@ class AddFeatureUsecase {
 
     // アーキテクチャ定義に基づいてディレクトリを生成
     for (final layer in arch.layers) {
+      if (spec.skips(layer.name)) continue;
       for (final dir in layer.dirs) {
+        if (spec.skips('${layer.name}/$dir')) continue;
         final dirPath = p.join(basePath, layer.name, dir);
         try {
           await _ensureDir(dirPath);

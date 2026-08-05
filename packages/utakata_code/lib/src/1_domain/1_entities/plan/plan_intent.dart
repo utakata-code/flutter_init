@@ -16,16 +16,38 @@ final class PlanFeatureIntent {
   /// 実装計画ゲート(v0.9)の免除マーカーとして使う。
   final bool baseline;
 
+  /// 層ごとの明示宣言(Issue #12)。キーはアーキテクチャ定義の層パス
+  /// (例: `1_domain/3_usecases`)、値はその層に置く項目名のリスト。
+  ///
+  /// - **キーが無い** → 従来どおり `entities` から導出する(自動生成が基準)
+  /// - **項目リストあり** → その項目だけを必須とする(手動での増減)
+  /// - **空リスト `[]`** → その層は不要と明示する(配下ごと対象外)
+  ///
+  /// これにより「feature を1つ宣言すると全層が計画済みになる」問題を解消しつつ、
+  /// 何も書かなければ従来の挙動を保つ。
+  final Map<String, List<String>> layers;
+
   const PlanFeatureIntent({
     required this.name,
     required this.permission,
     this.entities = const [],
     this.architectureId,
     this.baseline = false,
+    this.layers = const {},
   });
 
   factory PlanFeatureIntent.fromMap(Map<String, dynamic> map) {
     final rawEntities = map['entities'];
+    final rawLayers = map['layers'];
+    final layers = <String, List<String>>{};
+    if (rawLayers is Map) {
+      for (final entry in rawLayers.entries) {
+        final value = entry.value;
+        layers[entry.key.toString()] = value is List
+            ? value.map((e) => e.toString()).toList()
+            : const <String>[];
+      }
+    }
     return PlanFeatureIntent(
       name: map['name'] as String,
       permission: (map['permission'] as String?) ?? 'user',
@@ -34,7 +56,22 @@ final class PlanFeatureIntent {
           : const [],
       architectureId: map['architecture'] as String?,
       baseline: (map['baseline'] as bool?) ?? false,
+      layers: layers,
     );
+  }
+
+  /// [layerPath] に対する宣言を返す。宣言が無ければ null(= 自動導出)。
+  List<String>? declarationFor(String layerPath) => layers[layerPath];
+
+  /// [layerPath] またはその祖先が空リストで宣言されているか(対象外の層か)。
+  bool isOptedOut(String layerPath) {
+    for (final entry in layers.entries) {
+      if (entry.value.isNotEmpty) continue;
+      if (layerPath == entry.key || layerPath.startsWith('${entry.key}/')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Map<String, dynamic> toMap() => {
@@ -43,6 +80,7 @@ final class PlanFeatureIntent {
         if (entities.isNotEmpty) 'entities': entities,
         if (architectureId != null) 'architecture': architectureId,
         if (baseline) 'baseline': true,
+        if (layers.isNotEmpty) 'layers': layers,
       };
 }
 

@@ -39,6 +39,11 @@ class ApplyUsecase {
           entityName: feature.entities.isNotEmpty ? feature.entities.first : feature.name,
           permission: feature.permission,
           architectureId: feature.architectureId ?? plan.defaultArchitectureId,
+          // plan.yaml で不要と宣言された層は生成しない(Issue #12)
+          optedOutLayers: {
+            for (final entry in feature.layers.entries)
+              if (entry.value.isEmpty) entry.key,
+          },
         );
         features.add(spec);
         if (!dryRun) {

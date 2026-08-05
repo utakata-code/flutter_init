@@ -17,23 +17,33 @@ final class ExpectedDir {
   /// このディレクトリに適用される命名規則(最深一致で1件、無ければ null)
   final NamingRuleEntity? allowRule;
 
+  /// ディレクトリ自体の存在が必須か(Issue #12)。
+  ///
+  /// plan.yaml の `layers` でその層が空リスト宣言(= 不要)された場合に false。
+  /// false のディレクトリは、存在しなくても missing として報告しない。
+  /// 存在する場合は通常どおり中身の命名を検証する(寛容側に倒す)。
+  final bool required;
+
   const ExpectedDir({
     required this.name,
     this.children = const {},
     this.requiredFiles = const {},
     this.allowRule,
+    this.required = true,
   });
 
   ExpectedDir copyWith({
     Map<String, ExpectedDir>? children,
     Set<String>? requiredFiles,
     NamingRuleEntity? allowRule,
+    bool? required,
   }) =>
       ExpectedDir(
         name: name,
         children: children ?? this.children,
         requiredFiles: requiredFiles ?? this.requiredFiles,
         allowRule: allowRule ?? this.allowRule,
+        required: required ?? this.required,
       );
 }
 

@@ -66,6 +66,7 @@ import 'package:utakata/src/3_application/3_presenters/summary_presenter.dart';
 import 'package:utakata/src/3_application/4_server/mcp_server.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_architectures_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/show_architecture_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/expand_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/export_architecture_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_architecture_usecase.dart';
 import 'package:utakata/src/3_application/1_commands/arch_command.dart';
@@ -180,6 +181,11 @@ Future<void> main(List<String> arguments) async {
     planRepo: planRepo,
     addFeatureUsecase: addFeatureUsecase,
     generateCoreUsecase: generateCoreUsecase,
+  );
+
+  final expandPlanUsecase = ExpandPlanUsecase(
+    planRepo: planRepo,
+    archRepo: archRepo,
   );
 
   final adoptPlanUsecase = AdoptPlanUsecase(
@@ -325,7 +331,8 @@ Future<void> main(List<String> arguments) async {
     createCommand: CreateCommand(createProjectUsecase, generateClaudeIntegrationUsecase, msg),
     featureCommand: FeatureCommand(addFeatureUsecase, applyFeatureTemplateUsecase, msg,
         archResolver: archResolver),
-    planCommand: PlanCommand(adoptPlanUsecase, msg),
+    planCommand: PlanCommand(adoptPlanUsecase, msg,
+        expandUsecase: expandPlanUsecase, planRepo: planRepo),
     diffCommand: DiffCommand(checkUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
     applyCommand: ApplyCommand(applyUsecase, msg),

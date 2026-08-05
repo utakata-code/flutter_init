@@ -1,0 +1,370 @@
+# actual_architecture.yaml
+# 自動生成 — 手動編集しないでください
+# 生成日時: 2026-05-31T14:58:24+0900
+
+project:
+  name: "sugusumu"
+  version: "0.2.0+2"
+
+structure:
+  lib:
+    app.dart:
+      description: ""
+    core:
+      api:
+      config:
+        service_config.dart:
+          description: ""
+      database:
+        database.dart:
+          description: ""
+        migration:
+        table:
+          exclusion_items_table.dart:
+            description: ""
+          purchase_records_table.dart:
+            description: ""
+          supplier_histories_table.dart:
+            description: ""
+      debug:
+        widgets:
+          trial_debug_banner.dart:
+            description: ""
+      exceptions:
+        base_exception.dart:
+          description: ""
+        network_exception.dart:
+          description: ""
+        storage_exception.dart:
+          description: ""
+      routing:
+        app_router.dart:
+          description: ""
+        path:
+          app_paths.dart:
+            description: ""
+      services:
+        firebase_auth_service.dart:
+          description: ""
+        upload_retry_service.dart:
+          description: ""
+      theme:
+        app_theme.dart:
+          description: ""
+      widgets:
+        app_logo.dart:
+          description: ""
+        logo_app_bar.dart:
+          description: ""
+    features:
+      user:
+        history:
+          1_domain:
+            1_entities:
+              history_summary_entity.dart:
+                description: ""
+            2_repositories:
+              history_repository.dart:
+                description: ""
+            3_usecases:
+              get_daily_receipts_usecase.dart:
+                description: ""
+              get_daily_summaries_usecase.dart:
+                description: ""
+              get_monthly_summaries_usecase.dart:
+                description: ""
+            exceptions:
+          2_infrastructure:
+            1_models:
+              history_summary_model.dart:
+                description: ""
+            2_data_sources:
+              1_local:
+                exceptions:
+                history_local_data_source.dart:
+                  description: ""
+              2_remote:
+                exceptions:
+            3_repositories:
+              history_repository_impl.dart:
+                description: ""
+          3_application:
+            1_states:
+              history_state.dart:
+                description: ""
+              history_tab_state.dart:
+                description: ""
+            2_providers:
+              history_providers.dart:
+                description: ""
+            3_notifiers:
+              history_day_notifier.dart:
+                description: ""
+              history_month_notifier.dart:
+                description: ""
+              history_tab_notifier.dart:
+                description: ""
+              history_year_notifier.dart:
+                description: ""
+          4_presentation:
+            1_widgets:
+              1_atoms:
+              2_molecules:
+                history_summary_card_molecule.dart:
+                  description: ""
+              3_organisms:
+            2_pages:
+              history_day_page.dart:
+                description: ""
+              history_month_page.dart:
+                description: ""
+              history_tab_page.dart:
+                description: ""
+        output:
+          1_domain:
+            1_entities:
+              output_record_entity.dart:
+                description: ""
+            2_repositories:
+              output_repository.dart:
+                description: ""
+            3_usecases:
+              generate_csv_usecase.dart:
+                description: ""
+              generate_zip_usecase.dart:
+                description: ""
+            exceptions:
+          2_infrastructure:
+            1_models:
+              output_record_model.dart:
+                description: ""
+            2_data_sources:
+              1_local:
+                exceptions:
+                output_local_data_source.dart:
+                  description: ""
+              2_remote:
+                exceptions:
+            3_repositories:
+              output_repository_impl.dart:
+                description: ""
+          3_application:
+            1_states:
+              output_state.dart:
+                description: ""
+            2_providers:
+              output_providers.dart:
+                description: ""
+            3_notifiers:
+              output_notifier.dart:
+                description: ""
+          4_presentation:
+            1_widgets:
+              1_atoms:
+              2_molecules:
+              3_organisms:
+            2_pages:
+              output_page.dart:
+                description: ""
+        purchase:
+          1_domain:
+            1_entities:
+              exclusion_item_entity.dart:
+                description: ""
+              purchase_record_entity.dart:
+                description: ""
+              supplier_history_entity.dart:
+                description: ""
+            2_repositories:
+              purchase_repository.dart:
+                description: ""
+              receipt_upload_repository.dart:
+                description: ""
+              supplier_history_repository.dart:
+                description: ""
+            3_usecases:
+              calculate_billing_amount_usecase.dart:
+                description: ""
+              get_daily_summary_usecase.dart:
+                description: ""
+              save_purchase_record_usecase.dart:
+                description: ""
+            exceptions:
+              purchase_exceptions.dart:
+                description: ""
+          2_infrastructure:
+            1_models:
+              exclusion_item_model.dart:
+                description: ""
+              purchase_record_model.dart:
+                description: ""
+              supplier_history_model.dart:
+                description: ""
+            2_data_sources:
+              1_local:
+                exceptions:
+                  purchase_local_exception.dart:
+                    description: ""
+                purchase_local_data_source.dart:
+                  description: ""
+                receipt_local_file_data_source.dart:
+                  description: ""
+                receipt_upload_local_data_source.dart:
+                  description: ""
+                supplier_local_data_source.dart:
+                  description: ""
+              2_remote:
+                exceptions:
+                firebase_receipt_upload_service.dart:
+                  description: ""
+            3_repositories:
+              purchase_repository_impl.dart:
+                description: ""
+              supplier_history_repository_impl.dart:
+                description: ""
+          3_application:
+            1_states:
+              daily_summary_state.dart:
+                description: ""
+              purchase_form_state.dart:
+                description: ""
+              supplier_selection_state.dart:
+                description: ""
+            2_providers:
+              purchase_providers.dart:
+                description: ""
+            3_notifiers:
+              daily_summary_notifier.dart:
+                description: ""
+              purchase_form_notifier.dart:
+                description: ""
+              supplier_selection_notifier.dart:
+                description: ""
+          4_presentation:
+            1_widgets:
+              1_atoms:
+                receipt_photo_picker_atom.dart:
+                  description: ""
+                section_title_atom.dart:
+                  description: ""
+              2_molecules:
+                basic_info_section_molecule.dart:
+                  description: ""
+                empty_record_state_molecule.dart:
+                  description: ""
+                exclusion_item_inline_molecule.dart:
+                  description: ""
+                expense_item_inline_molecule.dart:
+                  description: ""
+                purchase_record_list_item_molecule.dart:
+                  description: ""
+                receipt_viewer_dialog_molecule.dart:
+                  description: ""
+                supplier_typeahead_molecule.dart:
+                  description: ""
+              3_organisms:
+                daily_summary_header_organism.dart:
+                  description: ""
+                exclusion_item_modal_organism.dart:
+                  description: ""
+                purchase_form_footer_organism.dart:
+                  description: ""
+                purchase_record_list_organism.dart:
+                  description: ""
+            2_pages:
+              daily_summary_page.dart:
+                description: ""
+              purchase_form_page.dart:
+                description: ""
+        settings:
+          1_domain:
+            1_entities:
+            2_repositories:
+            3_usecases:
+            exceptions:
+          2_infrastructure:
+            1_models:
+            2_data_sources:
+              1_local:
+                exceptions:
+              2_remote:
+                exceptions:
+            3_repositories:
+          3_application:
+            1_states:
+              settings_state.dart:
+                description: ""
+            2_providers:
+            3_notifiers:
+              settings_notifier.dart:
+                description: ""
+          4_presentation:
+            1_widgets:
+              1_atoms:
+              2_molecules:
+                settings_list_item_molecule.dart:
+                  description: ""
+              3_organisms:
+            2_pages:
+              legal_page.dart:
+                description: ""
+              settings_page.dart:
+                description: ""
+        subscription:
+          1_domain:
+            1_entities:
+              subscription_status_entity.dart:
+                description: ""
+            2_repositories:
+              subscription_repository.dart:
+                description: ""
+            3_usecases:
+              check_subscription_status_usecase.dart:
+                description: ""
+              purchase_subscription_usecase.dart:
+                description: ""
+            exceptions:
+              subscription_exceptions.dart:
+                description: ""
+          2_infrastructure:
+            1_models:
+              subscription_status_model.dart:
+                description: ""
+            2_data_sources:
+              1_local:
+                exceptions:
+                trial_timer_local_data_source.dart:
+                  description: ""
+              2_remote:
+                exceptions:
+                revenue_cat_remote_data_source.dart:
+                  description: ""
+            3_repositories:
+              subscription_repository_impl.dart:
+                description: ""
+          3_application:
+            1_states:
+              purchase_result.dart:
+                description: ""
+              subscription_state.dart:
+                description: ""
+            2_providers:
+              subscription_providers.dart:
+                description: ""
+            3_notifiers:
+              subscription_notifier.dart:
+                description: ""
+          4_presentation:
+            1_widgets:
+              1_atoms:
+              2_molecules:
+              3_organisms:
+                subscription_lock_banner_organism.dart:
+                  description: ""
+            2_pages:
+              paywall_page.dart:
+                description: ""
+    firebase_options.dart:
+      description: ""
+    main.dart:
+      description: ""

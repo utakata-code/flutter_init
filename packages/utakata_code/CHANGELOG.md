@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0
+
+* **feat(plan)** ([#12](https://github.com/utakata-code/utakata/issues/12)): `plan.yaml` features gain an optional `layers:` map, so declaring a feature no longer means every layer is planned. Keyed by architecture layer path (architecture-agnostic):
+  * **key omitted** — unchanged behavior: derive the expected files from `entities` (auto-generation stays the baseline)
+  * **list of items** — only those files are required, even in layers whose naming is free-form (e.g. `1_domain/3_usecases: [get_todo, save_todo]` requires `get_todo_usecase.dart` / `save_todo_usecase.dart`). An item ending in `.dart` is taken as a literal filename
+  * **empty list `[]`** — that layer is not applicable: it is neither required nor generated, and a parent path opts out its whole subtree (e.g. `4_presentation/1_widgets: []`)
+* **feat(plan)**: New `utakata plan expand [--dry-run] [--feature <name>]` — materializes the auto-derived per-layer lists into `plan.yaml` (block style, comments preserved) so they can be edited by hand. Layers whose naming is non-deterministic are deliberately left out rather than written as `[]`, since an empty list means "not applicable"; add those with `plan add`. Already-declared layers are never overwritten.
+* **feat(plan)**: New `utakata plan add <feature> <layer> <item...>` and `utakata plan remove <feature> <layer> <item>` — format-preserving per-item editing for AI agents and scripts.
+* **feat(apply)**: `apply` skips layers declared as not applicable instead of recreating their directories.
+
 ## 1.0.2
 
 * **fix(doc)** ([#14](https://github.com/utakata-code/utakata/issues/14)): `utakata doc init` now generates `doc/specs/plan.yaml`. Previously it created an empty `doc/specs/` directory, so `check`/`apply` failed with "plan.yaml not found" immediately after init — the documented quick-start flow did not work. `doc init` is now file-wise idempotent: it fills in whatever is missing (including a deleted `plan.yaml` in an already-initialized project) and never overwrites existing files.

@@ -34,6 +34,56 @@ class YamlEditDataSource {
     return editor.toString();
   }
 
+  /// `path` が指すノードを value で置き換える(存在しなければ作成する)。
+  /// コメント・書式は保持される。
+  ///
+  /// `yaml_edit` の `update` は中間ノードを自動生成しない(存在しないパスは
+  /// 例外)ため、欠けている中間 Map をここで先に作ってから更新する。
+  String setAt(String yamlContent, List<Object> path, Object value) {
+    final editor = YamlEditor(yamlContent);
+    for (var i = 1; i < path.length; i++) {
+      final parentPath = path.sublist(0, i);
+      if (_navigate(editor.parseAt([]), parentPath) == null) {
+        editor.update(parentPath, <String, dynamic>{});
+      }
+    }
+    editor.update(path, value);
+    return editor.toString();
+  }
+
+  /// `path` が指すノードが存在するか(値が null の場合も false)。
+  bool hasNode(String yamlContent, List<Object> path) =>
+      _navigate(YamlEditor(yamlContent).parseAt([]), path) != null;
+
+  /// `path` が指すリストから、値が [value] と一致する最初の要素を削除する。
+  /// 見つからない場合は元の内容をそのまま返す。
+  String removeFromList(String yamlContent, List<Object> path, Object value) {
+    final editor = YamlEditor(yamlContent);
+    final current = _navigate(editor.parseAt([]), path);
+    if (current is! YamlList) return yamlContent;
+    for (var i = 0; i < current.length; i++) {
+      if (current[i] == value) {
+        editor.remove([...path, i]);
+        return editor.toString();
+      }
+    }
+    return yamlContent;
+  }
+
+  /// `features:` 配列内で `name` が一致する feature のインデックスを返す。
+  /// 見つからなければ -1。
+  int indexOfFeature(String yamlContent, String featureName) {
+    final root = YamlEditor(yamlContent).parseAt([]);
+    if (root is! YamlMap) return -1;
+    final features = root['features'];
+    if (features is! YamlList) return -1;
+    for (var i = 0; i < features.length; i++) {
+      final f = features[i];
+      if (f is YamlMap && f['name'] == featureName) return i;
+    }
+    return -1;
+  }
+
   dynamic _navigate(dynamic node, List<Object> path) {
     var current = node;
     for (final key in path) {

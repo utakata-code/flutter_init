@@ -122,6 +122,69 @@ class PlanRepositoryImpl implements PlanRepository {
   }
 
   @override
+  Future<bool> setLayerDeclarations(
+    String projectDir,
+    String featureName,
+    Map<String, List<String>> declarations,
+  ) async {
+    if (declarations.isEmpty) return true;
+
+    final path = p.join(projectDir, _planYamlPath);
+    final existing = await _fs.readFile(path);
+    if (existing == null) return false;
+
+    final index = _yamlEdit.indexOfFeature(existing, featureName);
+    if (index < 0) return false;
+
+    // `layers` が未作成なら Map ごと1回で書く(ブロックスタイルになり人間が
+    // 編集しやすい)。既にある場合はキー単位で更新し、利用者が書いた
+    // コメント・並びを壊さない。
+    final hasLayers =
+        _yamlEdit.hasNode(existing, ['features', index, 'layers']);
+    if (!hasLayers) {
+      final updated = _yamlEdit
+          .setAt(existing, ['features', index, 'layers'], declarations);
+      await _fs.writeFile(path, updated);
+      return true;
+    }
+
+    var content = existing;
+    for (final entry in declarations.entries) {
+      content = _yamlEdit.setAt(
+        content,
+        ['features', index, 'layers', entry.key],
+        entry.value,
+      );
+    }
+    await _fs.writeFile(path, content);
+    return true;
+  }
+
+  @override
+  Future<bool> removeLayerItem(
+    String projectDir,
+    String featureName,
+    String layerPath,
+    String item,
+  ) async {
+    final path = p.join(projectDir, _planYamlPath);
+    final existing = await _fs.readFile(path);
+    if (existing == null) return false;
+
+    final index = _yamlEdit.indexOfFeature(existing, featureName);
+    if (index < 0) return false;
+
+    final updated = _yamlEdit.removeFromList(
+      existing,
+      ['features', index, 'layers', layerPath],
+      item,
+    );
+    if (identical(updated, existing) || updated == existing) return false;
+    await _fs.writeFile(path, updated);
+    return true;
+  }
+
+  @override
   Future<void> adoptFeature(String projectDir, PlanFeatureIntent feature) async {
     final path = p.join(projectDir, _planYamlPath);
     final existing = await _fs.readFile(path);

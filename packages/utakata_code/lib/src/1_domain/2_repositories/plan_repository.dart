@@ -16,4 +16,21 @@ abstract interface class PlanRepository {
   /// スキャンで見つかった未計画 feature を、コメント・書式を保持したまま
   /// plan.yaml の `features:` 配列へ外科的に追記する(`plan adopt`)。
   Future<void> adoptFeature(String projectDir, PlanFeatureIntent feature);
+
+  /// [featureName] の `layers` に層宣言をマージして書き込む(Issue #12)。
+  /// コメント・書式は保持される。feature が見つからなければ false を返す。
+  Future<bool> setLayerDeclarations(
+    String projectDir,
+    String featureName,
+    Map<String, List<String>> declarations,
+  );
+
+  /// [layerPath] の宣言から [item] を1件削除する。
+  /// feature・層宣言・項目のいずれかが無ければ false を返す。
+  Future<bool> removeLayerItem(
+    String projectDir,
+    String featureName,
+    String layerPath,
+    String item,
+  );
 }

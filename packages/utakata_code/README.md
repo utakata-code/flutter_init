@@ -16,6 +16,7 @@
 - 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)**. Customize by ejecting a definition with `utakata arch eject <id>`.
 - 🔍 **One Structural Check**: `utakata check` reports missing files, unexpected files, and naming violations in a single pass against your `arch_definition.yaml` — with GUIDE excerpts inline so the fix is obvious.
 - 📋 **Intent-Level Plan**: Declare features (name, permission, entities) in `doc/specs/plan.yaml`; `utakata apply` scaffolds exactly what's missing. `utakata plan adopt` detects code that isn't in the plan yet and appends it, format-preserving.
+- 🎚️ **Per-Layer Granularity**: A feature doesn't have to mean *every* layer. Declare only the layers you need (`layers:`), mark one as not applicable with an empty list, and pin exact files even where naming is free-form. `utakata plan expand` writes the auto-derived baseline into the plan so you can edit it.
 - 📚 **Knowledge stays out of your repo**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) (bundled at release; overridable per-project via `knowledge_repo`). Projects contain only the app + `doc/` + config — no copied guide tree.
 - 💬 **Client Conversation Tracking**: `utakata log` records client conversations (human-only writes, JSONL, append-only) and `utakata agree` tracks agreements — the record an AI agent can read but never write to.
 - 📝 **Implementation Plans & Summary**: `utakata impl` manages a per-feature implementation-plan lifecycle; `utakata summary` regenerates the agreement ledger section of your project summary automatically.
@@ -106,6 +107,8 @@ features:
 | `utakata feature add <name> [--entity] [--permission] [--template <id>]` | Scaffold one feature. `--template` applies a feature preset (`manifest.yaml` resolved from the project or `~/.utakata/feature_templates/`) and registers it in `plan.yaml` in the same step |
 | `utakata apply [--scope all\|feature\|core] [--dry-run]` | Generate whatever `plan.yaml` declares but `lib/` is missing |
 | `utakata plan adopt [-y]` | Detect features present in `lib/features/` but absent from `plan.yaml`, and append them (keeps existing comments/formatting) |
+| `utakata plan expand [--dry-run] [--feature <name>]` | Materialize the auto-derived per-layer file lists into `plan.yaml`, so you can then edit them by hand |
+| `utakata plan add <feature> <layer> <item...>` / `remove <feature> <layer> <item>` | Add or remove one item in a layer's list (for AI agents and scripts; format-preserving) |
 | `utakata check [--json] [--file <path>]` | Report missing files, extra files, and naming violations in one pass |
 | `utakata status [--brief] [--write-report]` | Flutter version + lint + `check` summary. `--brief` skips flutter calls entirely (used by Claude Code hooks) |
 | `utakata arch list\|show\|eject\|export` | Inspect architecture definitions or eject one locally to customize |

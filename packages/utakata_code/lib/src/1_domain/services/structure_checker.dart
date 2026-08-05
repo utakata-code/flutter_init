@@ -49,7 +49,8 @@ abstract final class StructureChecker {
       final actualNode = actualChildren[name];
 
       if (actualNode is! StructureDirNode) {
-        missing.add(fullPath);
+        // plan.yaml で「不要」と宣言された層は、存在しなくても欠落扱いしない
+        if (expectedDir.required) missing.add(fullPath);
         continue;
       }
 

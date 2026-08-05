@@ -28,6 +28,16 @@ class _FakePlanRepository implements PlanRepository {
 
   @override
   Future<void> adoptFeature(String projectDir, PlanFeatureIntent feature) async {}
+
+  @override
+  Future<bool> setLayerDeclarations(String projectDir, String featureName,
+          Map<String, List<String>> declarations) async =>
+      false;
+
+  @override
+  Future<bool> removeLayerItem(String projectDir, String featureName,
+          String layerPath, String item) async =>
+      false;
 }
 
 class _FakeStructureRepository implements StructureRepository {
