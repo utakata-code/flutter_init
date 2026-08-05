@@ -23,6 +23,7 @@ import 'package:utakata/src/1_domain/3_usecases/record_agreement_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/render_log_preview_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/render_summary_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/scan_project_status_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/show_doc_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/status_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/sync_skills_usecase.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/filesystem_data_source.dart';
@@ -236,6 +237,11 @@ Future<void> main(List<String> arguments) async {
     fileExists: fs.fileExists,
   );
 
+  final showDocUsecase = ShowDocUsecase(
+    resolvePackageFilePath: fs.resolvePackageFilePath,
+    readFile: fs.readFile,
+  );
+
   final addLogEntryUsecase = AddLogEntryUsecase(repo: logRepo);
   final queryLogUsecase = QueryLogUsecase(repo: logRepo);
   final renderLogPreviewUsecase = RenderLogPreviewUsecase(
@@ -323,6 +329,7 @@ Future<void> main(List<String> arguments) async {
     guideForFileUsecase: guideForFileUsecase,
     configRepo: configRepo,
     archResolver: archResolver,
+    showDocUsecase: showDocUsecase,
   );
 
   // ─── Application 層の組み立て ───
@@ -346,7 +353,7 @@ Future<void> main(List<String> arguments) async {
       configRepo: configRepo,
       knowledgeRepo: knowledgeRepo,
     ),
-    docCommand: DocCommand(initDocUsecase, msg),
+    docCommand: DocCommand(initDocUsecase, msg, showUsecase: showDocUsecase),
     logCommand: LogCommand(addLogEntryUsecase, queryLogUsecase, renderLogPreviewUsecase, msg),
     doctorCommand: DoctorCommand(doctorUsecase, msg),
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),

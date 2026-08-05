@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+* **docs**: New `doc/` reference for the two config files — [`doc/plan-yaml.md`](doc/plan-yaml.md) (`doc/specs/plan.yaml`: features, entities, per-layer `layers:` declarations, and how item names map to filenames) and [`doc/utakata-yaml.md`](doc/utakata-yaml.md) (`utakata.yaml`: architecture resolution order, `knowledge_repo`, `skills` sync rules, `team`). Keys that are parsed but not yet wired to behavior (`enforcement.impl_plan`, `records.git`, `lang`, `baseline`) are documented as reserved rather than claimed as working.
+* **feat(doc)**: New `utakata doc show <config|plan|index>` and `utakata doc list` — the bundled reference is readable from inside any project, so it always matches the installed version. Also exposed as the MCP `doc_get` tool, and referenced from the generated `utakata-structure` skill and `CLAUDE.md` ("don't guess the YAML — run `utakata doc show plan`").
+
 ## 1.1.0
 
 * **feat(plan)** ([#12](https://github.com/utakata-code/utakata/issues/12)): `plan.yaml` features gain an optional `layers:` map, so declaring a feature no longer means every layer is planned. Keyed by architecture layer path (architecture-agnostic):

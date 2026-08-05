@@ -158,4 +158,16 @@ class FilesystemDataSource {
     }
     throw Exception('Failed to resolve package template path: $relativePath');
   }
+
+  /// パッケージルート直下のファイル(`doc/*.md` 等)の絶対パスを解決する。
+  ///
+  /// `package:utakata/` は lib/ を指すため、その親をパッケージルートとして扱う
+  /// (pub にはパッケージ全体が公開されるため、グローバル導入後も参照できる)。
+  Future<String?> resolvePackageFilePath(String relativePath) async {
+    final libUri = await Isolate.resolvePackageUri(Uri.parse('package:utakata/'));
+    if (libUri == null) return null;
+    final packageRoot = Directory.fromUri(libUri).parent.path;
+    final path = p.join(packageRoot, relativePath);
+    return File(path).existsSync() ? path : null;
+  }
 }

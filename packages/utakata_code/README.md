@@ -97,6 +97,7 @@ features:
 | Command | Description |
 |---|---|
 | `utakata doc init` | Create the `doc/` workspace (specs/records/preview/impl/knowledge/archive) + `utakata.yaml`, ahead of the Flutter project itself |
+| `utakata doc show <config\|plan>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` (matches the installed version; also available as the MCP `doc_get` tool) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | Create a new Flutter project with the chosen architecture, plus `.mcp.json` + `.claude/` |
 | `utakata doctor [--migrate]` | Diagnose the project; `--migrate` moves a legacy `AI/`-based layout (or an ad-hoc `doc/`) to the current one |
 
@@ -137,7 +138,7 @@ features:
 
 | Command | Description |
 |---|---|
-| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`) |
+| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`, `doc_get`) |
 | `utakata skills sync [--force]` | Sync the architecture's bundled SKILLs listed in `utakata.yaml` into `.claude/skills/` (managed-marker protection: human files are never overwritten) |
 | `utakata claude init [--force]` | Add or repair the Claude Code integration (`.claude/` + `.mcp.json` + `CLAUDE.md`) in an existing project. Default writes missing files only; `--force` regenerates everything |
 

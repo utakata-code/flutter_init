@@ -6,6 +6,7 @@ import '../../1_domain/3_usecases/check_usecase.dart';
 import '../../1_domain/2_repositories/config_repository.dart';
 import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
+import '../../1_domain/3_usecases/show_doc_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/3_usecases/list_agreements_usecase.dart';
 import '../../1_domain/3_usecases/query_log_usecase.dart';
@@ -29,6 +30,7 @@ class McpServer {
   final GuideForFileUsecase? _guideForFileUsecase;
   final ConfigRepository? _configRepo;
   final ArchitectureResolver? _archResolver;
+  final ShowDocUsecase? _showDocUsecase;
 
   McpServer({
     required CheckUsecase checkUsecase,
@@ -39,6 +41,7 @@ class McpServer {
     GuideForFileUsecase? guideForFileUsecase,
     ConfigRepository? configRepo,
     ArchitectureResolver? archResolver,
+    ShowDocUsecase? showDocUsecase,
   })  : _checkUsecase = checkUsecase,
         _planRepo = planRepo,
         _queryLogUsecase = queryLogUsecase,
@@ -46,7 +49,8 @@ class McpServer {
         _guideUsecase = guideUsecase,
         _guideForFileUsecase = guideForFileUsecase,
         _configRepo = configRepo,
-        _archResolver = archResolver;
+        _archResolver = archResolver,
+        _showDocUsecase = showDocUsecase;
 
   static const _protocolVersion = '2024-11-05';
 
@@ -115,6 +119,21 @@ class McpServer {
       'name': 'config_get',
       'description': 'utakata.yaml(マスター設定)の内容を返す。team(誰の決定に従うか)を含む',
       'inputSchema': {'type': 'object', 'properties': {}},
+    },
+    {
+      'name': 'doc_get',
+      'description': '設定ファイル(utakata.yaml / plan.yaml)の書き方リファレンスを取得する',
+      'inputSchema': {
+        'type': 'object',
+        'properties': {
+          'topic': {
+            'type': 'string',
+            'description': 'config = utakata.yaml / plan = doc/specs/plan.yaml',
+            'enum': ['config', 'plan', 'index'],
+          },
+        },
+        'required': ['topic'],
+      },
     },
   ];
 
@@ -215,6 +234,7 @@ class McpServer {
                   ],
                 },
               }),
+        'doc_get' => await _showDocUsecase?.execute(args['topic'] as String),
         _ => null,
       };
 

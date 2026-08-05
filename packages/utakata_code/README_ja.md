@@ -12,7 +12,7 @@
 
 ## 特徴
 
-- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)+ プロジェクト `CLAUDE.md` を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバー(8ツール)を提供し、AI が構造・計画・会話ログ・合意・設定を「書き込まずに」参照できます。
+- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)+ プロジェクト `CLAUDE.md` を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバー(9ツール)を提供し、AI が構造・計画・会話ログ・合意・設定を「書き込まずに」参照できます。
 - 🧭 **マスター設定(`utakata.yaml`)**: アーキテクチャ、`team`(お客様・開発者・AI の役割と決定権)、`.claude/skills/` に同期する `skills`、任意のリモート `knowledge_repo`(`utakata arch get` でコミット SHA を `utakata.lock` に固定)を1ファイルで宣言。未指定なら全て同梱・完全オフラインで動作します。
 - 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
@@ -98,6 +98,7 @@ features:
 | コマンド | 説明 |
 |---|---|
 | `utakata doc init` | Flutter プロジェクト本体より先に `doc/` ワークスペース(specs/records/preview/impl/knowledge/archive)+ `utakata.yaml` を作成する |
+| `utakata doc show <config\|plan>` / `utakata doc list` | `utakata.yaml` / `doc/specs/plan.yaml` の書き方リファレンスを表示する(インストール済みバージョンに対応。MCP の `doc_get` でも取得可能) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | 選択したアーキテクチャで Flutter プロジェクトを新規作成し、`.mcp.json` + `.claude/` も生成する |
 | `utakata doctor [--migrate]` | プロジェクトを診断する。`--migrate` は旧 `AI/` ベースのレイアウト(または独自運用の `doc/`)を現行レイアウトへ移行する |
 
@@ -138,7 +139,7 @@ features:
 
 | コマンド | 説明 |
 |---|---|
-| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`・`guide_for_file`・`config_get`) |
+| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`・`guide_for_file`・`config_get`・`doc_get`) |
 | `utakata skills sync [--force]` | `utakata.yaml` の `skills` リストをアーキテクチャ同梱 SKILL から `.claude/skills/` に同期する(managed マーカー保護: 人間の作ったファイルは絶対に上書きしない) |
 | `utakata claude init [--force]` | 既存プロジェクトに Claude Code 統合(`.claude/` + `.mcp.json` + `CLAUDE.md`)を後付け・補修する。既定は欠けているファイルのみ生成、`--force` で全再生成 |
 

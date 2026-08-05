@@ -81,7 +81,10 @@ class GenerateClaudeIntegrationUsecase {
       ..writeln('- `doc/specs/plan.yaml` — feature の意図レベル計画')
       ..writeln('- `doc/records/` — お客様との会話ログ・合意(**読み取り専用**。'
           '書き込みは人間が `utakata log add` / `utakata agree add` で行う)')
-      ..writeln('- `utakata.yaml` — プロジェクトのマスター設定');
+      ..writeln('- `utakata.yaml` — プロジェクトのマスター設定')
+      ..writeln()
+      ..writeln('設定ファイルの書き方は `utakata doc show plan` / '
+          '`utakata doc show config` で確認できる(推測で書かないこと)。');
 
     final team = config?.team;
     if (team != null && !team.isEmpty) {
@@ -183,6 +186,13 @@ description: |
 3. **検証**: `utakata check --json` — 不足・余分・命名規則違反を1回で報告する。
    **コミット前に必ず `utakata check` を実行する**
 
+## 層ごとの過不足を調整したいとき
+
+- feature を宣言しても全層が必須になるわけではない。`plan.yaml` の `layers:` で
+  必要な層だけを宣言できる(空リスト `[]` = その層は不要)
+- `utakata plan expand` — 自動導出されている構成を plan.yaml に書き出す
+- `utakata plan add <feature> <layer> <item>` / `plan remove ...` — 1項目ずつ増減
+
 ## すでに書いたコードが plan に無いとき
 
 - `utakata plan adopt` — `lib/features/` にあるが plan.yaml に無い feature を
@@ -194,6 +204,13 @@ description: |
   `utakata guide for <file> --json` で**該当レイヤーのガイドを取得してから**直す
 - レイヤーの役割・依存方向は `utakata arch show <arch_id>` で確認する
 - ガイド一覧は `utakata guide list`、個別表示は `utakata guide show <layer_path>`
+
+## 設定ファイルの書き方が分からないとき
+
+- `utakata doc show plan` — plan.yaml(features / entities / layers)の書き方
+- `utakata doc show config` — utakata.yaml の書き方
+- MCP なら `doc_get` ツール(topic: plan | config)
+- **推測で YAML を書かず、必ずこれで書式を確認する**
 
 ## 設定の優先順位
 
