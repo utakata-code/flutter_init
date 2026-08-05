@@ -73,3 +73,8 @@ windows/flutter/ephemeral/
 .env
 .env.*
 env.g.dart
+
+# 旧バージョンの参考ファイル(ローカル作業用。追跡しない)
+/actual_architecture.yaml
+/feature_request.yaml
+/plan_architecture.yaml
