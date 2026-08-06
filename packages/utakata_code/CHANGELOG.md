@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0
+
+* **feat(vault)**: New `vault:` config — a reference to a personal knowledge repo of **client-facing** know-how (how to obtain an Apple Developer account, what Firebase costs, whether a LINE channel needs review). Distinct from `knowledge_repo`, which holds architecture knowledge. `path` (a local clone) takes precedence over `url`, because a vault is something you keep writing yourself and round-tripping through push/fetch on every edit is impractical; `url` supports private repos via your existing git auth.
+* **feat(config)**: New global config `~/.utakata/config.yaml`, same schema as a project's `utakata.yaml`. A vault spans all client projects, so it belongs there; a project's `utakata.yaml` still overrides it.
+* **feat(vault)**: New `utakata vault list|show|get`, plus MCP tools `vault_list` / `vault_get`. Root-level `README.md`/`CLAUDE.md`/`_*.md` are treated as repo scaffolding and hidden from the listing, while nested `README.md` files (e.g. `Google/GCP/README.md` holding shared prerequisites) are real entries. Reads are confined to the vault root.
+* **feat(claude)**: New generated skill `utakata-client-explainer` — writes client-facing explanations from the vault instead of from memory, checks each entry's recorded verification date before quoting prices or review requirements, never writes to the vault, and leaves sending and logging (`log add`, `agree add`) to the human.
+
 ## 1.2.0
 
 * **docs**: New `doc/` reference for the two config files — [`doc/plan-yaml.md`](doc/plan-yaml.md) (`doc/specs/plan.yaml`: features, entities, per-layer `layers:` declarations, and how item names map to filenames) and [`doc/utakata-yaml.md`](doc/utakata-yaml.md) (`utakata.yaml`: architecture resolution order, `knowledge_repo`, `skills` sync rules, `team`). Keys that are parsed but not yet wired to behavior (`enforcement.impl_plan`, `records.git`, `lang`, `baseline`) are documented as reserved rather than claimed as working.

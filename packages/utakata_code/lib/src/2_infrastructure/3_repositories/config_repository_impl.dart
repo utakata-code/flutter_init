@@ -10,9 +10,14 @@ class ConfigRepositoryImpl implements ConfigRepository {
   final FilesystemDataSource _fs;
   final YamlDataSource _yaml;
 
-  const ConfigRepositoryImpl(this._fs, this._yaml);
+  /// `~/.utakata/config.yaml` を解決するためのホームディレクトリ。
+  final String? _homeDir;
+
+  const ConfigRepositoryImpl(this._fs, this._yaml, {String? homeDir})
+      : _homeDir = homeDir;
 
   static const _configFileName = 'utakata.yaml';
+  static const _globalConfigRelativePath = '.utakata/config.yaml';
 
   @override
   Future<UtakataConfig?> read(String projectDir) async {
@@ -21,6 +26,16 @@ class ConfigRepositoryImpl implements ConfigRepository {
     if (content == null) return null;
     final doc = _yaml.parse(content, source: path);
     return UtakataConfig.fromMap(doc);
+  }
+
+  @override
+  Future<UtakataConfig?> readGlobal() async {
+    final home = _homeDir;
+    if (home == null || home.isEmpty) return null;
+    final path = p.join(home, _globalConfigRelativePath);
+    final content = await _fs.readFile(path);
+    if (content == null) return null;
+    return UtakataConfig.fromMap(_yaml.parse(content, source: path));
   }
 
   @override

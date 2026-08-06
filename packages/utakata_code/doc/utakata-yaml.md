@@ -149,6 +149,57 @@ team:
 
 ---
 
+## `vault` — 実務ナレッジ Vault(クライアント説明用)
+
+外部サービス(Apple / Google / LINE 等)のアカウント取得手順・料金・審査要否など、
+**クライアントへの説明に使う知識**を蓄積したリポジトリへの参照。
+アーキテクチャ知識(`knowledge_repo`)とは別物です。
+
+```yaml
+vault:
+  path: "~/dev/utakata_vault"                    # 手元のクローン(優先)
+  url: "git@github.com:you/your_vault.git"       # または git から取得(プライベート可)
+  ref: main
+```
+
+| キー | 説明 |
+|---|---|
+| `path` | 手元のクローンへのパス(`~` 展開あり)。**存在すればこちらが優先** |
+| `url` | リモート Git URL。プライベートリポジトリ可(認証は git の設定に委ねる) |
+| `ref` | タグ/ブランチ名 |
+
+**`path` を優先する理由**: Vault は開発者本人が書き足していく個人資産のため、
+毎回 push → fetch するのは非現実的です。手元のクローンを直接見れば編集が即反映されます。
+`url` はチーム共有や別マシンでの利用時に使います。
+
+### 全案件共通の設定 — `~/.utakata/config.yaml`
+
+Vault は案件をまたぐ個人資産なので、通常は**グローバル設定**に書きます:
+
+```yaml
+# ~/.utakata/config.yaml
+vault:
+  path: "~/dev/utakata_vault"
+```
+
+解決順は **プロジェクトの `utakata.yaml`** → **`~/.utakata/config.yaml`** → 未設定。
+グローバル設定はプロジェクト設定と同じスキーマですが、意味を持つのは案件横断の項目のみです。
+
+### 使い方
+
+```sh
+utakata vault list                          # エントリ一覧
+utakata vault show Google/GCP/Firebase      # 本文を表示
+utakata vault get                           # url からの取得(path 運用なら不要)
+```
+
+MCP からは `vault_list` / `vault_get` で参照できます。生成される
+`utakata-client-explainer` スキルが、この Vault を根拠にクライアント向け説明文を
+書くよう AI を誘導します。**AI は Vault に書き込みません**(追記は人間が Vault
+リポジトリ側で行う)。
+
+---
+
 ## 予約キー(現在は未配線)
 
 以下は `doc init` の雛形に含まれ、`doctor` の検証も通りますが、

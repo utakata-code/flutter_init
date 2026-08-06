@@ -45,6 +45,7 @@ import 'package:utakata/src/2_infrastructure/3_repositories/plan_repository_impl
 import 'package:utakata/src/2_infrastructure/3_repositories/project_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/structure_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/template_repository_impl.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/vault_repository_impl.dart';
 import 'package:utakata/src/3_application/1_commands/agree_command.dart';
 import 'package:utakata/src/3_application/1_commands/apply_command.dart';
 import 'package:utakata/src/3_application/1_commands/check_command.dart';
@@ -62,6 +63,7 @@ import 'package:utakata/src/3_application/1_commands/plan_command.dart';
 import 'package:utakata/src/3_application/1_commands/skills_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
 import 'package:utakata/src/3_application/1_commands/summary_command.dart';
+import 'package:utakata/src/3_application/1_commands/vault_command.dart';
 import 'package:utakata/src/3_application/3_presenters/log_preview_presenter.dart';
 import 'package:utakata/src/3_application/3_presenters/summary_presenter.dart';
 import 'package:utakata/src/3_application/4_server/mcp_server.dart';
@@ -94,10 +96,13 @@ Future<void> main(List<String> arguments) async {
   const marker = MarkdownMarkerDataSource();
 
   // リポジトリ実装
+  final homeDir =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.';
+
   final knowledgeRepo = KnowledgeRepositoryImpl(
     const GitDataSource(),
     yaml,
-    Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'] ?? '.',
+    homeDir,
   );
 
   // テンプレートパス解決: lock 済みリモートキャッシュ(knowledge_repo 指定時のみ)
@@ -116,7 +121,9 @@ Future<void> main(List<String> arguments) async {
   final archRepo = ArchitectureRepositoryImpl(fs, yaml, resolveTemplatePath: resolveTemplatePath);
   final templateRepo = TemplateRepositoryImpl(fs);
   final projectRepo = ProjectRepositoryImpl(fs, yaml);
-  const configRepo = ConfigRepositoryImpl(fs, yaml);
+  final configRepo = ConfigRepositoryImpl(fs, yaml, homeDir: homeDir);
+  final vaultRepo =
+      VaultRepositoryImpl(configRepo, const GitDataSource(), homeDir);
   final planRepo = PlanRepositoryImpl(fs, yaml, yamlEdit, configRepo: configRepo);
   final structureRepo = StructureRepositoryImpl(fs);
   final logRepo = ConversationLogRepositoryImpl(jsonl);
@@ -330,6 +337,7 @@ Future<void> main(List<String> arguments) async {
     configRepo: configRepo,
     archResolver: archResolver,
     showDocUsecase: showDocUsecase,
+    vaultRepo: vaultRepo,
   );
 
   // ─── Application 層の組み立て ───
@@ -364,6 +372,7 @@ Future<void> main(List<String> arguments) async {
     mcpCommand: McpCommand(mcpServer, msg),
     skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
     claudeCommand: ClaudeCommand(generateClaudeIntegrationUsecase),
+    vaultCommand: VaultCommand(vaultRepo),
   );
 
   // ─── 実行 ───

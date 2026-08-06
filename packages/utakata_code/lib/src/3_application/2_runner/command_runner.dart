@@ -20,6 +20,7 @@ import '../1_commands/plan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/skills_command.dart';
 import '../1_commands/summary_command.dart';
+import '../1_commands/vault_command.dart';
 
 const _version = packageVersion;
 
@@ -72,6 +73,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required McpCommand mcpCommand,
     required SkillsCommand skillsCommand,
     required ClaudeCommand claudeCommand,
+    required VaultCommand vaultCommand,
   }) : super(
           'utakata',
           msg.cmdRunnerDesc,
@@ -103,6 +105,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(mcpCommand);
     addCommand(skillsCommand);
     addCommand(claudeCommand);
+    addCommand(vaultCommand);
   }
 
   @override

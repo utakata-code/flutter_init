@@ -40,6 +40,7 @@ class GenerateClaudeIntegrationUsecase {
     await _ensureDir('$projectDir/.claude/skills/utakata-structure');
     await _ensureDir('$projectDir/.claude/skills/utakata-client-context');
     await _ensureDir('$projectDir/.claude/skills/utakata-impl-flow');
+    await _ensureDir('$projectDir/.claude/skills/utakata-client-explainer');
     await _ensureDir('$projectDir/.claude/agents');
 
     final written = <String>[];
@@ -57,6 +58,8 @@ class GenerateClaudeIntegrationUsecase {
     await write(
         '.claude/skills/utakata-client-context/SKILL.md', _clientContextSkill());
     await write('.claude/skills/utakata-impl-flow/SKILL.md', _implFlowSkill());
+    await write('.claude/skills/utakata-client-explainer/SKILL.md',
+        _clientExplainerSkill());
     await write('.claude/agents/structure-auditor.md', _structureAuditorAgent());
 
     final claudeMdPath = '$projectDir/CLAUDE.md';
@@ -289,6 +292,49 @@ description: |
 - 実装が仕様やお客様の合意に関わる場合は、着手前に utakata-client-context
   スキルの手順で根拠を確認する
 ''';
+
+  String _clientExplainerSkill() => """
+---
+name: utakata-client-explainer
+description: |
+  お客様向けの説明文(アカウント取得のお願い・技術スタックの概要説明・
+  料金や審査の案内)を作成するスキル。
+  「Apple Developer の取得手順を説明して」「Firebase の料金をお客様に説明したい」
+  「必要なアカウントを案内する文面を作って」のときに使用。
+---
+
+# お客様向け説明文の作成
+
+外部サービス(Apple / Google / LINE 等)の取得手順・料金・審査要否は
+**Vault に蓄積された検証済みナレッジ**を根拠にする。記憶だけで書かない。
+
+## 手順
+
+1. `utakata vault list` — 使えるエントリを確認する(MCP なら `vault_list`)
+2. `utakata vault show <id>` — 該当サービスの本文を読む(MCP なら `vault_get`)
+3. 読んだ内容をもとに、**その案件のお客様に合わせて**説明文を書く
+
+## Vault の読み方
+
+各エントリは次の構成になっている:
+
+- **概要** — 非エンジニアにも通じる説明。ここを土台にする
+- **アカウント取得手順** — 手順・料金・審査有無・所要日数
+- **深掘り調査・検証済みの主張** — `確認した現在日時` と公式 URL 付きの検証記録。
+  **料金・審査基準・仕様はここを必ず確認する**
+- **参考リンク** — 補助情報
+
+## 守ること
+
+- **検証日時を確認する**: Vault の記述には `確認した現在日時` がある。日付が古く、
+  料金や仕様など変わりやすい内容なら、その旨を添えるか人間に再確認を促す
+- **Vault に無いことを断定しない**: 根拠が無い項目は「確認します」と書くか、
+  人間に調査を依頼する。推測で料金や審査要否を書かない
+- **Vault に書き込まない**: 知識の追記は人間が Vault リポジトリ側で行う
+- **送信も人間が行う**: 生成した文面は下書き。送った後の記録は人間が
+  `utakata log add "..." -s developer` (下書き段階なら `--draft`)で行う
+- 合意事項(金額・仕様)が生じたら `utakata agree add` の実行を人間に提案する
+""";
 
   String _structureAuditorAgent() => '''
 ---

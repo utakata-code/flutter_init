@@ -6,6 +6,7 @@ import '../../1_domain/3_usecases/check_usecase.dart';
 import '../../1_domain/2_repositories/config_repository.dart';
 import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
+import '../../1_domain/2_repositories/vault_repository.dart';
 import '../../1_domain/3_usecases/show_doc_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
 import '../../1_domain/3_usecases/list_agreements_usecase.dart';
@@ -31,6 +32,7 @@ class McpServer {
   final ConfigRepository? _configRepo;
   final ArchitectureResolver? _archResolver;
   final ShowDocUsecase? _showDocUsecase;
+  final VaultRepository? _vaultRepo;
 
   McpServer({
     required CheckUsecase checkUsecase,
@@ -42,6 +44,7 @@ class McpServer {
     ConfigRepository? configRepo,
     ArchitectureResolver? archResolver,
     ShowDocUsecase? showDocUsecase,
+    VaultRepository? vaultRepo,
   })  : _checkUsecase = checkUsecase,
         _planRepo = planRepo,
         _queryLogUsecase = queryLogUsecase,
@@ -50,7 +53,8 @@ class McpServer {
         _guideForFileUsecase = guideForFileUsecase,
         _configRepo = configRepo,
         _archResolver = archResolver,
-        _showDocUsecase = showDocUsecase;
+        _showDocUsecase = showDocUsecase,
+        _vaultRepo = vaultRepo;
 
   static const _protocolVersion = '2024-11-05';
 
@@ -133,6 +137,27 @@ class McpServer {
           },
         },
         'required': ['topic'],
+      },
+    },
+    {
+      'name': 'vault_list',
+      'description':
+          'クライアント説明用の実務ナレッジ Vault(外部サービスのアカウント取得手順・料金・審査要否など)のエントリ一覧',
+      'inputSchema': {'type': 'object', 'properties': {}},
+    },
+    {
+      'name': 'vault_get',
+      'description':
+          'Vault のエントリ本文を取得する。クライアント向け説明文を書く前に、必ずここで一次情報と検証日時を確認する',
+      'inputSchema': {
+        'type': 'object',
+        'properties': {
+          'entry_id': {
+            'type': 'string',
+            'description': 'vault_list が返す id(例: Google/GCP/Firebase)',
+          },
+        },
+        'required': ['entry_id'],
       },
     },
   ];
@@ -235,6 +260,11 @@ class McpServer {
                 },
               }),
         'doc_get' => await _showDocUsecase?.execute(args['topic'] as String),
+        'vault_list' => (await _vaultRepo?.list(projectDir))
+            ?.map((e) => {'id': e.id, 'title': e.title})
+            .toList(),
+        'vault_get' =>
+          await _vaultRepo?.read(projectDir, args['entry_id'] as String),
         _ => null,
       };
 

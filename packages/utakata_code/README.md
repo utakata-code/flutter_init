@@ -11,13 +11,14 @@
 
 ## Features
 
-- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent) + a project `CLAUDE.md`. `utakata mcp` exposes a read-only, stateless MCP server (8 tools) so an agent can inspect structure/plan/logs/agreements/config without ever writing to them.
+- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent) + a project `CLAUDE.md`. `utakata mcp` exposes a read-only, stateless MCP server (11 tools) so an agent can inspect structure/plan/logs/agreements/config without ever writing to them.
 - 🧭 **Master config (`utakata.yaml`)**: one file declares the architecture, the `team` (client / developer / AI agents and who decides what), the `skills` to sync into `.claude/skills/`, and an optional remote `knowledge_repo` — pinned by commit SHA in `utakata.lock` via `utakata arch get`. Without it, everything ships bundled and fully offline.
 - 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)**. Customize by ejecting a definition with `utakata arch eject <id>`.
 - 🔍 **One Structural Check**: `utakata check` reports missing files, unexpected files, and naming violations in a single pass against your `arch_definition.yaml` — with GUIDE excerpts inline so the fix is obvious.
 - 📋 **Intent-Level Plan**: Declare features (name, permission, entities) in `doc/specs/plan.yaml`; `utakata apply` scaffolds exactly what's missing. `utakata plan adopt` detects code that isn't in the plan yet and appends it, format-preserving.
 - 🎚️ **Per-Layer Granularity**: A feature doesn't have to mean *every* layer. Declare only the layers you need (`layers:`), mark one as not applicable with an empty list, and pin exact files even where naming is free-form. `utakata plan expand` writes the auto-derived baseline into the plan so you can edit it.
 - 📚 **Knowledge stays out of your repo**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) (bundled at release; overridable per-project via `knowledge_repo`). Projects contain only the app + `doc/` + config — no copied guide tree.
+- 🗂️ **Client-Facing Knowledge Vault**: point `vault:` at your own repo of how-to-obtain-an-account / pricing / review-requirement notes, and the generated `utakata-client-explainer` skill writes client explanations from it — checking each entry's recorded verification date instead of quoting prices from memory.
 - 💬 **Client Conversation Tracking**: `utakata log` records client conversations (human-only writes, JSONL, append-only) and `utakata agree` tracks agreements — the record an AI agent can read but never write to.
 - 📝 **Implementation Plans & Summary**: `utakata impl` manages a per-feature implementation-plan lifecycle; `utakata summary` regenerates the agreement ledger section of your project summary automatically.
 - 🌐 **Internationalized**: CLI messages support English and Japanese.
@@ -138,7 +139,8 @@ features:
 
 | Command | Description |
 |---|---|
-| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`, `doc_get`) |
+| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`, `doc_get`, `vault_list`, `vault_get`) |
+| `utakata vault list\|show\|get` | Browse the personal knowledge vault used to write client-facing explanations (configured via `vault:`, usually in `~/.utakata/config.yaml`) |
 | `utakata skills sync [--force]` | Sync the architecture's bundled SKILLs listed in `utakata.yaml` into `.claude/skills/` (managed-marker protection: human files are never overwritten) |
 | `utakata claude init [--force]` | Add or repair the Claude Code integration (`.claude/` + `.mcp.json` + `CLAUDE.md`) in an existing project. Default writes missing files only; `--force` regenerates everything |
 

@@ -12,13 +12,14 @@
 
 ## 特徴
 
-- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)+ プロジェクト `CLAUDE.md` を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバー(9ツール)を提供し、AI が構造・計画・会話ログ・合意・設定を「書き込まずに」参照できます。
+- 🤖 **Claude Code ネイティブ**: `create` が `.mcp.json` + `.claude/`(フック・スキル・エージェント)+ プロジェクト `CLAUDE.md` を生成。`utakata mcp` はステートレス・読み取り専用の MCP サーバー(11ツール)を提供し、AI が構造・計画・会話ログ・合意・設定を「書き込まずに」参照できます。
 - 🧭 **マスター設定(`utakata.yaml`)**: アーキテクチャ、`team`(お客様・開発者・AI の役割と決定権)、`.claude/skills/` に同期する `skills`、任意のリモート `knowledge_repo`(`utakata arch get` でコミット SHA を `utakata.lock` に固定)を1ファイルで宣言。未指定なら全て同梱・完全オフラインで動作します。
 - 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
 - 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけを生成します。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
 - 🎚️ **層ごとの粒度指定**: feature を宣言しても「全層が必須」にはなりません。必要な層だけを `layers:` に書き、使わない層は空リスト(`[]`)で除外し、命名が自由な層でもファイルを明示できます。`utakata plan expand` で自動導出の結果を書き出してから編集できます。
 - 📚 **ナレッジはリポジトリの外**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理(リリース時に同梱・プロジェクト単位で `knowledge_repo` により差し替え可能)。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残ります。
+- 🗂️ **クライアント説明用ナレッジ Vault**: `vault:` に自分のナレッジリポジトリを指定すると、生成される `utakata-client-explainer` スキルがそれを根拠にお客様向けの説明文を書きます(料金や審査要否を記憶で書かず、各エントリの検証日時を確認する)。
 - 💬 **お客様との会話の記録**: `utakata log` がお客様との会話を記録します(人間のみ書き込み・JSONL・追記専用)。`utakata agree` は合意をトラッキングします — AI は読めても書けない記録です。
 - 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。
 - 🌐 **多言語対応**: CLI メッセージは日本語・英語に対応しています。
@@ -139,7 +140,8 @@ features:
 
 | コマンド | 説明 |
 |---|---|
-| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`・`guide_for_file`・`config_get`・`doc_get`) |
+| `utakata mcp` | ステートレス・読み取り専用の MCP サーバーを stdio で起動する(`structure_get`・`check_run`・`plan_get`・`log_query`・`agreements_query`・`guide_get`・`guide_for_file`・`config_get`・`doc_get`・`vault_list`・`vault_get`) |
+| `utakata vault list\|show\|get` | クライアント説明用の実務ナレッジ Vault を参照する(`vault:` で設定。通常は `~/.utakata/config.yaml`) |
 | `utakata skills sync [--force]` | `utakata.yaml` の `skills` リストをアーキテクチャ同梱 SKILL から `.claude/skills/` に同期する(managed マーカー保護: 人間の作ったファイルは絶対に上書きしない) |
 | `utakata claude init [--force]` | 既存プロジェクトに Claude Code 統合(`.claude/` + `.mcp.json` + `CLAUDE.md`)を後付け・補修する。既定は欠けているファイルのみ生成、`--force` で全再生成 |
 

@@ -8,6 +8,11 @@ abstract interface class ConfigRepository {
   /// `utakata.yaml` を読む。存在しなければ null。
   Future<UtakataConfig?> read(String projectDir);
 
+  /// `~/.utakata/config.yaml`(全案件共通の個人設定)を読む。
+  /// 存在しなければ null。プロジェクトの `utakata.yaml` と同じスキーマだが、
+  /// 意味を持つのは案件横断の項目(`vault` 等)のみ。
+  Future<UtakataConfig?> readGlobal();
+
   /// スキーマ検証(未知トップレベルキー・非対応 schema)の問題一覧を返す。
   /// ファイルが無ければ空リスト(存在しないこと自体は doctor 側で扱う)。
   Future<List<String>> validate(String projectDir);

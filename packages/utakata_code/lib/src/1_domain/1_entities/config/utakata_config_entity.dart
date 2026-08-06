@@ -22,6 +22,36 @@ final class KnowledgeRepoRef {
       );
 }
 
+/// 実務ナレッジ Vault への参照。
+///
+/// アーキテクチャ知識([KnowledgeRepoRef])とは別物で、外部サービスの
+/// アカウント取得手順・料金・審査要否など「クライアントへの説明に使う知識」を
+/// 蓄積したリポジトリを指す。
+///
+/// Vault は開発者本人が書き足していく個人資産のため、[path](手元のクローン)を
+/// 第一の参照先とし、無い場合のみ [url] からフェッチする。これにより
+/// 編集のたびに push → fetch する必要がない。
+final class VaultRef {
+  /// 手元のクローンへの絶対パス(`~` 展開あり)。指定時はこちらが優先。
+  final String? path;
+
+  /// リモート Git URL(プライベートリポジトリ可。認証は git の設定に委ねる)。
+  final String? url;
+
+  /// タグ/ブランチ名。
+  final String? ref;
+
+  const VaultRef({this.path, this.url, this.ref});
+
+  bool get isEmpty => path == null && url == null;
+
+  factory VaultRef.fromMap(Map<String, dynamic> map) => VaultRef(
+        path: map['path'] as String?,
+        url: map['url'] as String?,
+        ref: map['ref'] as String?,
+      );
+}
+
 /// AI エージェント1体の定義(`team.ai_agents` の1要素)。
 final class AiAgentDef {
   final String id;
@@ -78,6 +108,7 @@ final class UtakataConfig {
     'enforcement',
     'records',
     'lang',
+    'vault',
   };
 
   final int schema;
@@ -91,6 +122,11 @@ final class UtakataConfig {
   final List<String> skills;
 
   final TeamDef team;
+
+  /// 実務ナレッジ Vault への参照(`vault:`)。
+  /// 全案件で共通の個人資産のため、`~/.utakata/config.yaml` に書くのが基本で、
+  /// プロジェクトの `utakata.yaml` に書けばそちらが優先される。
+  final VaultRef? vault;
 
   /// `enforcement.impl_plan`: 'on' | 'off'
   final String implPlanEnforcement;
@@ -106,6 +142,7 @@ final class UtakataConfig {
     this.knowledgeRepo,
     this.skills = const [],
     this.team = TeamDef.empty,
+    this.vault,
     this.implPlanEnforcement = 'on',
     this.recordsGit = 'commit',
     this.lang,
@@ -123,6 +160,7 @@ final class UtakataConfig {
       }
     }
 
+    final rawVault = map['vault'];
     final rawSkills = map['skills'];
     final team = map['team'];
     final enforcement = map['enforcement'];
@@ -134,6 +172,9 @@ final class UtakataConfig {
       knowledgeRepo: knowledgeRepo,
       skills: rawSkills is List ? rawSkills.map((e) => e.toString()).toList() : const [],
       team: team is Map ? TeamDef.fromMap(Map<String, dynamic>.from(team)) : TeamDef.empty,
+      vault: rawVault is Map
+          ? VaultRef.fromMap(Map<String, dynamic>.from(rawVault))
+          : null,
       implPlanEnforcement: enforcement is Map
           ? (enforcement['impl_plan']?.toString() ?? 'on')
           : 'on',

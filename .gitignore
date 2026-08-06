@@ -78,3 +78,6 @@ env.g.dart
 /actual_architecture.yaml
 /feature_request.yaml
 /plan_architecture.yaml
+
+# ナレッジリポジトリ(utakata_vault)のローカル作業用クローン
+packages/utakata_vault/

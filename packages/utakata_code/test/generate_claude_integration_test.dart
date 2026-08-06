@@ -41,6 +41,11 @@ void main() {
       File('${dir.path}/.claude/skills/utakata-impl-flow/SKILL.md').existsSync(),
       isTrue,
     );
+    expect(
+      File('${dir.path}/.claude/skills/utakata-client-explainer/SKILL.md')
+          .existsSync(),
+      isTrue,
+    );
     expect(File('${dir.path}/.claude/agents/structure-auditor.md').existsSync(), isTrue);
 
     final settings = jsonDecode(await File('${dir.path}/.claude/settings.json').readAsString())
