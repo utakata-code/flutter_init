@@ -52,7 +52,7 @@ class _LogAddCommand extends BaseCommand {
   _LogAddCommand(this._usecase, this._msg) {
     argParser
       ..addOption('speaker', abbr: 's', help: 'client|developer|system|third_party')
-      ..addOption('at', help: '例: "6/30 17:41"(省略時は現在時刻)')
+      ..addOption('at', help: _msg.optLogAt)
       ..addOption('name')
       ..addOption('thread')
       ..addMultiOption('tag')

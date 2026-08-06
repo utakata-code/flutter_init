@@ -60,7 +60,7 @@ class _FeatureAddCommand extends BaseCommand {
           allowed: ['admin', 'user', 'shared', 'direct'],
           help: _msg.optPermission)
       ..addOption('arch', help: _msg.optArch)
-      ..addOption('template', help: 'feature プリセットテンプレート ID を適用する')
+      ..addOption('template', help: _msg.optFeatureTemplate)
       ..addFlag('yes', abbr: 'y', help: _msg.optYes);
   }
 

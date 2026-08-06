@@ -17,7 +17,7 @@ class DoctorCommand extends BaseCommand {
   String get description => _msg.cmdDoctorDesc;
 
   DoctorCommand(this._usecase, this._msg) {
-    argParser.addFlag('migrate', negatable: false, help: '旧レイアウトから新レイアウトへ移行する');
+    argParser.addFlag('migrate', negatable: false, help: _msg.optMigrate);
   }
 
   @override

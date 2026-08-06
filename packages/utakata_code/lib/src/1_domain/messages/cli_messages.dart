@@ -251,6 +251,9 @@ abstract interface class CliMessages {
   String get optImportLast;
   String get optImportFull;
   String get optSkipConfirm;
+  String get optMigrate;
+  String get optFeatureTemplate;
+  String get optLogAt;
 
   // ─── feature --template (v1.0) ───
   String get missingTemplateId;

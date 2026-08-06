@@ -464,6 +464,12 @@ class JaMessages implements CliMessages {
   String get optImportFull => 'thinking / tool_use も含める(tool_result は常に除外)';
   @override
   String get optSkipConfirm => '確認プロンプトをスキップする';
+  @override
+  String get optMigrate => '旧レイアウトから新レイアウトへ移行する';
+  @override
+  String get optFeatureTemplate => 'feature プリセットテンプレート ID を適用する';
+  @override
+  String get optLogAt => '例: "6/30 17:41"(省略時は現在時刻)';
 
   // ─── feature --template (v1.0) ───
   @override

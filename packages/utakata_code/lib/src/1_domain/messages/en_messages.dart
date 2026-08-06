@@ -479,6 +479,12 @@ class EnMessages implements CliMessages {
       'Include thinking / tool_use as well (tool_result is always excluded)';
   @override
   String get optSkipConfirm => 'Skip the confirmation prompt';
+  @override
+  String get optMigrate => 'Migrate the legacy layout to the current one';
+  @override
+  String get optFeatureTemplate => 'Apply a feature preset template by id';
+  @override
+  String get optLogAt => 'e.g. "6/30 17:41" (defaults to now)';
 
   // ─── feature --template (v1.0) ───
   @override
