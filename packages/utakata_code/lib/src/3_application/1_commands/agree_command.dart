@@ -148,13 +148,14 @@ class _AgreeStatusCommand extends BaseCommand {
 
 class _AgreeCorrectCommand extends BaseCommand {
   final RecordAgreementUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'correct';
   @override
-  String get description => '過去の合意を訂正する(supersede)';
+  String get description => _msg.cmdAgreeCorrectDesc;
 
-  _AgreeCorrectCommand(this._usecase, CliMessages msg) {
+  _AgreeCorrectCommand(this._usecase, this._msg) {
     argParser
       ..addOption('title', mandatory: true)
       ..addOption('kind', defaultsTo: 'correction')
@@ -186,13 +187,14 @@ class _AgreeCorrectCommand extends BaseCommand {
 
 class _AgreeReflectCommand extends BaseCommand {
   final RecordAgreementUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'reflect';
   @override
-  String get description => '合意の反映先(実装計画/仕様書)を記録する';
+  String get description => _msg.cmdAgreeReflectDesc;
 
-  _AgreeReflectCommand(this._usecase, CliMessages msg) {
+  _AgreeReflectCommand(this._usecase, this._msg) {
     argParser
       ..addOption('plan')
       ..addOption('spec');

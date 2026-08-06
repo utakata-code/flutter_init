@@ -12,7 +12,6 @@ import 'package:utakata/src/1_domain/3_usecases/export_architecture_usecase.dart
 import 'package:utakata/src/1_domain/3_usecases/create_architecture_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/messages/ja_messages.dart';
-import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 
 void main() {
   group('FeatureSpecEntity', () {
@@ -296,63 +295,6 @@ naming_rules: []
       expect(rendered, contains('# Detailed Content Examples'));
     });
 
-    test('GenerateGuidesUsecase generates GUIDE.md files', () async {
-      final tempDir = Directory.systemTemp.createTempSync('utakata_guide_test_');
-
-      final writtenFiles = <String, String>{};
-      final createdDirs = <String>[];
-
-      final usecase = GenerateGuidesUsecase(
-        readFile: (path) async {
-          // テスト用の詳細本文アセット
-          if (path.endsWith('GUIDE.md')) {
-            return '# Guide Detail body';
-          }
-          return null;
-        },
-        writeFile: (path, content) async {
-          writtenFiles['${p.basename(p.dirname(path))}/${p.basename(path)}'] = content;
-        },
-        ensureDir: (path) async {
-          createdDirs.add(path);
-        },
-        resolvePackageTemplatePath: (relPath) async => 'package_path/$relPath',
-      );
-
-      const archDefinition = ArchitectureDefinitionEntity(
-        id: 'clean_architecture',
-        displayName: 'Clean',
-        layers: [],
-        guides: [
-          GuideEntity(
-            title: 'Entity Guide',
-            layerPath: '1_domain/1_entities',
-            applyTo: 'lib/**',
-            doList: ['Do A'],
-            dontList: [],
-            allowedImports: [],
-            forbiddenImports: [],
-            namingPattern: '{name}_entity.dart',
-            detailContentPath: 'architectures/clean_architecture/AI/features/1_domain/1_entities/GUIDE.md',
-          )
-        ],
-      );
-
-      await usecase.execute(
-        projectDir: tempDir.path,
-        featureRelativePath: 'lib/features/verify_feature',
-        archDefinition: archDefinition,
-      );
-
-      expect(writtenFiles.containsKey('1_entities/GUIDE.md'), isTrue);
-      final content = writtenFiles['1_entities/GUIDE.md']!;
-      expect(content, contains('# Entity Guide'));
-      expect(content, contains('# Guide Detail body'));
-
-      if (tempDir.existsSync()) {
-        tempDir.deleteSync(recursive: true);
-      }
-    });
   });
 
   group('Phase 3: Automatically Insert Dependencies', () {

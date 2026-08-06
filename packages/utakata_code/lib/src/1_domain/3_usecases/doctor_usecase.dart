@@ -25,6 +25,7 @@ class DoctorUsecase {
   final Future<void> Function(String path) _deleteDir;
   final Future<void> Function(String from, String to) _movePath;
   final List<String> Function(String dirPath) _listEntries;
+  final List<String> Function(String dirPath, String fileName)? _listFilesNamed;
 
   const DoctorUsecase({
     required PlanRepository planRepo,
@@ -36,6 +37,7 @@ class DoctorUsecase {
     required Future<void> Function(String path) deleteDir,
     required Future<void> Function(String from, String to) movePath,
     required List<String> Function(String dirPath) listEntries,
+    List<String> Function(String dirPath, String fileName)? listFilesNamed,
   })  : _planRepo = planRepo,
         _configRepo = configRepo,
         _fileExists = fileExists,
@@ -44,7 +46,8 @@ class DoctorUsecase {
         _deleteFile = deleteFile,
         _deleteDir = deleteDir,
         _movePath = movePath,
-        _listEntries = listEntries;
+        _listEntries = listEntries,
+        _listFilesNamed = listFilesNamed;
 
   /// 診断のみ行う(環境チェック + utakata.yaml スキーマ検証)。
   Future<List<String>> diagnose(String projectDir) async {
@@ -58,6 +61,19 @@ class DoctorUsecase {
     final configRepo = _configRepo;
     if (configRepo != null) {
       issues.addAll(await configRepo.validate(projectDir));
+    }
+
+    // v1.4.0(Issue #13)で GUIDE.md の生成を廃止したため、過去の apply が
+    // 撒いた残存 GUIDE.md を情報として報告する(手編集の可能性があるため
+    // 自動削除はしない)。
+    final listFilesNamed = _listFilesNamed;
+    if (listFilesNamed != null) {
+      final guides = listFilesNamed('$projectDir/lib/features', 'GUIDE.md');
+      if (guides.isNotEmpty) {
+        issues.add('lib/features/ 配下に GUIDE.md が ${guides.length} 件あります。'
+            'v1.4.0 から生成されなくなりました(ガイドは `utakata guide for <file>` で参照)。'
+            '編集していなければ削除して問題ありません。');
+      }
     }
     return issues;
   }

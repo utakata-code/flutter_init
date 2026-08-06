@@ -42,7 +42,7 @@ class ArchCommand extends Command<int> {
     addSubcommand(_ArchEjectCommand(_createUsecase, _msg));
     addSubcommand(_ArchCreateCommand(_createUsecase, _msg));
     if (configRepo != null && knowledgeRepo != null) {
-      addSubcommand(_ArchGetCommand(configRepo, knowledgeRepo));
+      addSubcommand(_ArchGetCommand(configRepo, knowledgeRepo, _msg));
     }
   }
 
@@ -233,17 +233,16 @@ class _ArchCreateCommand extends BaseCommand {
 class _ArchGetCommand extends BaseCommand {
   final ConfigRepository _configRepo;
   final KnowledgeRepository _knowledgeRepo;
+  final CliMessages _msg;
 
   @override
   String get name => 'get';
 
   @override
-  String get description =>
-      'utakata.yaml の project.knowledge_repo をフェッチして utakata.lock に SHA を固定する';
+  String get description => _msg.cmdArchGetDesc;
 
-  _ArchGetCommand(this._configRepo, this._knowledgeRepo) {
-    argParser.addFlag('update',
-        help: 'ref を再解決して lock を更新する', negatable: false);
+  _ArchGetCommand(this._configRepo, this._knowledgeRepo, this._msg) {
+    argParser.addFlag('update', help: _msg.optUpdateRef, negatable: false);
   }
 
   @override
@@ -252,8 +251,16 @@ class _ArchGetCommand extends BaseCommand {
     final config = await _configRepo.read(projectDir);
     final repoRef = config?.knowledgeRepo;
     if (repoRef == null) {
-      Logger.warn('utakata.yaml に project.knowledge_repo が指定されていません。'
-          'デフォルトの同梱テンプレートを使用中のため、フェッチは不要です。');
+      // knowledge_repo 未指定 → 公式ナレッジ(既定タグ固定)を取得する。
+      // ガイド参照時の自動フェッチと同じキャッシュを事前に温める用途
+      // (オフラインになる前に実行しておく)。
+      final root = await _knowledgeRepo.ensureDefaultAvailable();
+      if (root == null) {
+        Logger.error('公式ナレッジを取得できませんでした(ネットワークと git が必要です)。');
+        return 1;
+      }
+      Logger.success('公式ナレッジ(utakata_arch_lib @ '
+          '${KnowledgeRepository.defaultRef})をキャッシュしました: $root');
       return 0;
     }
 

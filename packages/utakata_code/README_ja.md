@@ -18,7 +18,7 @@
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
 - 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけを生成します。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
 - 🎚️ **層ごとの粒度指定**: feature を宣言しても「全層が必須」にはなりません。必要な層だけを `layers:` に書き、使わない層は空リスト(`[]`)で除外し、命名が自由な層でもファイルを明示できます。`utakata plan expand` で自動導出の結果を書き出してから編集できます。
-- 📚 **ナレッジはリポジトリの外**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理(リリース時に同梱・プロジェクト単位で `knowledge_repo` により差し替え可能)。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残ります。
+- 📚 **ナレッジはリポジトリにもパッケージにも置かない**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理し、参照時にオンデマンド取得します(バージョン固定タグ・`~/.utakata/` にキャッシュ)。パッケージには機械可読な定義だけを同梱するため `create`/`apply`/`check` は完全オフラインで動作。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残り、`apply` がディレクトリごとに GUIDE.md を撒くこともなくなりました(参照は `guide for <file>`)。
 - 🗂️ **クライアント説明用ナレッジ Vault**: `vault:` に自分のナレッジリポジトリを指定すると、生成される `utakata-client-explainer` スキルがそれを根拠にお客様向けの説明文を書きます(料金や審査要否を記憶で書かず、各エントリの検証日時を確認する)。
 - 💬 **お客様との会話の記録**: `utakata log` がお客様との会話を記録します(人間のみ書き込み・JSONL・追記専用)。`utakata agree` は合意をトラッキングします — AI は読めても書けない記録です。
 - 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。

@@ -8,17 +8,17 @@ class JaMessages implements CliMessages {
   @override
   String get cmdCreateDesc => 'Flutter プロジェクトを新規作成する';
   @override
-  String get cmdFeatureDesc => 'フィーチャーの追加・一括生成を行う';
+  String get cmdFeatureDesc => 'フィーチャーを追加する';
   @override
   String get cmdFeatureAddDesc => 'フィーチャーを 1 件追加する';
   @override
   String get cmdFeatureInitDesc => 'plan_architecture.yaml から全フィーチャーを一括生成する';
   @override
-  String get cmdPlanDesc => 'feature_request.yaml からアーキテクチャ計画書を生成する';
+  String get cmdPlanDesc => 'plan.yaml(意図レベル計画)の操作コマンド群';
   @override
   String get cmdScanDesc => '現在のディレクトリ構造をスキャンして YAML に保存する';
   @override
-  String get cmdDiffDesc => 'plan_architecture.yaml と現在の構造の差分を表示する';
+  String get cmdDiffDesc => 'check への永続エイリアス(plan.yaml と実構造の差分検証)';
   @override
   String get cmdCheckDesc => 'アーキテクチャの健全性チェックを行う（差分があれば exit 1）';
   @override
@@ -392,6 +392,78 @@ class JaMessages implements CliMessages {
   // ─── mcp (v1.1) ───
   @override
   String get cmdMcpDesc => 'MCP サーバーを起動する(stdio・読み取り専用)';
+
+  @override
+  String get cmdClaudeDesc => 'Claude Code 統合(.claude/・.mcp.json・CLAUDE.md)の生成・補修';
+  @override
+  String get cmdClaudeInitDesc =>
+      '.claude/(スキル・エージェント・settings)+ .mcp.json + CLAUDE.md を生成する。'
+      '既定は欠けているファイルのみ補修(既存は保護)。--force で再生成';
+  @override
+  String get cmdSkillsDesc => 'アーキテクチャ同梱 SKILL を .claude/skills/ へ同期する';
+  @override
+  String get cmdSkillsSyncDesc =>
+      'utakata.yaml の skills リストを .claude/skills/ に同期する(managed マーカー方式)';
+  @override
+  String get cmdVaultDesc => '実務ナレッジ Vault(クライアント説明用の外部サービス知識)を参照する';
+  @override
+  String get cmdVaultListDesc => 'Vault のエントリ一覧を表示する';
+  @override
+  String get cmdVaultShowDesc => 'Vault のエントリ本文を表示する: vault show Google/GCP/Firebase';
+  @override
+  String get cmdVaultGetDesc => '設定された url から Vault を取得(再取得)してキャッシュする';
+  @override
+  String get cmdDocShowDesc => '設定ファイルの書き方を表示する: doc show config|plan(一覧は doc list)';
+  @override
+  String get cmdDocListDesc => '表示できるドキュメントのトピック一覧';
+  @override
+  String get cmdPlanExpandDesc =>
+      '自動導出されている層構成を plan.yaml に明示的に書き出す(以後は手動で増減できる)';
+  @override
+  String get cmdPlanAddDesc =>
+      'plan.yaml の feature に層の項目を追加する: plan add <feature> <layer> <item...>';
+  @override
+  String get cmdPlanRemoveDesc =>
+      'plan.yaml の feature から層の項目を削除する: plan remove <feature> <layer> <item>';
+  @override
+  String get cmdGuideForDesc =>
+      'ファイルパスから該当レイヤーのガイドを決定論的に解決する(lint エラー修正のコンテキスト供給用)';
+  @override
+  String get cmdArchGetDesc =>
+      'ナレッジリポジトリをフェッチする(knowledge_repo 未指定なら公式 utakata_arch_lib を取得)';
+  @override
+  String get cmdAgreeCorrectDesc => '過去の合意を訂正する(supersede)';
+  @override
+  String get cmdAgreeReflectDesc => '合意の反映先(実装計画/仕様書)を記録する';
+  @override
+  String get cmdLogImportDesc =>
+      'Claude Code セッション生ログを doc/records/sessions/ に取り込む(人間専用)';
+
+  @override
+  String get optForceOverwrite =>
+      '人間が編集した managed ファイルも上書きする(マーカーの無いファイルは対象外)';
+  @override
+  String get optForceRegenerate => '既存ファイル(CLAUDE.md 含む)も上書きして再生成する';
+  @override
+  String get optUpdateRef => 'ref を再解決して更新する';
+  @override
+  String get optExpandDryRun => '書き込まずに結果だけ表示する';
+  @override
+  String get optExpandFeature => '対象の feature を1つに限定する';
+  @override
+  String get optJsonOutput => 'JSON で出力する';
+  @override
+  String get optArchAuto => '未指定なら utakata.yaml / plan.yaml から解決する';
+  @override
+  String get optImportList => 'このプロジェクトのセッション一覧を表示する';
+  @override
+  String get optImportSession => 'セッション ID(先頭一致可)を指定して取り込む';
+  @override
+  String get optImportLast => '最新のセッションを取り込む';
+  @override
+  String get optImportFull => 'thinking / tool_use も含める(tool_result は常に除外)';
+  @override
+  String get optSkipConfirm => '確認プロンプトをスキップする';
 
   // ─── feature --template (v1.0) ───
   @override

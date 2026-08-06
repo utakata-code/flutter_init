@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+* **feat(templates)** ([#15](https://github.com/utakata-code/utakata/issues/15)): The package now bundles only what commands need at runtime — `arch_definition.yaml` + `skills/` per architecture (44KB, down from 628KB). Reading material (layer guides, principles, dependency notes) is fetched on demand from the official [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) at a version-pinned tag, cached under `~/.utakata/cache/` (one fetch, then silent). Structural commands (`create`/`apply`/`check`/`feature add`) never touch the network; only guide reads do, and a fetch failure degrades with a clear message instead of breaking anything. `utakata arch get` with no `knowledge_repo` configured now pre-warms this cache (useful before going offline).
+* **feat(apply)** ([#13](https://github.com/utakata-code/utakata/issues/13)): `apply`/`feature add` no longer write per-directory GUIDE.md files into `lib/features/` — the last hold-out against the reference-only knowledge principle. Guides are read via `guide show` / `guide for <file>` / MCP `guide_get`. Existing GUIDE.md files are left untouched (they may be hand-edited); `utakata doctor` reports how many remain and notes they are safe to delete if unmodified.
+* **fix(i18n)**: 18 command/subcommand descriptions (`claude`, `skills`, `vault`, `doc show/list`, `plan expand/add/remove`, `guide for`, `arch get`, `agree correct/reflect`, `log import`) and their flag help texts were hardcoded in Japanese and leaked into English `--help` output; all now go through `CliMessages`. Three stale descriptions that referenced deleted files/commands (`plan` → feature_request.yaml, `diff` → plan_architecture.yaml, `feature` → bulk-generate) were rewritten.
+
 ## 1.3.0
 
 * **feat(vault)**: New `vault:` config — a reference to a personal knowledge repo of **client-facing** know-how (how to obtain an Apple Developer account, what Firebase costs, whether a LINE channel needs review). Distinct from `knowledge_repo`, which holds architecture knowledge. `path` (a local clone) takes precedence over `url`, because a vault is something you keep writing yourself and round-tripping through push/fetch on every edit is impractical; `url` supports private repos via your existing git auth.

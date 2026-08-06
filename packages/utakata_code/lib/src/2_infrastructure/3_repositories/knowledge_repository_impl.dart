@@ -53,6 +53,45 @@ class KnowledgeRepositoryImpl implements KnowledgeRepository {
   }
 
   @override
+  Future<String?> ensureDefaultAvailable({bool autoFetch = true}) async {
+    const url = KnowledgeRepository.defaultUrl;
+    const ref = KnowledgeRepository.defaultRef;
+    final cacheRoot = _cacheRoot(url);
+
+    // タグ→SHA のマーカー。存在すれば追加のネットワークアクセスなしで解決する。
+    final markerFile = File(p.join(cacheRoot, 'default-$ref.sha'));
+    if (markerFile.existsSync()) {
+      final sha = markerFile.readAsStringSync().trim();
+      final materialized = Directory(p.join(cacheRoot, 'materialized-$sha'));
+      if (materialized.existsSync()) return materialized.path;
+    }
+
+    if (!autoFetch) return null;
+
+    stderr.writeln('📥 公式ナレッジ(utakata_arch_lib @ $ref)を取得しています…');
+    try {
+      final repoDir = Directory(p.join(cacheRoot, 'repo'));
+      if (repoDir.existsSync()) repoDir.deleteSync(recursive: true);
+      repoDir.parent.createSync(recursive: true);
+
+      await _git.cloneDepth1(url, ref, repoDir.path);
+      final sha = await _git.revParseHead(repoDir.path);
+
+      final materialized = Directory(p.join(cacheRoot, 'materialized-$sha'));
+      if (!materialized.existsSync()) {
+        _materialize(Directory(p.join(repoDir.path, 'arches')), materialized);
+      }
+      markerFile.writeAsStringSync('$sha\n');
+      return materialized.path;
+    } catch (e) {
+      stderr.writeln('⚠️  取得できませんでした(オフライン?): $e');
+      stderr.writeln('   構造コマンド(create/apply/check 等)は影響を受けません。'
+          'ガイドの参照にはネットワークと git が必要です。');
+      return null;
+    }
+  }
+
+  @override
   Future<KnowledgeFetchResult> fetch(
     String projectDir,
     KnowledgeRepoRef repoRef, {

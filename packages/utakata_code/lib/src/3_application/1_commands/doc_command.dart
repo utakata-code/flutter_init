@@ -21,8 +21,8 @@ class DocCommand extends Command<int> {
   DocCommand(InitDocUsecase initUsecase, this._msg,
       {required ShowDocUsecase showUsecase}) {
     addSubcommand(_DocInitCommand(initUsecase, _msg));
-    addSubcommand(_DocShowCommand(showUsecase));
-    addSubcommand(_DocListCommand());
+    addSubcommand(_DocShowCommand(showUsecase, _msg));
+    addSubcommand(_DocListCommand(_msg));
   }
 
   @override
@@ -58,15 +58,15 @@ class _DocInitCommand extends BaseCommand {
 /// utakata doc show `<topic>` — 同梱ドキュメント(設定ファイルの書き方)を表示する
 class _DocShowCommand extends BaseCommand {
   final ShowDocUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'show';
 
   @override
-  String get description =>
-      '設定ファイルの書き方を表示する: doc show config|plan(一覧は doc list)';
+  String get description => _msg.cmdDocShowDesc;
 
-  _DocShowCommand(this._usecase);
+  _DocShowCommand(this._usecase, this._msg);
 
   @override
   Future<int> execute() async {
@@ -90,11 +90,15 @@ class _DocShowCommand extends BaseCommand {
 
 /// utakata doc list — 読めるドキュメントの一覧
 class _DocListCommand extends BaseCommand {
+  final CliMessages _msg;
+
   @override
   String get name => 'list';
 
   @override
-  String get description => '表示できるドキュメントのトピック一覧';
+  String get description => _msg.cmdDocListDesc;
+
+  _DocListCommand(this._msg);
 
   @override
   Future<int> execute() async {

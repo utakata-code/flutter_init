@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 
+import '../../1_domain/messages/cli_messages.dart';
 import '../../2_infrastructure/3_repositories/vault_repository_impl.dart';
 import 'base_command.dart';
 import 'logger.dart';
@@ -13,17 +14,18 @@ import 'logger.dart';
 /// 説明文を生成し、人間が確認して送信、送った内容は `utakata log add` で
 /// 記録する、という流れを想定している。
 class VaultCommand extends Command<int> {
+  final CliMessages _msg;
+
   @override
   String get name => 'vault';
 
   @override
-  String get description =>
-      '実務ナレッジ Vault(クライアント説明用の外部サービス知識)を参照する';
+  String get description => _msg.cmdVaultDesc;
 
-  VaultCommand(VaultRepositoryImpl vaultRepo) {
-    addSubcommand(_VaultListCommand(vaultRepo));
-    addSubcommand(_VaultShowCommand(vaultRepo));
-    addSubcommand(_VaultGetCommand(vaultRepo));
+  VaultCommand(VaultRepositoryImpl vaultRepo, this._msg) {
+    addSubcommand(_VaultListCommand(vaultRepo, _msg));
+    addSubcommand(_VaultShowCommand(vaultRepo, _msg));
+    addSubcommand(_VaultGetCommand(vaultRepo, _msg));
   }
 
   @override
@@ -47,14 +49,15 @@ void _printNotConfigured() {
 
 class _VaultListCommand extends BaseCommand {
   final VaultRepositoryImpl _repo;
+  final CliMessages _msg;
 
   @override
   String get name => 'list';
 
   @override
-  String get description => 'Vault のエントリ一覧を表示する';
+  String get description => _msg.cmdVaultListDesc;
 
-  _VaultListCommand(this._repo);
+  _VaultListCommand(this._repo, this._msg);
 
   @override
   Future<int> execute() async {
@@ -81,15 +84,15 @@ class _VaultListCommand extends BaseCommand {
 
 class _VaultShowCommand extends BaseCommand {
   final VaultRepositoryImpl _repo;
+  final CliMessages _msg;
 
   @override
   String get name => 'show';
 
   @override
-  String get description =>
-      'Vault のエントリ本文を表示する: vault show Google/GCP/Firebase';
+  String get description => _msg.cmdVaultShowDesc;
 
-  _VaultShowCommand(this._repo);
+  _VaultShowCommand(this._repo, this._msg);
 
   @override
   Future<int> execute() async {
@@ -117,15 +120,15 @@ class _VaultShowCommand extends BaseCommand {
 
 class _VaultGetCommand extends BaseCommand {
   final VaultRepositoryImpl _repo;
+  final CliMessages _msg;
 
   @override
   String get name => 'get';
 
   @override
-  String get description =>
-      '設定された url から Vault を取得(再取得)してキャッシュする';
+  String get description => _msg.cmdVaultGetDesc;
 
-  _VaultGetCommand(this._repo);
+  _VaultGetCommand(this._repo, this._msg);
 
   @override
   Future<int> execute() async {

@@ -219,6 +219,38 @@ abstract interface class CliMessages {
 
   // ─── mcp (v1.1) ───
   String get cmdMcpDesc;
+  String get cmdClaudeDesc;
+  String get cmdClaudeInitDesc;
+  String get cmdSkillsDesc;
+  String get cmdSkillsSyncDesc;
+  String get cmdVaultDesc;
+  String get cmdVaultListDesc;
+  String get cmdVaultShowDesc;
+  String get cmdVaultGetDesc;
+  String get cmdDocShowDesc;
+  String get cmdDocListDesc;
+  String get cmdPlanExpandDesc;
+  String get cmdPlanAddDesc;
+  String get cmdPlanRemoveDesc;
+  String get cmdGuideForDesc;
+  String get cmdArchGetDesc;
+  String get cmdAgreeCorrectDesc;
+  String get cmdAgreeReflectDesc;
+  String get cmdLogImportDesc;
+
+  // ─── 新コマンドのオプション help ───
+  String get optForceOverwrite;
+  String get optForceRegenerate;
+  String get optUpdateRef;
+  String get optExpandDryRun;
+  String get optExpandFeature;
+  String get optJsonOutput;
+  String get optArchAuto;
+  String get optImportList;
+  String get optImportSession;
+  String get optImportLast;
+  String get optImportFull;
+  String get optSkipConfirm;
 
   // ─── feature --template (v1.0) ───
   String get missingTemplateId;

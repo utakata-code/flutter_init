@@ -8,21 +8,20 @@ class EnMessages implements CliMessages {
   @override
   String get cmdCreateDesc => 'Create a new Flutter project';
   @override
-  String get cmdFeatureDesc => 'Add or bulk-generate features';
+  String get cmdFeatureDesc => 'Add a feature';
   @override
   String get cmdFeatureAddDesc => 'Add a single feature';
   @override
   String get cmdFeatureInitDesc =>
       'Bulk-generate all features from plan_architecture.yaml';
   @override
-  String get cmdPlanDesc =>
-      'Generate an architecture plan from feature_request.yaml';
+  String get cmdPlanDesc => 'plan.yaml (intent-level plan) commands';
   @override
   String get cmdScanDesc =>
       'Scan the current directory structure and save to YAML';
   @override
   String get cmdDiffDesc =>
-      'Show diff between plan_architecture.yaml and current structure';
+      'Permanent alias for check (verify plan.yaml against the real structure)';
   @override
   String get cmdCheckDesc =>
       'Check architecture health (exit 1 if diff found)';
@@ -403,6 +402,83 @@ class EnMessages implements CliMessages {
   // ─── mcp (v1.1) ───
   @override
   String get cmdMcpDesc => 'Start the MCP server (stdio, read-only)';
+
+  @override
+  String get cmdClaudeDesc =>
+      'Generate or repair the Claude Code integration (.claude/, .mcp.json, CLAUDE.md)';
+  @override
+  String get cmdClaudeInitDesc =>
+      'Write .claude/ (skills, agent, settings) + .mcp.json + CLAUDE.md. '
+      'Default repairs missing files only (existing ones are protected); --force regenerates';
+  @override
+  String get cmdSkillsDesc => 'Sync architecture-bundled SKILLs into .claude/skills/';
+  @override
+  String get cmdSkillsSyncDesc =>
+      'Sync the skills list in utakata.yaml into .claude/skills/ (managed-marker protection)';
+  @override
+  String get cmdVaultDesc =>
+      'Browse the personal knowledge vault (client-facing service know-how)';
+  @override
+  String get cmdVaultListDesc => 'List vault entries';
+  @override
+  String get cmdVaultShowDesc => 'Print a vault entry: vault show Google/GCP/Firebase';
+  @override
+  String get cmdVaultGetDesc => 'Fetch (or re-fetch) the vault from its configured url';
+  @override
+  String get cmdDocShowDesc =>
+      'Print the reference for a config file: doc show config|plan (see doc list)';
+  @override
+  String get cmdDocListDesc => 'List the available documentation topics';
+  @override
+  String get cmdPlanExpandDesc =>
+      'Materialize the auto-derived per-layer lists into plan.yaml (editable afterwards)';
+  @override
+  String get cmdPlanAddDesc =>
+      'Add items to a layer list in plan.yaml: plan add <feature> <layer> <item...>';
+  @override
+  String get cmdPlanRemoveDesc =>
+      'Remove an item from a layer list in plan.yaml: plan remove <feature> <layer> <item>';
+  @override
+  String get cmdGuideForDesc =>
+      'Deterministically resolve the layer guide for a file path (fix-context for lint errors)';
+  @override
+  String get cmdArchGetDesc =>
+      'Fetch the knowledge repo (the official utakata_arch_lib when knowledge_repo is unset)';
+  @override
+  String get cmdAgreeCorrectDesc => 'Correct (supersede) a past agreement';
+  @override
+  String get cmdAgreeReflectDesc =>
+      'Record where an agreement was reflected (impl plan / spec)';
+  @override
+  String get cmdLogImportDesc =>
+      'Import a Claude Code session transcript into doc/records/sessions/ (human-only)';
+
+  @override
+  String get optForceOverwrite =>
+      'Also overwrite human-edited managed files (unmanaged files are never touched)';
+  @override
+  String get optForceRegenerate => 'Overwrite existing files (including CLAUDE.md)';
+  @override
+  String get optUpdateRef => 'Re-resolve the ref and update';
+  @override
+  String get optExpandDryRun => 'Show the result without writing';
+  @override
+  String get optExpandFeature => 'Limit to a single feature';
+  @override
+  String get optJsonOutput => 'Output as JSON';
+  @override
+  String get optArchAuto => 'Resolved from utakata.yaml / plan.yaml when omitted';
+  @override
+  String get optImportList => 'List this project\'s sessions';
+  @override
+  String get optImportSession => 'Import the session with this id (prefix match)';
+  @override
+  String get optImportLast => 'Import the most recent session';
+  @override
+  String get optImportFull =>
+      'Include thinking / tool_use as well (tool_result is always excluded)';
+  @override
+  String get optSkipConfirm => 'Skip the confirmation prompt';
 
   // ─── feature --template (v1.0) ───
   @override

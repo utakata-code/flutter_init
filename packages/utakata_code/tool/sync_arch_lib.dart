@@ -5,6 +5,10 @@
 //
 // 変換はこのスクリプトだけが行い、CLI 実行時コードには入れない:
 //   - `_starter`(独自アーキテクチャ雛形)は同梱しない
+//   - **slim 同梱(v1.4.0 / Issue #15)**: 実行時に必須の
+//     `arch_definition.yaml` と `skills/` のみを同梱する。読み物
+//     (layers/ principles/ dependencies/)は同梱せず、参照時に
+//     公式 utakata_arch_lib からフェッチする(既定ナレッジリポジトリ)
 //   - arch_definition.yaml の detail_content_path をパッケージ内解決用の
 //     フルパス(architectures/<id>/...)へ書き換える
 import 'dart:io';
@@ -45,13 +49,18 @@ void main(List<String> args) {
   }
 }
 
+/// slim 同梱の対象: このトップレベル配下のみ同梱する。
+const _bundledTopLevel = {'arch_definition.yaml', 'skills'};
+
 void _copyTree(Directory from, Directory to, {required String archId}) {
   to.createSync(recursive: true);
   for (final entity in from.listSync(recursive: true)) {
     final relative = entity.path.substring(from.path.length + 1);
-    if (relative.split(Platform.pathSeparator).any((s) => s.startsWith('.git'))) {
+    final parts = relative.split(Platform.pathSeparator);
+    if (parts.any((s) => s.startsWith('.git'))) {
       continue;
     }
+    if (!_bundledTopLevel.contains(parts.first)) continue;
     final targetPath = '${to.path}/$relative';
     if (entity is Directory) {
       Directory(targetPath).createSync(recursive: true);

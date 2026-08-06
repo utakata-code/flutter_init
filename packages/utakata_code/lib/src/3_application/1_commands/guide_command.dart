@@ -26,7 +26,7 @@ class GuideCommand extends Command<int> {
     addSubcommand(_GuideShowCommand(usecase, _msg, archResolver));
     addSubcommand(_GuideEjectCommand(usecase, _msg, archResolver));
     if (guideForFileUsecase != null) {
-      addSubcommand(_GuideForCommand(guideForFileUsecase));
+      addSubcommand(_GuideForCommand(guideForFileUsecase, _msg));
     }
   }
 
@@ -49,8 +49,7 @@ class _GuideListCommand extends BaseCommand {
   final ArchitectureResolver _archResolver;
 
   _GuideListCommand(this._usecase, this._msg, this._archResolver) {
-    argParser.addOption('arch',
-        help: '未指定なら utakata.yaml / plan.yaml から解決する');
+    argParser.addOption('arch', help: _msg.optArchAuto);
   }
 
   @override
@@ -81,8 +80,7 @@ class _GuideShowCommand extends BaseCommand {
   final ArchitectureResolver _archResolver;
 
   _GuideShowCommand(this._usecase, this._msg, this._archResolver) {
-    argParser.addOption('arch',
-        help: '未指定なら utakata.yaml / plan.yaml から解決する');
+    argParser.addOption('arch', help: _msg.optArchAuto);
   }
 
   @override
@@ -111,8 +109,7 @@ class _GuideEjectCommand extends BaseCommand {
   final ArchitectureResolver _archResolver;
 
   _GuideEjectCommand(this._usecase, this._msg, this._archResolver) {
-    argParser.addOption('arch',
-        help: '未指定なら utakata.yaml / plan.yaml から解決する');
+    argParser.addOption('arch', help: _msg.optArchAuto);
   }
 
   @override
@@ -137,16 +134,16 @@ class _GuideEjectCommand extends BaseCommand {
 /// utakata guide for `<file>` — ファイルパスから該当レイヤーのガイドを解決する
 class _GuideForCommand extends BaseCommand {
   final GuideForFileUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'for';
 
   @override
-  String get description =>
-      'ファイルパスから該当レイヤーのガイドを決定論的に解決する(lint エラー修正のコンテキスト供給用)';
+  String get description => _msg.cmdGuideForDesc;
 
-  _GuideForCommand(this._usecase) {
-    argParser.addFlag('json', help: 'JSON で出力する', negatable: false);
+  _GuideForCommand(this._usecase, this._msg) {
+    argParser.addFlag('json', help: _msg.optJsonOutput, negatable: false);
   }
 
   @override

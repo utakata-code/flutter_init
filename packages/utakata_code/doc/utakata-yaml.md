@@ -79,8 +79,12 @@ project:
 | `url` | [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) と同じ構造(`arches/<id>/...`)を持つ Git リポジトリ |
 | `ref` | タグまたはブランチ名。実際に取得したコミット SHA は `utakata.lock` に固定される |
 
-**指定しなければ何も起きません。** その場合はパッケージ同梱のテンプレートが使われ、
-ネットワークには一切アクセスしません(オフラインで完結)。
+**指定しなければ、公式の utakata_arch_lib(CLI バージョンに対応する固定タグ)が
+既定として使われます。** パッケージには実行時必須の `arch_definition.yaml` と
+skills だけが同梱されているため、構造コマンド(`create`/`apply`/`check` 等)は
+ネットワークなしで完結します。ガイド等の読み物を初めて参照した時のみ、公式
+リポジトリから自動フェッチして `~/.utakata/cache/` に保存します(以後はキャッシュ)。
+オフラインになる前に `utakata arch get` を一度実行しておけば事前取得できます。
 
 指定した場合の使い方:
 

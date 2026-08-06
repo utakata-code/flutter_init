@@ -30,7 +30,7 @@ class LogCommand extends Command<int> {
     addSubcommand(_LogAddCommand(addUsecase, _msg));
     addSubcommand(_LogShowCommand(queryUsecase, _msg));
     addSubcommand(_LogRenderCommand(renderUsecase, _msg));
-    addSubcommand(_LogImportCommand());
+    addSubcommand(_LogImportCommand(_msg));
   }
 
   @override
@@ -161,20 +161,21 @@ class _LogRenderCommand extends BaseCommand {
 
 /// utakata log import claude-session — Claude Code セッションの人間駆動取り込み
 class _LogImportCommand extends BaseCommand {
+  final CliMessages _msg;
+
   @override
   String get name => 'import';
 
   @override
-  String get description =>
-      'Claude Code セッション生ログを doc/records/sessions/ に取り込む(人間専用)';
+  String get description => _msg.cmdLogImportDesc;
 
-  _LogImportCommand() {
+  _LogImportCommand(this._msg) {
     argParser
-      ..addFlag('list', help: 'このプロジェクトのセッション一覧を表示する', negatable: false)
-      ..addOption('session', help: 'セッション ID(先頭一致可)を指定して取り込む')
-      ..addFlag('last', help: '最新のセッションを取り込む', negatable: false)
-      ..addFlag('full', help: 'thinking / tool_use も含める(tool_result は常に除外)', negatable: false)
-      ..addFlag('yes', abbr: 'y', help: '確認プロンプトをスキップする', negatable: false);
+      ..addFlag('list', help: _msg.optImportList, negatable: false)
+      ..addOption('session', help: _msg.optImportSession)
+      ..addFlag('last', help: _msg.optImportLast, negatable: false)
+      ..addFlag('full', help: _msg.optImportFull, negatable: false)
+      ..addFlag('yes', abbr: 'y', help: _msg.optSkipConfirm, negatable: false);
   }
 
   @override

@@ -31,9 +31,9 @@ class PlanCommand extends Command<int> {
     required PlanRepository planRepo,
   }) {
     addSubcommand(_PlanAdoptCommand(adoptUsecase, _msg));
-    addSubcommand(_PlanExpandCommand(expandUsecase));
-    addSubcommand(_PlanAddCommand(planRepo));
-    addSubcommand(_PlanRemoveCommand(planRepo));
+    addSubcommand(_PlanExpandCommand(expandUsecase, _msg));
+    addSubcommand(_PlanAddCommand(planRepo, _msg));
+    addSubcommand(_PlanRemoveCommand(planRepo, _msg));
   }
 
   @override
@@ -94,18 +94,18 @@ class _PlanAdoptCommand extends BaseCommand {
 /// utakata plan expand — 自動導出されている層構成を plan.yaml に書き出す
 class _PlanExpandCommand extends BaseCommand {
   final ExpandPlanUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'expand';
 
   @override
-  String get description =>
-      '自動導出されている層構成を plan.yaml に明示的に書き出す(以後は手動で増減できる)';
+  String get description => _msg.cmdPlanExpandDesc;
 
-  _PlanExpandCommand(this._usecase) {
+  _PlanExpandCommand(this._usecase, this._msg) {
     argParser
-      ..addFlag('dry-run', help: '書き込まずに結果だけ表示する', negatable: false)
-      ..addOption('feature', help: '対象の feature を1つに限定する');
+      ..addFlag('dry-run', help: _msg.optExpandDryRun, negatable: false)
+      ..addOption('feature', help: _msg.optExpandFeature);
   }
 
   @override
@@ -149,15 +149,15 @@ class _PlanExpandCommand extends BaseCommand {
 /// utakata plan add `<feature> <layer> <item...>` — 層に項目を追加する
 class _PlanAddCommand extends BaseCommand {
   final PlanRepository _planRepo;
+  final CliMessages _msg;
 
   @override
   String get name => 'add';
 
   @override
-  String get description =>
-      'plan.yaml の feature に層の項目を追加する: plan add <feature> <layer> <item...>';
+  String get description => _msg.cmdPlanAddDesc;
 
-  _PlanAddCommand(this._planRepo);
+  _PlanAddCommand(this._planRepo, this._msg);
 
   @override
   Future<int> execute() async {
@@ -201,15 +201,15 @@ class _PlanAddCommand extends BaseCommand {
 /// utakata plan remove `<feature> <layer> <item>` — 層から項目を削除する
 class _PlanRemoveCommand extends BaseCommand {
   final PlanRepository _planRepo;
+  final CliMessages _msg;
 
   @override
   String get name => 'remove';
 
   @override
-  String get description =>
-      'plan.yaml の feature から層の項目を削除する: plan remove <feature> <layer> <item>';
+  String get description => _msg.cmdPlanRemoveDesc;
 
-  _PlanRemoveCommand(this._planRepo);
+  _PlanRemoveCommand(this._planRepo, this._msg);
 
   @override
   Future<int> execute() async {

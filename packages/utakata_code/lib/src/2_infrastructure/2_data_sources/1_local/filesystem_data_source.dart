@@ -60,6 +60,20 @@ class FilesystemDataSource {
     return dir.listSync().map((e) => p.basename(e.path)).toList()..sort();
   }
 
+  /// [dirPath] 配下を再帰的に走査し、ファイル名が [fileName] に一致する
+  /// ファイルの相対パス一覧を返す(doctor の残存 GUIDE.md 検出などに使う)。
+  List<String> listFilesNamed(String dirPath, String fileName) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) return const [];
+    return dir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => p.basename(f.path) == fileName)
+        .map((f) => p.relative(f.path, from: dirPath))
+        .toList()
+      ..sort();
+  }
+
   /// ファイルが存在するか確認する
   bool fileExists(String path) => File(path).existsSync();
 

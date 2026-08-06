@@ -9,15 +9,16 @@ import 'logger.dart';
 
 /// utakata skills — AI エージェント SKILL の管理コマンド群
 class SkillsCommand extends Command<int> {
+  final CliMessages _msg;
+
   @override
   String get name => 'skills';
 
   @override
-  String get description =>
-      'アーキテクチャ同梱 SKILL を .claude/skills/ へ同期する';
+  String get description => _msg.cmdSkillsDesc;
 
-  SkillsCommand(SyncSkillsUsecase syncUsecase, CliMessages msg) {
-    addSubcommand(_SkillsSyncCommand(syncUsecase));
+  SkillsCommand(SyncSkillsUsecase syncUsecase, this._msg) {
+    addSubcommand(_SkillsSyncCommand(syncUsecase, _msg));
   }
 
   @override
@@ -30,18 +31,16 @@ class SkillsCommand extends Command<int> {
 /// utakata skills sync — utakata.yaml の skills リストを .claude/skills/ に反映する
 class _SkillsSyncCommand extends BaseCommand {
   final SyncSkillsUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'sync';
 
   @override
-  String get description =>
-      'utakata.yaml の skills リストを .claude/skills/ に同期する(managed マーカー方式)';
+  String get description => _msg.cmdSkillsSyncDesc;
 
-  _SkillsSyncCommand(this._usecase) {
-    argParser.addFlag('force',
-        help: '人間が編集した managed ファイルも上書きする(マーカーの無いファイルは対象外)',
-        negatable: false);
+  _SkillsSyncCommand(this._usecase, this._msg) {
+    argParser.addFlag('force', help: _msg.optForceOverwrite, negatable: false);
   }
 
   @override

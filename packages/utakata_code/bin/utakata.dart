@@ -8,7 +8,6 @@ import 'package:utakata/src/1_domain/3_usecases/apply_feature_template_usecase.d
 import 'package:utakata/src/1_domain/3_usecases/apply_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/architecture_resolver.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_usecase.dart';
-import 'package:utakata/src/1_domain/3_usecases/generate_guides_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/doctor_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/generate_claude_integration_usecase.dart';
@@ -105,17 +104,31 @@ Future<void> main(List<String> arguments) async {
     homeDir,
   );
 
-  // テンプレートパス解決: lock 済みリモートキャッシュ(knowledge_repo 指定時のみ)
-  // → 同梱テンプレート の順で解決する(実装計画 S3。未指定なら従来と同一挙動)。
+  // テンプレートパス解決(v1.4.0 / Issue #15 の slim 同梱に対応):
+  //   ① 設定済みリモートキャッシュ(knowledge_repo 指定 + lock 済みの場合)
+  //   ② 同梱(arch_definition.yaml と skills/ のみ同梱している)
+  //   ③ 既定ナレッジキャッシュ(無ければ公式 utakata_arch_lib を自動フェッチ)
+  // 構造コマンドは②で完結するためオフラインでも動作し、読み物(ガイド等)の
+  // 参照時のみ③に到達する。
+  bool pathExists(String path) =>
+      File(path).existsSync() || Directory(path).existsSync();
+
   Future<String> resolveTemplatePath(String relativePath) async {
     final remoteRoot = await knowledgeRepo.materializedRoot(Directory.current.path);
     if (remoteRoot != null) {
       final candidate = '$remoteRoot/$relativePath';
-      if (File(candidate).existsSync() || Directory(candidate).existsSync()) {
-        return candidate;
-      }
+      if (pathExists(candidate)) return candidate;
     }
-    return fs.resolvePackageTemplatePath(relativePath);
+
+    final bundled = await fs.resolvePackageTemplatePath(relativePath);
+    if (pathExists(bundled)) return bundled;
+
+    final defaultRoot = await knowledgeRepo.ensureDefaultAvailable();
+    if (defaultRoot != null) {
+      final candidate = '$defaultRoot/$relativePath';
+      if (pathExists(candidate)) return candidate;
+    }
+    return bundled;
   }
 
   final archRepo = ArchitectureRepositoryImpl(fs, yaml, resolveTemplatePath: resolveTemplatePath);
@@ -132,20 +145,12 @@ Future<void> main(List<String> arguments) async {
   final featureTemplateRepo = FeatureTemplateRepositoryImpl(fs, yaml);
 
   // ─── Domain UseCase の組み立て ───
-  final generateGuidesUsecase = GenerateGuidesUsecase(
-    readFile: fs.readFile,
-    writeFile: fs.writeFile,
-    ensureDir: fs.ensureDir,
-    resolvePackageTemplatePath: resolveTemplatePath,
-  );
-
   final addFeatureUsecase = AddFeatureUsecase(
     archRepo: archRepo,
     templateRepo: templateRepo,
     msg: msg,
     writeFile: fs.writeFile,
     ensureDir: fs.ensureDir,
-    generateGuidesUsecase: generateGuidesUsecase,
   );
 
   final createProjectUsecase = CreateProjectUsecase(
@@ -267,6 +272,7 @@ Future<void> main(List<String> arguments) async {
     deleteDir: fs.deleteDir,
     movePath: fs.movePath,
     listEntries: fs.listEntries,
+    listFilesNamed: fs.listFilesNamed,
   );
 
   final recordAgreementUsecase = RecordAgreementUsecase(repo: agreementRepo);
@@ -371,8 +377,8 @@ Future<void> main(List<String> arguments) async {
         guideForFileUsecase: guideForFileUsecase, archResolver: archResolver),
     mcpCommand: McpCommand(mcpServer, msg),
     skillsCommand: SkillsCommand(syncSkillsUsecase, msg),
-    claudeCommand: ClaudeCommand(generateClaudeIntegrationUsecase),
-    vaultCommand: VaultCommand(vaultRepo),
+    claudeCommand: ClaudeCommand(generateClaudeIntegrationUsecase, msg),
+    vaultCommand: VaultCommand(vaultRepo, msg),
   );
 
   // ─── 実行 ───

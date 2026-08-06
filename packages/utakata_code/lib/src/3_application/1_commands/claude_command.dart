@@ -3,20 +3,22 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 
 import '../../1_domain/3_usecases/generate_claude_integration_usecase.dart';
+import '../../1_domain/messages/cli_messages.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
 /// utakata claude — Claude Code 統合の管理コマンド群
 class ClaudeCommand extends Command<int> {
+  final CliMessages _msg;
+
   @override
   String get name => 'claude';
 
   @override
-  String get description =>
-      'Claude Code 統合(.claude/・.mcp.json・CLAUDE.md)の生成・補修';
+  String get description => _msg.cmdClaudeDesc;
 
-  ClaudeCommand(GenerateClaudeIntegrationUsecase usecase) {
-    addSubcommand(_ClaudeInitCommand(usecase));
+  ClaudeCommand(GenerateClaudeIntegrationUsecase usecase, this._msg) {
+    addSubcommand(_ClaudeInitCommand(usecase, _msg));
   }
 
   @override
@@ -29,18 +31,16 @@ class ClaudeCommand extends Command<int> {
 /// utakata claude init — 既存プロジェクトに Claude Code 統合を後付け・再生成する
 class _ClaudeInitCommand extends BaseCommand {
   final GenerateClaudeIntegrationUsecase _usecase;
+  final CliMessages _msg;
 
   @override
   String get name => 'init';
 
   @override
-  String get description =>
-      '.claude/(スキル・エージェント・settings)+ .mcp.json + CLAUDE.md を生成する。'
-      '既定は欠けているファイルのみ補修(既存は保護)。--force で再生成';
+  String get description => _msg.cmdClaudeInitDesc;
 
-  _ClaudeInitCommand(this._usecase) {
-    argParser.addFlag('force',
-        help: '既存ファイル(CLAUDE.md 含む)も上書きして再生成する', negatable: false);
+  _ClaudeInitCommand(this._usecase, this._msg) {
+    argParser.addFlag('force', help: _msg.optForceRegenerate, negatable: false);
   }
 
   @override
