@@ -26,6 +26,9 @@ class EnMessages implements CliMessages {
   String get cmdCheckDesc =>
       'Check architecture health (exit 1 if diff found)';
   @override
+  String get cmdImportsDesc =>
+      'Audit import health against the architecture import_rules (exit 1 on violations)';
+  @override
   String get cmdStatusDesc => 'Show overall project status';
   @override
   String get cmdRunnerDesc =>

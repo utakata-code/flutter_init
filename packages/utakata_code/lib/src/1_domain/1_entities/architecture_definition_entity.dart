@@ -30,6 +30,10 @@ class ArchitectureDefinitionEntity {
   /// コアモジュールの追跡定義リスト
   final List<CoreModuleEntity> coreModules;
 
+  /// import 監査規則(`import_rules` セクション。Issue #20)。
+  /// 未定義なら null(`utakata imports` は監査せず案内のみ表示する)。
+  final ImportRuleSet? importRules;
+
   const ArchitectureDefinitionEntity({
     required this.id,
     required this.displayName,
@@ -39,6 +43,7 @@ class ArchitectureDefinitionEntity {
     this.dependencies = const {},
     this.devDependencies = const {},
     this.coreModules = const [],
+    this.importRules,
   });
 
   @override
@@ -89,4 +94,57 @@ class NamingRuleEntity {
 
   /// 指定されたディレクトリパスに対してこのルールが適用されるか
   bool matches(String dirPath) => dirPath.contains(dirPattern);
+}
+
+/// import 監査規則(Issue #20)。
+///
+/// arch_definition.yaml の `import_rules` セクションに対応する。
+/// guides の `allowed_imports`/`forbidden_imports`(人間向けの例示)を
+/// 機械可読に正式化したもので、`utakata imports` が決定論的に検証する。
+final class ImportRuleSet {
+  /// 内部依存(プロジェクト内 import)のホワイトリスト。
+  final List<InternalImportRule> internalRules;
+
+  /// 外部依存(`package:` / `dart:` import)のブラックリスト。
+  final List<ExternalImportRule> externalRules;
+
+  /// 監査対象外にするファイルパスの glob(例: `**.g.dart`)。
+  final List<String> excludePatterns;
+
+  const ImportRuleSet({
+    this.internalRules = const [],
+    this.externalRules = const [],
+    this.excludePatterns = const [],
+  });
+
+  bool get isEmpty => internalRules.isEmpty && externalRules.isEmpty;
+}
+
+/// 「この層ディレクトリのファイルは、どの層を import してよいか」の宣言。
+///
+/// [dirPattern] は [NamingRuleEntity.dirPattern] と同じ流儀の層パス
+/// (パスセグメント単位で照合)。自層(同じ [dirPattern] に属するパス)への
+/// import は常に許可される。層ディレクトリの外(`core/` や `main.dart` 等、
+/// どの層にも属さないパス)への import は監査対象外。
+final class InternalImportRule {
+  final String dirPattern;
+
+  /// import してよい層パスのリスト(ホワイトリスト)。
+  final List<String> allow;
+
+  const InternalImportRule({required this.dirPattern, this.allow = const []});
+}
+
+/// 「この層ディレクトリのファイルは、どのパッケージを import してはならないか」の宣言。
+///
+/// [deny] はパッケージ名の glob(`*` 使用可。例: `flutter`, `*riverpod*`,
+/// `firebase_*`, `dart:io`)。同じパスに複数ルールが該当する場合はすべて適用される
+/// (層全体の禁止 + サブディレクトリ固有の禁止を重ねられる)。
+final class ExternalImportRule {
+  final String dirPattern;
+
+  /// import を禁止するパッケージ名 glob のリスト(ブラックリスト)。
+  final List<String> deny;
+
+  const ExternalImportRule({required this.dirPattern, this.deny = const []});
 }

@@ -246,3 +246,48 @@ guides:
     forbidden_imports:
       - "import '../../1_model/2_repositories/some_repository.dart';"
       - "import '../../1_model/3_services/some_service.dart';"
+
+# ─── import 監査規則 (`utakata imports` が使用) ───
+# 書式は clean_architecture の import_rules と同じ。
+#   internal: 各層が import してよい層(ホワイトリスト。自層は常に許可)
+#   external: 層ごとに禁止するパッケージ(ブラックリスト。glob 可)
+#   exclude : 監査から除外するファイル(コード生成物)
+import_rules:
+  exclude:
+    - "**.g.dart"
+    - "**.freezed.dart"
+
+  internal:
+    - dir_pattern: "1_model/1_entities"
+      allow: ["1_model/exceptions"]
+    - dir_pattern: "1_model/2_repositories"
+      allow: ["1_model/1_entities", "1_model/exceptions"]
+    - dir_pattern: "1_model/3_services"
+      allow: ["1_model/1_entities", "1_model/2_repositories", "1_model/exceptions"]
+    - dir_pattern: "1_model/exceptions"
+      allow: []
+    - dir_pattern: "2_viewmodel/1_states"
+      allow: ["1_model/1_entities"]
+    - dir_pattern: "2_viewmodel/2_notifiers"
+      allow: ["1_model", "2_viewmodel/1_states"]
+    - dir_pattern: "3_view/1_widgets"
+      allow: ["1_model/1_entities"]
+    - dir_pattern: "3_view/2_screens"
+      allow: ["1_model/1_entities", "2_viewmodel", "3_view/1_widgets"]
+
+  external:
+    # Model 層は UI・状態管理に依存しない(dio 等の IO はサービスが担うため許可)
+    - dir_pattern: "1_model"
+      deny: ["flutter", "flutter_hooks", "*riverpod*", "go_router"]
+    # エンティティは純粋 Dart(IO ライブラリも持ち込まない)
+    - dir_pattern: "1_model/1_entities"
+      deny: ["dio", "http", "drift", "sqflite", "shared_preferences"]
+    # ViewModel 層は UI(ウィジェット)に依存しない
+    - dir_pattern: "2_viewmodel"
+      deny: ["flutter", "go_router"]
+    # 状態クラスは純粋な freezed オブジェクト
+    - dir_pattern: "2_viewmodel/1_states"
+      deny: ["*riverpod*", "flutter_hooks"]
+    # View 層は IO を直接行わない
+    - dir_pattern: "3_view"
+      deny: ["dio", "http", "drift", "sqflite"]

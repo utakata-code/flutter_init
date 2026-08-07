@@ -7,6 +7,7 @@ import 'package:utakata/src/1_domain/3_usecases/adopt_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/apply_feature_template_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/apply_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/architecture_resolver.dart';
+import 'package:utakata/src/1_domain/3_usecases/audit_imports_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/check_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/create_project_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/doctor_usecase.dart';
@@ -56,6 +57,7 @@ import 'package:utakata/src/3_application/1_commands/doctor_command.dart';
 import 'package:utakata/src/3_application/1_commands/feature_command.dart';
 import 'package:utakata/src/3_application/1_commands/guide_command.dart';
 import 'package:utakata/src/3_application/1_commands/impl_command.dart';
+import 'package:utakata/src/3_application/1_commands/imports_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
 import 'package:utakata/src/3_application/1_commands/mcp_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
@@ -325,6 +327,13 @@ Future<void> main(List<String> arguments) async {
     showGuide: guideUsecase.show,
   );
 
+  final auditImportsUsecase = AuditImportsUsecase(
+    archResolver: archResolver,
+    archRepo: archRepo,
+    listFilesWithSuffix: fs.listFilesWithSuffix,
+    readFile: fs.readFile,
+  );
+
   final syncSkillsUsecase = SyncSkillsUsecase(
     configRepo: configRepo,
     planRepo: planRepo,
@@ -359,6 +368,7 @@ Future<void> main(List<String> arguments) async {
         expandUsecase: expandPlanUsecase, planRepo: planRepo),
     diffCommand: DiffCommand(checkUsecase, msg),
     checkCommand: CheckCommand(checkUsecase, msg),
+    importsCommand: ImportsCommand(auditImportsUsecase, msg),
     applyCommand: ApplyCommand(applyUsecase, msg),
     statusCommand: StatusCommand(statusUsecase, projectRepo, msg),
     archCommand: ArchCommand(

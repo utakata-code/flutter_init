@@ -226,6 +226,57 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
       dependencies: dependencies,
       devDependencies: devDependencies,
       coreModules: coreModules,
+      importRules: _parseImportRules(doc['import_rules']),
+    );
+  }
+
+  /// `import_rules` セクション(Issue #20)をパースする。無ければ null。
+  static ImportRuleSet? _parseImportRules(Object? node) {
+    if (node is! Map) return null;
+
+    final internal = <InternalImportRule>[];
+    final internalList = node['internal'];
+    if (internalList is List) {
+      for (final ruleMap in internalList) {
+        if (ruleMap is! Map) continue;
+        final dirPattern = ruleMap['dir_pattern'] as String? ?? '';
+        if (dirPattern.isEmpty) continue;
+        internal.add(InternalImportRule(
+          dirPattern: dirPattern,
+          allow: (ruleMap['allow'] as List?)
+                  ?.map((e) => e.toString())
+                  .toList() ??
+              const [],
+        ));
+      }
+    }
+
+    final external = <ExternalImportRule>[];
+    final externalList = node['external'];
+    if (externalList is List) {
+      for (final ruleMap in externalList) {
+        if (ruleMap is! Map) continue;
+        final dirPattern = ruleMap['dir_pattern'] as String? ?? '';
+        if (dirPattern.isEmpty) continue;
+        external.add(ExternalImportRule(
+          dirPattern: dirPattern,
+          deny: (ruleMap['deny'] as List?)
+                  ?.map((e) => e.toString())
+                  .toList() ??
+              const [],
+        ));
+      }
+    }
+
+    final exclude = (node['exclude'] as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        const <String>[];
+
+    return ImportRuleSet(
+      internalRules: internal,
+      externalRules: external,
+      excludePatterns: exclude,
     );
   }
 

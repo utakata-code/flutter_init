@@ -14,6 +14,7 @@ import '../1_commands/doctor_command.dart';
 import '../1_commands/feature_command.dart';
 import '../1_commands/guide_command.dart';
 import '../1_commands/impl_command.dart';
+import '../1_commands/imports_command.dart';
 import '../1_commands/log_command.dart';
 import '../1_commands/mcp_command.dart';
 import '../1_commands/plan_command.dart';
@@ -60,6 +61,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required PlanCommand planCommand,
     required DiffCommand diffCommand,
     required CheckCommand checkCommand,
+    required ImportsCommand importsCommand,
     required ApplyCommand applyCommand,
     required StatusCommand statusCommand,
     required ArchCommand archCommand,
@@ -92,6 +94,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(planCommand);
     addCommand(diffCommand);
     addCommand(checkCommand);
+    addCommand(importsCommand);
     addCommand(applyCommand);
     addCommand(statusCommand);
     addCommand(archCommand);

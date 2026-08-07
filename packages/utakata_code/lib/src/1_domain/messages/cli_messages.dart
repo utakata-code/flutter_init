@@ -14,6 +14,7 @@ abstract interface class CliMessages {
   String get cmdScanDesc;
   String get cmdDiffDesc;
   String get cmdCheckDesc;
+  String get cmdImportsDesc;
   String get cmdStatusDesc;
   String get cmdRunnerDesc;
 

@@ -22,6 +22,9 @@ class JaMessages implements CliMessages {
   @override
   String get cmdCheckDesc => 'アーキテクチャの健全性チェックを行う（差分があれば exit 1）';
   @override
+  String get cmdImportsDesc =>
+      'import の健全性を監査する（アーキテクチャ定義の import_rules に基づく。違反があれば exit 1）';
+  @override
   String get cmdStatusDesc => 'プロジェクトの現在の状態を総合表示する';
   @override
   String get cmdRunnerDesc => '仕様駆動開発を支援する Flutter CLI ツール';

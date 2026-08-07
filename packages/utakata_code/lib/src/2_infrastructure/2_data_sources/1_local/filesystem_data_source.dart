@@ -74,6 +74,19 @@ class FilesystemDataSource {
       ..sort();
   }
 
+  /// [dirPath] 配下の [suffix] で終わるファイルを再帰列挙する(dirPath 相対)。
+  List<String> listFilesWithSuffix(String dirPath, String suffix) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) return const [];
+    return dir
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith(suffix))
+        .map((f) => p.relative(f.path, from: dirPath))
+        .toList()
+      ..sort();
+  }
+
   /// ファイルが存在するか確認する
   bool fileExists(String path) => File(path).existsSync();
 

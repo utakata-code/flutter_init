@@ -9,6 +9,7 @@ class ShowDocUsecase {
   static const topics = <String, String>{
     'config': 'doc/utakata-yaml.md',
     'plan': 'doc/plan-yaml.md',
+    'imports': 'doc/import-rules.md',
     'index': 'doc/README.md',
   };
 
@@ -16,6 +17,7 @@ class ShowDocUsecase {
   static const descriptions = <String, String>{
     'config': 'utakata.yaml — プロジェクト全体のマスター設定',
     'plan': 'doc/specs/plan.yaml — feature の意図レベル計画',
+    'imports': 'import_rules — import 健全性の監査規則(utakata imports)',
     'index': 'ドキュメント索引',
   };
 

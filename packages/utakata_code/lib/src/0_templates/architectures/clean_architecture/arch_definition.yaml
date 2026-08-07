@@ -504,3 +504,84 @@ guides:
       - "import '../1_widgets/3_organisms/some_organism.dart';"
     forbidden_imports:
       - "import '../../../../2_infrastructure/3_repositories/some_repository_impl.dart';"
+
+# ─── import 監査規則 (`utakata imports` が使用) ───
+# guides の allowed_imports / forbidden_imports(人間向けの例示)を
+# 機械可読に正式化したもの。
+#   internal: 各層ディレクトリが import してよい層(ホワイトリスト)。
+#             自層は常に許可。層に属さないパス(core/、main.dart 等)への
+#             import は監査対象外(composition root の逃げ道)。
+#   external: 層ディレクトリごとに import を禁止するパッケージ(ブラックリスト)。
+#             パッケージ名は glob 可(例: *riverpod*)。dart:xxx も指定可。
+#             同じパスに複数ルールが該当する場合はすべて適用される。
+#   exclude : 監査から除外するファイル(コード生成物)。
+import_rules:
+  exclude:
+    - "**.g.dart"
+    - "**.freezed.dart"
+
+  internal:
+    - dir_pattern: "1_domain/1_entities"
+      allow: ["1_domain/exceptions"]
+    - dir_pattern: "1_domain/2_repositories"
+      allow: ["1_domain/1_entities", "1_domain/exceptions"]
+    - dir_pattern: "1_domain/3_usecases"
+      allow: ["1_domain/1_entities", "1_domain/2_repositories", "1_domain/exceptions"]
+    - dir_pattern: "1_domain/exceptions"
+      allow: []
+    - dir_pattern: "2_infrastructure/1_models"
+      allow: ["1_domain/1_entities", "1_domain/exceptions"]
+    - dir_pattern: "2_infrastructure/2_data_sources/1_local"
+      allow: ["2_infrastructure/1_models"]
+    - dir_pattern: "2_infrastructure/2_data_sources/1_local/exceptions"
+      allow: []
+    - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
+      allow: ["2_infrastructure/1_models"]
+    - dir_pattern: "2_infrastructure/2_data_sources/2_remote/exceptions"
+      allow: []
+    - dir_pattern: "2_infrastructure/3_repositories"
+      allow: ["1_domain", "2_infrastructure"]
+    - dir_pattern: "3_application/1_states"
+      allow: ["1_domain/1_entities"]
+    # providers は DI 定義層(composition root)なので広く許可する
+    - dir_pattern: "3_application/2_providers"
+      allow: ["1_domain", "2_infrastructure", "3_application"]
+    - dir_pattern: "3_application/3_notifiers"
+      allow: ["1_domain/1_entities", "1_domain/3_usecases", "1_domain/exceptions",
+              "3_application/1_states", "3_application/2_providers"]
+    - dir_pattern: "4_presentation/1_widgets/1_atoms"
+      allow: []
+    - dir_pattern: "4_presentation/1_widgets/2_molecules"
+      allow: ["4_presentation/1_widgets/1_atoms"]
+    - dir_pattern: "4_presentation/1_widgets/3_organisms"
+      allow: ["1_domain/1_entities", "4_presentation/1_widgets"]
+    - dir_pattern: "4_presentation/2_pages"
+      allow: ["1_domain/1_entities", "3_application", "4_presentation"]
+
+  external:
+    # ドメイン層は純粋 Dart(UI・状態管理・IO ライブラリを持ち込まない)
+    - dir_pattern: "1_domain"
+      deny: ["flutter", "flutter_hooks", "*riverpod*", "go_router",
+             "dio", "http", "drift", "sqflite", "shared_preferences",
+             "firebase_*", "googleapis*"]
+    # インフラ層は UI・状態管理に依存しない
+    - dir_pattern: "2_infrastructure"
+      deny: ["flutter", "flutter_hooks", "*riverpod*", "go_router"]
+    - dir_pattern: "2_infrastructure/2_data_sources/1_local"
+      deny: ["dio", "http"]
+    - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
+      deny: ["drift", "sqflite", "shared_preferences"]
+    # アプリケーション層は UI(ウィジェット)に依存しない
+    - dir_pattern: "3_application"
+      deny: ["flutter", "go_router"]
+    # 状態クラスは純粋な freezed オブジェクト(riverpod にも依存しない)
+    - dir_pattern: "3_application/1_states"
+      deny: ["*riverpod*", "flutter_hooks"]
+    # プレゼンテーション層は IO を直接行わない
+    - dir_pattern: "4_presentation"
+      deny: ["dio", "http", "drift", "sqflite"]
+    # atoms / molecules は状態管理から隔離する(引数で受け取る)
+    - dir_pattern: "4_presentation/1_widgets/1_atoms"
+      deny: ["*riverpod*"]
+    - dir_pattern: "4_presentation/1_widgets/2_molecules"
+      deny: ["*riverpod*"]
