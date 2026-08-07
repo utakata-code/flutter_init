@@ -117,6 +117,7 @@ features:
 
 ```sh
 # 自動導出されている構成を plan.yaml に書き出す(以後は手で増減できる)
+# 書き出される項目は拡張子込みの完全ファイル名(v1.5.0〜。例: todo_entity.dart)
 utakata plan expand
 utakata plan expand --dry-run          # 書き込まず確認だけ
 utakata plan expand --feature todo     # 対象を1つに絞る
@@ -134,6 +135,11 @@ utakata check
 ```
 
 ### `plan expand` の注意点
+
+書き出される項目は**拡張子込みの完全ファイル名**です(v1.5.0〜)。
+plan.yaml 上で「見たまま」になり編集しやすく、`.dart` で終わる項目は
+ファイル名リテラルとして扱われるため check/apply との食い違いも起きません
+(`todo` のような項目名での手書きも従来どおり有効です)。
 
 命名が非決定的な層(`{verb}` を含む usecases など)は**書き出されません**。
 空リスト `[]` は「不要」を意味するため、導出できない層を `[]` で埋めると

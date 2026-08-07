@@ -2,6 +2,7 @@ import '../1_entities/architecture_definition_entity.dart';
 import '../1_entities/plan/plan_intent.dart';
 import '../2_repositories/architecture_repository.dart';
 import '../2_repositories/plan_repository.dart';
+import '../services/expected_structure_builder.dart';
 import '../services/name_rule_matcher.dart';
 import 'architecture_definition_entity_resolver.dart';
 
@@ -28,6 +29,11 @@ class ExpandedFeature {
 /// 「自動生成を基準としつつ、手動での増減も可能にする」ための起点。
 /// 書き出したあとは各層のリストを人間/AI が編集でき、`check`/`apply` は
 /// その宣言に従う(宣言のない層は従来どおり entities から導出)。
+///
+/// 書き出す項目は**拡張子込みの完全ファイル名**(Issue #16。例:
+/// `todo_entity.dart`)。plan.yaml 上で「見たまま」になり編集しやすく、
+/// check/apply([ExpectedStructureBuilder])と同一の導出を共有するため
+/// 食い違いも起きない(`.dart` で終わる項目はリテラル扱いされる)。
 ///
 /// 命名が非決定的な層(`{verb}` を含む usecases 等)は、導出だけでは
 /// ファイル名を決められないため**書き出さない**。それらは
@@ -93,7 +99,7 @@ class ExpandPlanUsecase {
           for (final dir in layer.dirs) '${layer.name}/$dir',
       ];
 
-  /// その層に置くべき項目名を導出する。
+  /// その層に置くべき完全ファイル名(拡張子込み)を導出する(Issue #16)。
   /// 命名が非決定的(`{verb}` / 選択肢あり)な層では null を返す。
   static List<String>? _deriveItems(
     ArchitectureDefinitionEntity arch,
@@ -103,18 +109,8 @@ class ExpandPlanUsecase {
     final rule = NameRuleMatcher.findFor(layerPath, arch.namingRules);
     if (rule == null) return null;
 
-    final description = rule.description;
-    if (description.contains('{verb}') ||
-        description.contains('|') ||
-        RegExp(r'\bor\b').hasMatch(description)) {
-      return null;
-    }
-    if (description.contains('{name}')) {
-      return feature.entities.isNotEmpty
-          ? List<String>.from(feature.entities)
-          : [feature.name];
-    }
-    if (description.contains('{feature}')) return [feature.name];
-    return null;
+    final names = ExpectedStructureBuilder.resolveFileNames(rule, feature);
+    if (names.isEmpty) return null;
+    return names.toList()..sort();
   }
 }

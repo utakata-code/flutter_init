@@ -98,7 +98,7 @@ abstract final class ExpectedStructureBuilder {
     } else if (declaration != null && declaration.isNotEmpty) {
       requiredFiles = declaration.map((item) => _fileNameFor(rule, item)).toSet();
     } else if (isLeaf) {
-      requiredFiles = _resolveFileNames(rule, feature);
+      requiredFiles = resolveFileNames(rule, feature);
     } else {
       requiredFiles = const {};
     }
@@ -152,9 +152,12 @@ abstract final class ExpectedStructureBuilder {
   /// 非決定的な)場合は空集合を返す — その場合はディレクトリの allowRule
   /// のみでファイルの妥当性を判定する(「後からの変更に弱い」問題の解消:
   /// フルパス列挙が不要になる)。
+  ///
+  /// `plan expand`(Issue #16)もこの解決を共有し、plan.yaml へ
+  /// 拡張子込みの完全ファイル名を書き出す(check/apply と同一の導出)。
   static final RegExp _alternationPattern = RegExp(r'\bor\b');
 
-  static Set<String> _resolveFileNames(
+  static Set<String> resolveFileNames(
     NamingRuleEntity? rule,
     PlanFeatureIntent feature,
   ) {
