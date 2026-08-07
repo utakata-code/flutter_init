@@ -79,6 +79,11 @@ env.g.dart
 /feature_request.yaml
 /plan_architecture.yaml
 
+# 作業メモ(実装計画・イシュー整理などのローカルスクラッチ。追跡しない)
+/ISSUES_STATUS.md
+/*_implementation_plan.md
+/v*.md
+
 # ナレッジリポジトリ(utakata_vault)のローカル作業用クローン
 packages/utakata_vault/
 
