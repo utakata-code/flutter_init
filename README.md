@@ -55,6 +55,7 @@ utakata doc init                       # doc/ workspace + utakata.yaml (pre-cont
 utakata create my_app --org com.example
 utakata apply --scope feature          # scaffold whatever plan.yaml declares
 utakata check                          # missing / extra / naming violations in one pass
+utakata imports                        # dependency-direction audit (import_rules)
 ```
 
 Details: [packages/utakata_code/README.md](packages/utakata_code/README.md) · [pub.dev/packages/utakata](https://pub.dev/packages/utakata)

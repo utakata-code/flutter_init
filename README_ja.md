@@ -56,6 +56,7 @@ utakata doc init                       # doc/ ワークスペース + utakata.ya
 utakata create my_app --org com.example
 utakata apply --scope feature          # plan.yaml の宣言どおりに生成
 utakata check                          # 不足・余分・命名違反を1回で検証
+utakata imports                        # import の依存方向を監査(import_rules)
 ```
 
 詳細: [packages/utakata_code/README_ja.md](packages/utakata_code/README_ja.md) · [pub.dev/packages/utakata](https://pub.dev/packages/utakata)
