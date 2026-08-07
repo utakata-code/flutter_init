@@ -15,7 +15,8 @@
 - 🧭 **Master config (`utakata.yaml`)**: one file declares the architecture, the `team` (client / developer / AI agents and who decides what), the `skills` to sync into `.claude/skills/`, and an optional remote `knowledge_repo` — pinned by commit SHA in `utakata.lock` via `utakata arch get`. Without it, everything ships bundled and fully offline.
 - 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)**. Customize by ejecting a definition with `utakata arch eject <id>`.
 - 🔍 **One Structural Check**: `utakata check` reports missing files, unexpected files, and naming violations in a single pass against your `arch_definition.yaml` — with GUIDE excerpts inline so the fix is obvious.
-- 📋 **Intent-Level Plan**: Declare features (name, permission, entities) in `doc/specs/plan.yaml`; `utakata apply` scaffolds exactly what's missing. `utakata plan adopt` detects code that isn't in the plan yet and appends it, format-preserving.
+- 📋 **Intent-Level Plan**: Declare features (name, permission, entities) in `doc/specs/plan.yaml`; `utakata apply` scaffolds exactly what's missing — layer directories *and* the required files as empty stubs, so file existence is plan-controlled too. `utakata plan adopt` detects code that isn't in the plan yet and appends it, format-preserving.
+- 🔗 **Deterministic Import Audit**: `utakata imports` verifies dependency *direction*, not just file placement — each layer's imports are checked against an internal whitelist and a per-layer package blacklist declared as `import_rules` in `arch_definition.yaml`.
 - 🎚️ **Per-Layer Granularity**: A feature doesn't have to mean *every* layer. Declare only the layers you need (`layers:`), mark one as not applicable with an empty list, and pin exact files even where naming is free-form. `utakata plan expand` writes the auto-derived baseline into the plan so you can edit it.
 - 📚 **Knowledge stays out of your repo — and out of the package**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) and are fetched on demand (version-pinned, cached in `~/.utakata/`). The package bundles only the machine-readable definitions, so `create`/`apply`/`check` work fully offline; projects contain only the app + `doc/` + config — no copied guide tree, and `apply` no longer writes per-directory GUIDE.md files (use `guide for <file>`).
 - 🗂️ **Client-Facing Knowledge Vault**: point `vault:` at your own repo of how-to-obtain-an-account / pricing / review-requirement notes, and the generated `utakata-client-explainer` skill writes client explanations from it — checking each entry's recorded verification date instead of quoting prices from memory.
@@ -98,7 +99,7 @@ features:
 | Command | Description |
 |---|---|
 | `utakata doc init` | Create the `doc/` workspace (specs/records/preview/impl/knowledge/archive) + `utakata.yaml`, ahead of the Flutter project itself |
-| `utakata doc show <config\|plan>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` (matches the installed version; also available as the MCP `doc_get` tool) |
+| `utakata doc show <config\|plan\|imports>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` (matches the installed version; also available as the MCP `doc_get` tool) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | Create a new Flutter project with the chosen architecture, plus `.mcp.json` + `.claude/` |
 | `utakata doctor [--migrate]` | Diagnose the project; `--migrate` moves a legacy `AI/`-based layout (or an ad-hoc `doc/`) to the current one |
 
@@ -112,6 +113,7 @@ features:
 | `utakata plan expand [--dry-run] [--feature <name>]` | Materialize the auto-derived per-layer file lists into `plan.yaml`, so you can then edit them by hand |
 | `utakata plan add <feature> <layer> <item...>` / `remove <feature> <layer> <item>` | Add or remove one item in a layer's list (for AI agents and scripts; format-preserving) |
 | `utakata check [--json] [--file <path>]` | Report missing files, extra files, and naming violations in one pass |
+| `utakata imports [--json] [--arch <id>]` | Audit import health against the architecture's `import_rules` (internal layer whitelist / external package blacklist); exits 1 on violations |
 | `utakata status [--brief] [--write-report]` | Flutter version + lint + `check` summary. `--brief` skips flutter calls entirely (used by Claude Code hooks) |
 | `utakata arch list\|show\|eject\|export` | Inspect architecture definitions or eject one locally to customize |
 | `utakata arch get [--update]` | Fetch the opt-in `knowledge_repo` from `utakata.yaml` and pin its commit SHA in `utakata.lock` |
