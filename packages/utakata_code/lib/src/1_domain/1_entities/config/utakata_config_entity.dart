@@ -32,7 +32,11 @@ final class KnowledgeRepoRef {
 /// 第一の参照先とし、無い場合のみ [url] からフェッチする。これにより
 /// 編集のたびに push → fetch する必要がない。
 final class VaultRef {
-  /// 手元のクローンへの絶対パス(`~` 展開あり)。指定時はこちらが優先。
+  /// 手元のクローンへのパス(`~` 展開あり)。指定時はこちらが優先。
+  ///
+  /// 相対パスは「この設定が書かれたファイルの場所」基準で解決される
+  /// (プロジェクトの `utakata.yaml` ならプロジェクトルート、
+  /// `~/.utakata/config.yaml` なら `~/.utakata/`。Issue #18)。
   final String? path;
 
   /// リモート Git URL(プライベートリポジトリ可。認証は git の設定に委ねる)。

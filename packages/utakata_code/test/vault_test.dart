@@ -94,4 +94,34 @@ void main() {
     writeGlobalConfig('vault:\n  path: "${tempDir.path}/does_not_exist"\n');
     expect(await repo.resolveRoot(projectDir), isNull);
   });
+
+  group('相対パスの解決 (Issue #18)', () {
+    test('utakata.yaml の相対 path はプロジェクトルート基準', () async {
+      Directory('$projectDir/knowledge/vault').createSync(recursive: true);
+      writeProjectConfig('schema: 1\nvault:\n  path: knowledge/vault\n');
+      expect(await repo.resolveRoot(projectDir), '$projectDir/knowledge/vault');
+    });
+
+    test('utakata.yaml の ../ 相対 path もプロジェクトルート基準', () async {
+      writeProjectConfig('schema: 1\nvault:\n  path: ../vault\n');
+      expect(await repo.resolveRoot(projectDir), vaultDir);
+    });
+
+    test('グローバル設定の相対 path は ~/.utakata/ 基準', () async {
+      Directory('$homeDir/.utakata/vault').createSync(recursive: true);
+      writeGlobalConfig('vault:\n  path: vault\n');
+      expect(await repo.resolveRoot(projectDir), '$homeDir/.utakata/vault');
+    });
+
+    test('~ 始まりの path はホーム展開される', () async {
+      Directory('$homeDir/my_vault').createSync(recursive: true);
+      writeGlobalConfig('vault:\n  path: "~/my_vault"\n');
+      expect(await repo.resolveRoot(projectDir), '$homeDir/my_vault');
+    });
+
+    test('絶対 path は設定の場所に関係なくそのまま使う', () async {
+      writeProjectConfig('schema: 1\nvault:\n  path: "$vaultDir"\n');
+      expect(await repo.resolveRoot(projectDir), vaultDir);
+    });
+  });
 }
