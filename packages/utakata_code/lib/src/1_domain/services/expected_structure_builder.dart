@@ -96,7 +96,14 @@ abstract final class ExpectedStructureBuilder {
     if (optedOut) {
       requiredFiles = const {};
     } else if (declaration != null && declaration.isNotEmpty) {
-      requiredFiles = declaration.map((item) => _fileNameFor(rule, item)).toSet();
+      // パス区切りを含む項目は不正として無視する(サブディレクトリは layers の
+      // キー側で宣言する)。check は requiredFiles を「ディレクトリ直下の
+      // ファイル名」として照合するため、通すと apply だけが入れ子を生成して
+      // check が永遠に missing 報告する食い違いになる。
+      requiredFiles = declaration
+          .where((item) => !item.contains('/') && !item.contains(r'\'))
+          .map((item) => _fileNameFor(rule, item))
+          .toSet();
     } else if (isLeaf) {
       requiredFiles = resolveFileNames(rule, feature);
     } else {
@@ -168,12 +175,18 @@ abstract final class ExpectedStructureBuilder {
         _alternationPattern.hasMatch(description)) {
       return const {};
     }
+    final Set<String> names;
     if (description.contains('{name}')) {
       final entities = feature.entities.isNotEmpty ? feature.entities : [feature.name];
-      return entities
+      names = entities
           .map((e) => description.replaceAll('{name}', e).replaceAll('{feature}', feature.name))
           .toSet();
+    } else {
+      names = {description.replaceAll('{feature}', feature.name)};
     }
-    return {description.replaceAll('{feature}', feature.name)};
+    // description は本来「エラー表示用の説明」なので、自由記述(prose)の
+    // 可能性がある。導出結果が規則自身の file_pattern を満たさない場合は
+    // 決定的なファイル名とみなさない(allowRule のみで判定する)。
+    return names.where(rule.regex.hasMatch).toSet();
   }
 }

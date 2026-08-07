@@ -25,6 +25,25 @@ class JaMessages implements CliMessages {
   String get cmdImportsDesc =>
       'import の健全性を監査する（アーキテクチャ定義の import_rules に基づく。違反があれば exit 1）';
   @override
+  String importsSection(String archId) =>
+      '🔎 utakata imports — import 監査 ($archId)';
+  @override
+  String importsNoRules(String archId) =>
+      'アーキテクチャ "$archId" に import_rules が定義されていません。'
+      '監査するには arch_definition.yaml に import_rules を追加してください。';
+  @override
+  String importsClean(int audited, int excluded) =>
+      'import 違反はありません(監査 $audited ファイル、除外 $excluded)';
+  @override
+  String importsViolationSummary(int count, int audited, int excluded) =>
+      '$count 件の import 違反(監査 $audited ファイル、除外 $excluded)';
+  @override
+  String importsInternalViolation(String from, String to, String allow) =>
+      '「$from」から「$to」への import は許可されていません(allow: $allow)';
+  @override
+  String importsExternalViolation(String pattern, String pkg, String deny) =>
+      '「$pattern」では $pkg の import が禁止されています(deny: $deny)';
+  @override
   String get cmdStatusDesc => 'プロジェクトの現在の状態を総合表示する';
   @override
   String get cmdRunnerDesc => '仕様駆動開発を支援する Flutter CLI ツール';

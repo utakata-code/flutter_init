@@ -95,6 +95,12 @@ void main() {
     expect(await repo.resolveRoot(projectDir), isNull);
   });
 
+  test('プロジェクトの path が空文字なら未設定としてグローバルへフォールバックする', () async {
+    writeGlobalConfig('vault:\n  path: "$vaultDir"\n');
+    writeProjectConfig('schema: 1\nvault:\n  path: ""\n');
+    expect(await repo.resolveRoot(projectDir), vaultDir);
+  });
+
   group('相対パスの解決 (Issue #18)', () {
     test('utakata.yaml の相対 path はプロジェクトルート基準', () async {
       Directory('$projectDir/knowledge/vault').createSync(recursive: true);

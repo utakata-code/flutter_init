@@ -231,22 +231,25 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
   }
 
   /// `import_rules` セクション(Issue #20)をパースする。無ければ null。
+  ///
+  /// eject した定義の手編集を想定し、型が想定と違う値(リストであるべき所に
+  /// スカラ等)はクラッシュせず無視する(壊れた値 = 未指定と同じ扱い)。
   static ImportRuleSet? _parseImportRules(Object? node) {
     if (node is! Map) return null;
+
+    List<String> stringList(Object? value) =>
+        value is List ? value.map((e) => e.toString()).toList() : const [];
 
     final internal = <InternalImportRule>[];
     final internalList = node['internal'];
     if (internalList is List) {
       for (final ruleMap in internalList) {
         if (ruleMap is! Map) continue;
-        final dirPattern = ruleMap['dir_pattern'] as String? ?? '';
-        if (dirPattern.isEmpty) continue;
+        final dirPattern = ruleMap['dir_pattern'];
+        if (dirPattern is! String || dirPattern.isEmpty) continue;
         internal.add(InternalImportRule(
           dirPattern: dirPattern,
-          allow: (ruleMap['allow'] as List?)
-                  ?.map((e) => e.toString())
-                  .toList() ??
-              const [],
+          allow: stringList(ruleMap['allow']),
         ));
       }
     }
@@ -256,27 +259,19 @@ class ArchitectureRepositoryImpl implements ArchitectureRepository {
     if (externalList is List) {
       for (final ruleMap in externalList) {
         if (ruleMap is! Map) continue;
-        final dirPattern = ruleMap['dir_pattern'] as String? ?? '';
-        if (dirPattern.isEmpty) continue;
+        final dirPattern = ruleMap['dir_pattern'];
+        if (dirPattern is! String || dirPattern.isEmpty) continue;
         external.add(ExternalImportRule(
           dirPattern: dirPattern,
-          deny: (ruleMap['deny'] as List?)
-                  ?.map((e) => e.toString())
-                  .toList() ??
-              const [],
+          deny: stringList(ruleMap['deny']),
         ));
       }
     }
 
-    final exclude = (node['exclude'] as List?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        const <String>[];
-
     return ImportRuleSet(
       internalRules: internal,
       externalRules: external,
-      excludePatterns: exclude,
+      excludePatterns: stringList(node['exclude']),
     );
   }
 

@@ -10,10 +10,14 @@ import '../1_entities/imports/import_audit_report.dart';
 /// - **外部依存**(`package:` / `dart:` import): [ExternalImportRule] の
 ///   ブラックリスト。該当する全ルールの deny を重ねて適用する。
 ///
+/// 監査対象は `lib/features/` 配下のみ(層構造が定義されるのはそこだけ。
+/// `lib/core/` などに層名と同名のディレクトリがあっても層として誤分類しない)。
 /// パターン照合はすべて**パスセグメント単位**([NameRuleMatcher] と同じ流儀。
 /// ただし途中一致も許す): `1_domain` は
 /// `lib/features/user/todo/1_domain/1_entities` に一致する。
 abstract final class ImportAuditor {
+  /// 層構造が存在する監査ルート。この外のファイル・宛先は監査対象外。
+  static const _auditRootPrefix = 'lib/features/';
   /// [selfPackage]: 監査対象プロジェクトのパッケージ名(pubspec.yaml の name)。
   ///   `package:<selfPackage>/...` は内部依存として解決される。
   /// [knownScopes]: 「層に属する」と判定するためのパス集合(層名 + 全 dirPattern)。
@@ -40,24 +44,20 @@ abstract final class ImportAuditor {
       }
       audited++;
 
+      // 層構造の外(core/、main.dart 等)のファイルは監査しない
+      final inScope = file.path.startsWith(_auditRootPrefix);
       final dirSegments = _segments(_dirname(file.path));
-      final internalRule = _findInternalRule(dirSegments, rules.internalRules);
-      final externalRules = rules.externalRules
-          .where((r) => _containsRun(dirSegments, _segments(r.dirPattern)))
-          .toList(growable: false);
+      final internalRule =
+          inScope ? _findInternalRule(dirSegments, rules.internalRules) : null;
+      final externalRules = !inScope
+          ? const <ExternalImportRule>[]
+          : rules.externalRules
+              .where((r) => _containsRun(dirSegments, _segments(r.dirPattern)))
+              .toList(growable: false);
 
       for (final uri in file.imports) {
         if (uri.startsWith('dart:')) {
-          final denied = _findDeny(externalRules, uri);
-          if (denied != null) {
-            violations.add(ImportViolation(
-              filePath: file.path,
-              importUri: uri,
-              kind: ImportViolationKind.external,
-              detail: '「${denied.$1.dirPattern}」では '
-                  '$uri の import が禁止されています(deny: ${denied.$2})',
-            ));
-          }
+          _checkExternal(file, uri, uri, externalRules, violations);
           continue;
         }
 
@@ -70,16 +70,7 @@ abstract final class ImportAuditor {
             _checkInternal(file, uri, 'lib/${rest.substring(slash + 1)}',
                 internalRule, scopeSegments, violations);
           } else {
-            final denied = _findDeny(externalRules, pkg);
-            if (denied != null) {
-              violations.add(ImportViolation(
-                filePath: file.path,
-                importUri: uri,
-                kind: ImportViolationKind.external,
-                detail: '「${denied.$1.dirPattern}」では '
-                    'package:$pkg の import が禁止されています(deny: ${denied.$2})',
-              ));
-            }
+            _checkExternal(file, uri, pkg, externalRules, violations);
           }
           continue;
         }
@@ -116,6 +107,9 @@ abstract final class ImportAuditor {
   ) {
     if (rule == null) return; // 発信元が層に属さない → 監査対象外
 
+    // 宛先が監査ルートの外(core/ 等) → 監査対象外
+    if (!target.startsWith(_auditRootPrefix)) return;
+
     final targetDir = _segments(_dirname(target));
 
     // 自層への import は常に許可
@@ -126,7 +120,7 @@ abstract final class ImportAuditor {
       if (_containsRun(targetDir, _segments(allow))) return;
     }
 
-    // 宛先がどの層にも属さない(core/ 等) → 監査対象外
+    // 宛先がどの層にも属さない → 監査対象外
     final targetScope = _longestScope(targetDir, scopeSegments);
     if (targetScope == null) return;
 
@@ -134,8 +128,29 @@ abstract final class ImportAuditor {
       filePath: file.path,
       importUri: uri,
       kind: ImportViolationKind.internal,
-      detail: '「${rule.dirPattern}」から「$targetScope」への import は'
-          '許可されていません(allow: ${rule.allow.isEmpty ? "なし" : rule.allow.join(", ")})',
+      rulePattern: rule.dirPattern,
+      target: targetScope,
+      ruleDetail: rule.allow,
+    ));
+  }
+
+  /// 外部 import([pkgName] = パッケージ名または `dart:` URI)を検証する。
+  static void _checkExternal(
+    DartSourceFile file,
+    String uri,
+    String pkgName,
+    List<ExternalImportRule> externalRules,
+    List<ImportViolation> violations,
+  ) {
+    final denied = _findDeny(externalRules, pkgName);
+    if (denied == null) return;
+    violations.add(ImportViolation(
+      filePath: file.path,
+      importUri: uri,
+      kind: ImportViolationKind.external,
+      rulePattern: denied.$1.dirPattern,
+      target: pkgName,
+      ruleDetail: [denied.$2],
     ));
   }
 
@@ -182,6 +197,119 @@ abstract final class ImportAuditor {
       }
     }
     return best?.join('/');
+  }
+
+  /// Dart ソースから import/export ディレクティブの URI を抽出する。
+  ///
+  /// 正規表現ではなく軽量な字句走査を行う:
+  /// - 行コメント・ブロックコメント(ネスト対応)内の import 行は無視する
+  /// - 文字列リテラル(`'''` 複数行・raw 含む)内の import 行は無視する
+  /// - `import 'a.dart' if (dart.library.io) 'b.dart';` の**全分岐 URI** を返す
+  /// - キーワードは行頭(空白のみの後)にある場合のみディレクティブとみなす
+  static List<String> extractDirectives(String source) {
+    final uris = <String>[];
+    var i = 0;
+    final n = source.length;
+    var lineStart = true; // 行頭から空白・コメントのみか
+    var inDirective = false; // import/export 読了後、';' まで
+
+    bool isIdentCode(int c) =>
+        (c >= 0x30 && c <= 0x39) || // 0-9
+        (c >= 0x41 && c <= 0x5A) || // A-Z
+        (c >= 0x61 && c <= 0x7A) || // a-z
+        c == 0x5F || // _
+        c == 0x24; // $
+
+    while (i < n) {
+      final ch = source[i];
+
+      if (ch == '\n') {
+        lineStart = true;
+        i++;
+        continue;
+      }
+      if (ch == ' ' || ch == '\t' || ch == '\r') {
+        i++;
+        continue;
+      }
+
+      // コメント
+      if (ch == '/' && i + 1 < n) {
+        final next = source[i + 1];
+        if (next == '/') {
+          while (i < n && source[i] != '\n') {
+            i++;
+          }
+          continue;
+        }
+        if (next == '*') {
+          var depth = 1;
+          i += 2;
+          while (i < n && depth > 0) {
+            if (source.startsWith('/*', i)) {
+              depth++;
+              i += 2;
+            } else if (source.startsWith('*/', i)) {
+              depth--;
+              i += 2;
+            } else {
+              i++;
+            }
+          }
+          continue;
+        }
+      }
+
+      // 文字列リテラル(raw プレフィックス r'...' / r"..." を含む)
+      final isRawString = ch == 'r' &&
+          i + 1 < n &&
+          (source[i + 1] == "'" || source[i + 1] == '"');
+      if (ch == "'" || ch == '"' || isRawString) {
+        final quoteIndex = isRawString ? i + 1 : i;
+        final quote = source[quoteIndex];
+        final triple = source.startsWith(quote * 3, quoteIndex);
+        var j = quoteIndex + (triple ? 3 : 1);
+        final content = StringBuffer();
+        while (j < n) {
+          if (!isRawString && source[j] == r'\' && j + 1 < n) {
+            content.write(source[j + 1]);
+            j += 2;
+            continue;
+          }
+          if (triple ? source.startsWith(quote * 3, j) : source[j] == quote) {
+            j += triple ? 3 : 1;
+            break;
+          }
+          content.write(source[j]);
+          j++;
+        }
+        // ディレクティブ内の(単一行)文字列 = URI。条件付き import の
+        // 各分岐もここで拾われる。
+        if (inDirective && !triple) uris.add(content.toString());
+        i = j;
+        lineStart = false;
+        continue;
+      }
+
+      // 識別子・キーワード
+      if (isIdentCode(ch.codeUnitAt(0))) {
+        final start = i;
+        while (i < n && isIdentCode(source.codeUnitAt(i))) {
+          i++;
+        }
+        final word = source.substring(start, i);
+        if (lineStart && (word == 'import' || word == 'export')) {
+          inDirective = true;
+        }
+        lineStart = false;
+        continue;
+      }
+
+      if (ch == ';') inDirective = false;
+      lineStart = false;
+      i++;
+    }
+    return uris;
   }
 
   // ─── パス・パターンユーティリティ(POSIX 前提の純関数) ───

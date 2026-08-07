@@ -114,7 +114,7 @@ guides:
       - "import 'dart:core';"
       - "import 'package:freezed_annotation/freezed_annotation.dart';"
       - "import 'package:json_annotation/json_annotation.dart';"
-      - "import '../other_entity.dart';"
+      - "import 'other_entity.dart';"
     forbidden_imports:
       - "import 'package:flutter/material.dart';"
       - "import 'package:riverpod/riverpod.dart';"
@@ -282,6 +282,11 @@ import_rules:
     # エンティティは純粋 Dart(IO ライブラリも持ち込まない)
     - dir_pattern: "1_model/1_entities"
       deny: ["dio", "http", "drift", "sqflite", "shared_preferences"]
+    # リポジトリ(インターフェース)・例外も IO ライブラリに依存しない
+    - dir_pattern: "1_model/2_repositories"
+      deny: ["dio", "http", "drift", "sqflite"]
+    - dir_pattern: "1_model/exceptions"
+      deny: ["dio", "http"]
     # ViewModel 層は UI(ウィジェット)に依存しない
     - dir_pattern: "2_viewmodel"
       deny: ["flutter", "go_router"]
@@ -291,3 +296,6 @@ import_rules:
     # View 層は IO を直接行わない
     - dir_pattern: "3_view"
       deny: ["dio", "http", "drift", "sqflite"]
+    # ウィジェット部品は状態管理から隔離する(引数で受け取る。screens は watch 可)
+    - dir_pattern: "3_view/1_widgets"
+      deny: ["*riverpod*"]

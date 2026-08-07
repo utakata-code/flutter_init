@@ -168,6 +168,60 @@ void main() {
     });
   });
 
+  group('ディレクティブ抽出(字句走査)', () {
+    test('コメント・文字列内の import は拾わない', () {
+      const source = '''
+// import 'package:line_comment/a.dart';
+/* import 'package:block_comment/a.dart'; */
+/* ネスト /* import 'package:nested/a.dart'; */ まだコメント */
+const s = \'\'\'
+import 'package:multiline_string/a.dart';
+\'\'\';
+import 'package:real/real.dart';
+export 'src/real_export.dart';
+''';
+      expect(ImportAuditor.extractDirectives(source),
+          ['package:real/real.dart', 'src/real_export.dart']);
+    });
+
+    test('条件付き import は全分岐の URI を返す', () {
+      const source = '''
+import 'stub.dart'
+    if (dart.library.io) 'package:dio/dio.dart'
+    if (dart.library.html) 'web.dart';
+''';
+      expect(ImportAuditor.extractDirectives(source),
+          ['stub.dart', 'package:dio/dio.dart', 'web.dart']);
+    });
+
+    test('行頭以外の import 語や通常コードの文字列は拾わない', () {
+      const source = '''
+import 'a.dart';
+void main() {
+  final x = foo.import('not_a_directive.dart');
+  print('import "fake.dart"');
+}
+''';
+      expect(ImportAuditor.extractDirectives(source), ['a.dart']);
+    });
+  });
+
+  group('監査スコープ(lib/features/ 配下のみ)', () {
+    test('lib/core/ 配下に層名と同名のディレクトリがあっても監査されない', () {
+      final report = auditOne(
+        'lib/core/1_domain/shared.dart',
+        ['package:flutter/material.dart'],
+      );
+      expect(report.violations, isEmpty);
+    });
+
+    test('lib/core/ の層名ディレクトリへの import は違反にならない', () {
+      final report =
+          auditOne(entityPath, ['package:myapp/core/1_domain/shared.dart']);
+      expect(report.violations, isEmpty);
+    });
+  });
+
   group('exclude', () {
     test('生成ファイルは監査から除外される', () {
       final report = auditOne(
@@ -181,9 +235,9 @@ void main() {
   });
 
   group('AuditImportsUsecase', () {
-    test('lib/ を走査し、pubspec の name を self package として解決する', () async {
+    test('lib/ を走査し、クォートされた pubspec name も self package として解決する', () async {
       final files = <String, String>{
-        '/proj/pubspec.yaml': 'name: myapp\nversion: 1.0.0\n',
+        '/proj/pubspec.yaml': 'name: "myapp"\nversion: 1.0.0\n',
         '/proj/lib/features/user/todo/1_domain/1_entities/todo_entity.dart': '''
 import 'package:flutter/material.dart';
 import 'package:myapp/features/user/todo/2_infrastructure/1_models/todo_model.dart';

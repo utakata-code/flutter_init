@@ -197,7 +197,7 @@ Future<void> main(List<String> arguments) async {
     archRepo: archRepo,
     addFeatureUsecase: addFeatureUsecase,
     generateCoreUsecase: generateCoreUsecase,
-    fileExists: fs.fileExists,
+    fileExists: fs.entityExists,
     writeFile: fs.writeFile,
   );
 

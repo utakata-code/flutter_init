@@ -87,6 +87,34 @@ void main() {
     expect(results.single.layers.containsKey('1_domain/1_entities'), isFalse);
   });
 
+  test('自由記述(prose)の description は file_pattern を満たさないため書き出さない', () async {
+    const proseArch = ArchitectureDefinitionEntity(
+      id: 'custom',
+      displayName: 'Custom',
+      layers: [
+        LayerDefinitionEntity(name: '1_domain', dirs: ['helpers']),
+      ],
+      namingRules: [
+        NamingRuleEntity(
+          dirPattern: '1_domain/helpers',
+          filePattern: r'^.+_helper\.dart$',
+          description: '任意のヘルパー名(自由)',
+        ),
+      ],
+    );
+    final planRepo = _RecordingPlanRepo()
+      ..plan = const PlanIntent(defaultArchitectureId: 'custom', features: [
+        PlanFeatureIntent(name: 'todo', permission: 'user', entities: ['todo']),
+      ]);
+    final usecase = ExpandPlanUsecase(
+        planRepo: planRepo, archRepo: _FixedArchRepo(proseArch));
+
+    final results = await usecase.execute('/proj');
+
+    expect(results.single.layers, isEmpty);
+    expect(planRepo.written, isEmpty);
+  });
+
   test('dry-run では書き込まない', () async {
     final planRepo = _RecordingPlanRepo();
     final usecase = usecaseFor(

@@ -134,6 +134,19 @@ void main() {
     expect(result.createdFiles.where((f) => f.contains('4_presentation')), isEmpty);
   });
 
+  test('パス区切りを含む layers 項目は無視する(check と解釈が食い違うため)', () async {
+    planRepo.plan = planWith(const PlanFeatureIntent(
+      name: 'todo',
+      permission: 'user',
+      entities: ['todo'],
+      layers: {'1_domain/1_entities': ['config/todo_settings.dart']},
+    ));
+
+    final result = await usecase.execute('/proj', scope: 'feature');
+
+    expect(result.createdFiles.where((f) => f.contains('config/')), isEmpty);
+  });
+
   test('dry-run では書き込まず、生成予定のみ返す', () async {
     planRepo.plan = planWith(const PlanFeatureIntent(
         name: 'todo', permission: 'user', entities: ['todo']));

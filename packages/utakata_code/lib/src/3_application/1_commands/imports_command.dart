@@ -50,7 +50,10 @@ class ImportsCommand extends BaseCommand {
               'file': v.filePath,
               'import': v.importUri,
               'kind': v.kind.name,
-              'detail': v.detail,
+              'rule_pattern': v.rulePattern,
+              'target': v.target,
+              'rule_detail': v.ruleDetail,
+              'detail': _detailOf(v),
             },
         ],
       }));
@@ -58,17 +61,15 @@ class ImportsCommand extends BaseCommand {
     }
 
     if (report == null) {
-      Logger.warn('アーキテクチャ "${result.architectureId}" に import_rules が'
-          '定義されていません。監査するには arch_definition.yaml に '
-          'import_rules を追加してください。');
+      Logger.warn(_msg.importsNoRules(result.architectureId));
       return 0;
     }
 
-    Logger.section('🔎 utakata imports — import 監査 (${result.architectureId})');
+    Logger.section(_msg.importsSection(result.architectureId));
 
     if (report.isClean) {
-      Logger.success('import 違反はありません'
-          '(監査 ${report.auditedFileCount} ファイル、除外 ${report.excludedFileCount})');
+      Logger.success(
+          _msg.importsClean(report.auditedFileCount, report.excludedFileCount));
       return 0;
     }
 
@@ -79,11 +80,23 @@ class ImportsCommand extends BaseCommand {
         Logger.info('');
         Logger.info('  ${v.filePath}');
       }
-      Logger.error("    ✗ import '${v.importUri}' — ${v.detail}");
+      Logger.error("    ✗ import '${v.importUri}' — ${_detailOf(v)}");
     }
     Logger.info('');
-    Logger.error('${report.violations.length} 件の import 違反'
-        '(監査 ${report.auditedFileCount} ファイル、除外 ${report.excludedFileCount})');
+    Logger.error(_msg.importsViolationSummary(report.violations.length,
+        report.auditedFileCount, report.excludedFileCount));
     return 1;
+  }
+
+  /// 構造化された違反([ImportViolation])を表示文へ整形する。
+  String _detailOf(ImportViolation v) {
+    if (v.kind == ImportViolationKind.internal) {
+      final allow = v.ruleDetail.isEmpty ? '-' : v.ruleDetail.join(', ');
+      return _msg.importsInternalViolation(v.rulePattern, v.target, allow);
+    }
+    final pkg =
+        v.target.startsWith('dart:') ? v.target : 'package:${v.target}';
+    return _msg.importsExternalViolation(
+        v.rulePattern, pkg, v.ruleDetail.join(', '));
   }
 }

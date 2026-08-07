@@ -31,11 +31,6 @@ class AuditImportsUsecase {
         _listFilesWithSuffix = listFilesWithSuffix,
         _readFile = readFile;
 
-  static final _directivePattern = RegExp(
-    r'''^\s*(?:import|export)\s+(?:'([^']+)'|"([^"]+)")''',
-    multiLine: true,
-  );
-
   Future<AuditImportsResult> execute(
     String projectDir, {
     String? explicitArch,
@@ -57,10 +52,7 @@ class AuditImportsUsecase {
       if (content == null) continue;
       files.add(DartSourceFile(
         path: 'lib/${relative.replaceAll('\\', '/')}',
-        imports: [
-          for (final match in _directivePattern.allMatches(content))
-            (match.group(1) ?? match.group(2))!,
-        ],
+        imports: ImportAuditor.extractDirectives(content),
       ));
     }
 
@@ -85,11 +77,13 @@ class AuditImportsUsecase {
 
   /// pubspec.yaml の `name:` を読む(`package:<name>/` を内部依存として
   /// 解決するため)。読めなければ空文字(= package: import はすべて外部扱い)。
+  /// `name: "myapp"` のようにクォートされていても正しく取り出す。
   Future<String> _readPackageName(String projectDir) async {
     final content = await _readFile(p.join(projectDir, 'pubspec.yaml'));
     if (content == null) return '';
-    final match =
-        RegExp(r'^name:\s*(\S+)', multiLine: true).firstMatch(content);
+    final match = RegExp(r'''^name:\s*['"]?([A-Za-z0-9_]+)['"]?\s*$''',
+            multiLine: true)
+        .firstMatch(content);
     return match?.group(1) ?? '';
   }
 }

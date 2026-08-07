@@ -74,6 +74,14 @@ class FilesystemDataSource {
       ..sort();
   }
 
+  /// パスに何らかのエンティティ(ファイル・ディレクトリ・リンク)が存在するか。
+  ///
+  /// 「無ければ作る」系の存在ガードはこちらを使う — [fileExists] は
+  /// 同パスがディレクトリだと false を返すため、後続の書き込みが
+  /// 生の FileSystemException でクラッシュしてしまう。
+  bool entityExists(String path) =>
+      FileSystemEntity.typeSync(path) != FileSystemEntityType.notFound;
+
   /// [dirPath] 配下の [suffix] で終わるファイルを再帰列挙する(dirPath 相対)。
   List<String> listFilesWithSuffix(String dirPath, String suffix) {
     final dir = Directory(dirPath);

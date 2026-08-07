@@ -18,6 +18,14 @@ abstract interface class CliMessages {
   String get cmdStatusDesc;
   String get cmdRunnerDesc;
 
+  // ─── imports (#20) ───
+  String importsSection(String archId);
+  String importsNoRules(String archId);
+  String importsClean(int audited, int excluded);
+  String importsViolationSummary(int count, int audited, int excluded);
+  String importsInternalViolation(String from, String to, String allow);
+  String importsExternalViolation(String pattern, String pkg, String deny);
+
   // ─── コマンドランナー ───
   String get versionHelp;
 

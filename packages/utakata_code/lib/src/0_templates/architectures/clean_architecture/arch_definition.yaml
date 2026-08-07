@@ -225,7 +225,7 @@ guides:
       - "import 'dart:core';"
       - "import 'package:freezed_annotation/freezed_annotation.dart';"
       - "import 'package:json_annotation/json_annotation.dart';"
-      - "import '../other_entity.dart';"
+      - "import 'other_entity.dart';"
     forbidden_imports:
       - "import 'package:flutter/material.dart';"
       - "import 'package:riverpod/riverpod.dart';"
@@ -525,20 +525,22 @@ import_rules:
       allow: ["1_domain/exceptions"]
     - dir_pattern: "1_domain/2_repositories"
       allow: ["1_domain/1_entities", "1_domain/exceptions"]
+    # GUIDE が公認する services/ や value_objects/ などドメイン内の
+    # 任意サブディレクトリも含めて、ドメイン層内はすべて import 可
     - dir_pattern: "1_domain/3_usecases"
-      allow: ["1_domain/1_entities", "1_domain/2_repositories", "1_domain/exceptions"]
+      allow: ["1_domain"]
     - dir_pattern: "1_domain/exceptions"
-      allow: []
+      allow: ["1_domain/1_entities"]
     - dir_pattern: "2_infrastructure/1_models"
-      allow: ["1_domain/1_entities", "1_domain/exceptions"]
+      allow: ["1_domain"]
     - dir_pattern: "2_infrastructure/2_data_sources/1_local"
       allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/2_data_sources/1_local/exceptions"
-      allow: []
+      allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
       allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/2_data_sources/2_remote/exceptions"
-      allow: []
+      allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/3_repositories"
       allow: ["1_domain", "2_infrastructure"]
     - dir_pattern: "3_application/1_states"
@@ -552,7 +554,7 @@ import_rules:
     - dir_pattern: "4_presentation/1_widgets/1_atoms"
       allow: []
     - dir_pattern: "4_presentation/1_widgets/2_molecules"
-      allow: ["4_presentation/1_widgets/1_atoms"]
+      allow: ["1_domain/1_entities", "4_presentation/1_widgets/1_atoms"]
     - dir_pattern: "4_presentation/1_widgets/3_organisms"
       allow: ["1_domain/1_entities", "4_presentation/1_widgets"]
     - dir_pattern: "4_presentation/2_pages"

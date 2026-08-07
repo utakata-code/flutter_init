@@ -22,6 +22,9 @@ enum ImportViolationKind {
 }
 
 /// import 違反1件。
+///
+/// 表示文言は持たない(i18n は application 層の責務)。どの規則に
+/// どう反したかを構造化して保持する。
 final class ImportViolation {
   /// 違反したファイル(プロジェクト相対パス)
   final String filePath;
@@ -31,14 +34,22 @@ final class ImportViolation {
 
   final ImportViolationKind kind;
 
-  /// 人間向けの違反理由(どの規則に反したか)
-  final String detail;
+  /// 発信元ファイルに適用されたルールの dir_pattern
+  final String rulePattern;
+
+  /// internal: 宛先が属した層パス / external: パッケージ名(`dart:` URI 含む)
+  final String target;
+
+  /// internal: ルールの allow リスト / external: 一致した deny エントリ1件
+  final List<String> ruleDetail;
 
   const ImportViolation({
     required this.filePath,
     required this.importUri,
     required this.kind,
-    required this.detail,
+    required this.rulePattern,
+    required this.target,
+    required this.ruleDetail,
   });
 }
 

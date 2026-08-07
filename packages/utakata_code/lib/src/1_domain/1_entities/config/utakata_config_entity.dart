@@ -47,7 +47,10 @@ final class VaultRef {
 
   const VaultRef({this.path, this.url, this.ref});
 
-  bool get isEmpty => path == null && url == null;
+  /// 空文字は「未設定」とみなす(空文字で解決順のフォールバックを
+  /// 遮断してしまわないように)。
+  bool get isEmpty =>
+      (path == null || path!.isEmpty) && (url == null || url!.isEmpty);
 
   factory VaultRef.fromMap(Map<String, dynamic> map) => VaultRef(
         path: map['path'] as String?,

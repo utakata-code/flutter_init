@@ -29,6 +29,25 @@ class EnMessages implements CliMessages {
   String get cmdImportsDesc =>
       'Audit import health against the architecture import_rules (exit 1 on violations)';
   @override
+  String importsSection(String archId) =>
+      '🔎 utakata imports — import audit ($archId)';
+  @override
+  String importsNoRules(String archId) =>
+      'Architecture "$archId" has no import_rules. '
+      'Add an import_rules section to arch_definition.yaml to enable the audit.';
+  @override
+  String importsClean(int audited, int excluded) =>
+      'No import violations ($audited files audited, $excluded excluded)';
+  @override
+  String importsViolationSummary(int count, int audited, int excluded) =>
+      '$count import violation(s) ($audited files audited, $excluded excluded)';
+  @override
+  String importsInternalViolation(String from, String to, String allow) =>
+      'import from "$from" into "$to" is not allowed (allow: $allow)';
+  @override
+  String importsExternalViolation(String pattern, String pkg, String deny) =>
+      '"$pattern" must not import $pkg (deny: $deny)';
+  @override
   String get cmdStatusDesc => 'Show overall project status';
   @override
   String get cmdRunnerDesc =>

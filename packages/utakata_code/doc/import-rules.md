@@ -52,10 +52,13 @@ import_rules:
 
 ## 判定の規則
 
-- **自層は常に許可**: `dir_pattern` に属するパス同士の import は検証しません。
-- **層の外は監査対象外**: `core/` や `main.dart` のようにどの層にも属さない
-  ファイルは監査されず、そこへの import も違反になりません。DI を束ねる
+- **監査対象は `lib/features/` 配下のみ**: 層構造が定義されるのはそこだけです。
+  `lib/core/` や `lib/main.dart` は(層名と同名のディレクトリがあっても)
+  監査されず、そこへの import も違反になりません。DI を束ねる
   composition root の「例外パターン」はここで吸収されます。
+- **自層は常に許可**: `dir_pattern` に属するパス同士の import は検証しません。
+  このため「同層内の相互 import 禁止」(molecules → 他の molecule 等)は
+  v1.5.0 時点では表現できません。
 - **最も具体的なルールが選ばれる**(internal): 同じファイルに複数の
   `dir_pattern` が該当する場合、セグメント数が最長のものを採用します
   (例: `.../1_local/exceptions/` には `1_local` ではなく
@@ -65,7 +68,12 @@ import_rules:
 - **`package:<自パッケージ>/...` は内部依存**として相対 import と同様に
   検証されます(自パッケージ名は pubspec.yaml の `name`)。
 - feature をまたぐ import も**層だけで判定**します(feature 境界は v1.5.0
-  時点では監査対象外)。
+  時点では監査対象外)。照合はパスセグメント単位のため、**feature や
+  permission に層と同じ名前(`1_domain` 等)を付けない**でください —
+  層として誤判定されます。
+- **コメント・文字列リテラル内の import 行は無視**されます(字句走査)。
+  条件付き import(`import 'a.dart' if (...) 'b.dart';`)は**全分岐**を
+  監査します。
 
 ---
 
