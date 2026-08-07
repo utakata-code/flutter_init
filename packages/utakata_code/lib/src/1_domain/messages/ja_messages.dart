@@ -273,6 +273,11 @@ class JaMessages implements CliMessages {
   @override
   String applyFeatureRow(String path) => '  ✅ $path';
   @override
+  String applyFileRow(String path) => '  📄 $path';
+  @override
+  String applyFilesDone(int fileCount) =>
+      '📄 空ファイルを $fileCount 件生成しました(既存ファイルは変更していません)';
+  @override
   String applyDone(int featureCount, int coreCount) =>
       '✅ feature: $featureCount 件、core: $coreCount 件を生成しました';
   @override

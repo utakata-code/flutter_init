@@ -192,8 +192,11 @@ Future<void> main(List<String> arguments) async {
 
   final applyUsecase = ApplyUsecase(
     planRepo: planRepo,
+    archRepo: archRepo,
     addFeatureUsecase: addFeatureUsecase,
     generateCoreUsecase: generateCoreUsecase,
+    fileExists: fs.fileExists,
+    writeFile: fs.writeFile,
   );
 
   final expandPlanUsecase = ExpandPlanUsecase(

@@ -1,6 +1,13 @@
+import 'package:path/path.dart' as p;
+
 import '../1_entities/feature_spec_entity.dart';
+import '../1_entities/plan/plan_intent.dart';
+import '../1_entities/structure/expected_structure.dart';
+import '../2_repositories/architecture_repository.dart';
 import '../2_repositories/plan_repository.dart';
+import '../services/expected_structure_builder.dart';
 import 'add_feature_usecase.dart';
+import 'architecture_definition_entity_resolver.dart';
 import 'generate_core_usecase.dart';
 
 /// `utakata apply` — plan.yaml から未生成の feature/core を作成するユースケース。
@@ -10,18 +17,33 @@ import 'generate_core_usecase.dart';
 /// 生成すべき内容が check の期待値と食い違うことがなくなる
 /// (旧 `feature init` が plan_architecture.yaml の `__files__` を無視する
 /// バグのクラスを構造的に解消する)。
+///
+/// ディレクトリに加えて、check が必須と判定するファイル
+/// ([ExpectedStructureBuilder] の requiredFiles)を**空ファイルとして生成**する
+/// (Issue #19)。命名だけでなく「ファイルの存在自体」を plan.yaml から
+/// 決定論的にコントロールできる。既存ファイルは一切上書きしない。
 class ApplyUsecase {
   final PlanRepository _planRepo;
+  final ArchitectureRepository _archRepo;
   final AddFeatureUsecase _addFeatureUsecase;
   final GenerateCoreUsecase _generateCoreUsecase;
 
+  final bool Function(String path) _fileExists;
+  final Future<void> Function(String path, String content) _writeFile;
+
   const ApplyUsecase({
     required PlanRepository planRepo,
+    required ArchitectureRepository archRepo,
     required AddFeatureUsecase addFeatureUsecase,
     required GenerateCoreUsecase generateCoreUsecase,
+    required bool Function(String path) fileExists,
+    required Future<void> Function(String path, String content) writeFile,
   })  : _planRepo = planRepo,
+        _archRepo = archRepo,
         _addFeatureUsecase = addFeatureUsecase,
-        _generateCoreUsecase = generateCoreUsecase;
+        _generateCoreUsecase = generateCoreUsecase,
+        _fileExists = fileExists,
+        _writeFile = writeFile;
 
   /// [scope]: 'all' | 'feature' | 'core'
   Future<ApplyResult> execute(
@@ -32,6 +54,7 @@ class ApplyUsecase {
     final plan = await _planRepo.read(projectDir);
 
     final features = <FeatureSpecEntity>[];
+    var createdFiles = const <String>[];
     if ((scope == 'all' || scope == 'feature') && plan != null) {
       for (final feature in plan.features) {
         final spec = FeatureSpecEntity(
@@ -50,6 +73,8 @@ class ApplyUsecase {
           await _addFeatureUsecase.execute(projectDir, spec);
         }
       }
+
+      createdFiles = await _createRequiredFiles(projectDir, plan, dryRun: dryRun);
     }
 
     var coreModulePaths = const <String>[];
@@ -58,7 +83,53 @@ class ApplyUsecase {
           await _generateCoreUsecase.execute(projectDir, plan.defaultArchitectureId);
     }
 
-    return ApplyResult(features: features, coreModulePaths: coreModulePaths);
+    return ApplyResult(
+      features: features,
+      coreModulePaths: coreModulePaths,
+      createdFiles: createdFiles,
+    );
+  }
+
+  /// check と同一の導出([ExpectedStructureBuilder])で必須ファイルを列挙し、
+  /// 存在しないものを空ファイルとして生成する(Issue #19)。
+  /// 生成した(dry-run 時は生成予定の)プロジェクト相対パスを返す。
+  Future<List<String>> _createRequiredFiles(
+    String projectDir,
+    PlanIntent plan, {
+    required bool dryRun,
+  }) async {
+    final architecturesById = await resolveArchitectures(plan, _archRepo);
+    final expected = ExpectedStructureBuilder.build(plan, architecturesById);
+
+    final relativePaths = <String>[];
+    _collectRequiredFiles(expected.topLevel, 'lib/features', relativePaths);
+
+    final created = <String>[];
+    for (final relative in relativePaths) {
+      final absolute = p.join(projectDir, relative);
+      if (_fileExists(absolute)) continue;
+      if (!dryRun) await _writeFile(absolute, '');
+      created.add(relative);
+    }
+    created.sort();
+    return created;
+  }
+
+  static void _collectRequiredFiles(
+    Map<String, ExpectedDir> dirs,
+    String pathPrefix,
+    List<String> out,
+  ) {
+    for (final entry in dirs.entries) {
+      final dir = entry.value;
+      // 不要と宣言された層([] 宣言)のファイルは生成しない
+      if (!dir.required) continue;
+      final dirPath = '$pathPrefix/${entry.key}';
+      for (final file in dir.requiredFiles) {
+        out.add('$dirPath/$file');
+      }
+      _collectRequiredFiles(dir.children, dirPath, out);
+    }
   }
 }
 
@@ -66,5 +137,12 @@ class ApplyResult {
   final List<FeatureSpecEntity> features;
   final List<String> coreModulePaths;
 
-  const ApplyResult({required this.features, required this.coreModulePaths});
+  /// 今回生成した(dry-run 時は生成予定の)必須ファイルのプロジェクト相対パス。
+  final List<String> createdFiles;
+
+  const ApplyResult({
+    required this.features,
+    required this.coreModulePaths,
+    this.createdFiles = const [],
+  });
 }

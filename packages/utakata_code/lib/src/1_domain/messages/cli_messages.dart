@@ -151,6 +151,8 @@ abstract interface class CliMessages {
   String get optScope;
   String get sectionApply;
   String applyFeatureRow(String path);
+  String applyFileRow(String path);
+  String applyFilesDone(int fileCount);
   String applyDone(int featureCount, int coreCount);
   String get applyNothingToDo;
 

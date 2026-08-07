@@ -49,12 +49,19 @@ class ApplyCommand extends BaseCommand {
           ? _msg.featureDryRunRow(spec.relativePath)
           : _msg.applyFeatureRow(spec.relativePath));
     }
+    for (final path in result.createdFiles) {
+      Logger.step(
+          dryRun ? _msg.featureDryRunRow(path) : _msg.applyFileRow(path));
+    }
     for (final path in result.coreModulePaths) {
       Logger.step(_msg.coreModuleRow(path));
     }
 
     if (!dryRun) {
       Logger.success(_msg.applyDone(result.features.length, result.coreModulePaths.length));
+      if (result.createdFiles.isNotEmpty) {
+        Logger.success(_msg.applyFilesDone(result.createdFiles.length));
+      }
     }
     return 0;
   }

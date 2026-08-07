@@ -29,8 +29,9 @@ features:
 ```
 
 これだけで、`utakata apply --scope feature` が `lib/features/user/todo/` 配下に
-アーキテクチャ定義どおりの層ディレクトリを生成し、`utakata check` が
-`todo_entity.dart` / `todo_repository.dart` … といった必須ファイルを検証します。
+アーキテクチャ定義どおりの層ディレクトリと、`todo_entity.dart` /
+`todo_repository.dart` … といった**必須ファイル(空ファイル)**を生成し(v1.5.0〜)、
+`utakata check` がその存在と命名を検証します。既存ファイルは上書きされません。
 
 ---
 

@@ -283,6 +283,11 @@ class EnMessages implements CliMessages {
   @override
   String applyFeatureRow(String path) => '  ✅ $path';
   @override
+  String applyFileRow(String path) => '  📄 $path';
+  @override
+  String applyFilesDone(int fileCount) =>
+      '📄 Created $fileCount empty file(s) (existing files untouched)';
+  @override
   String applyDone(int featureCount, int coreCount) =>
       '✅ Generated $featureCount feature(s), $coreCount core module(s)';
   @override
