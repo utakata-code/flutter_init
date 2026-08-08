@@ -41,7 +41,8 @@ class GuideUsecase {
       orElse: () => throw StateError('Guide "$layerPath" not found in "$architectureId"'),
     );
     final detail = await _resolveDetail(arch, guide);
-    return guide.render(detail);
+    return guide.render(detail,
+        importConstraints: await _constraintsFor(arch, layerPath));
   }
 
   /// [outputDir] 配下(既定 doc/knowledge/)へ書き出す。
@@ -57,7 +58,8 @@ class GuideUsecase {
       orElse: () => throw StateError('Guide "$layerPath" not found in "$architectureId"'),
     );
     final detail = await _resolveDetail(arch, guide);
-    final rendered = guide.render(detail);
+    final rendered = guide.render(detail,
+        importConstraints: await _constraintsFor(arch, layerPath));
 
     final slug = layerPath.replaceAll('/', '_');
     final targetPath = p.join(projectDir, outputDir, '$slug.md');
@@ -65,6 +67,108 @@ class GuideUsecase {
     await _ensureDir(p.dirname(targetPath));
     await _writeFile(targetPath, header + rendered);
     return targetPath;
+  }
+
+  /// `import_rules`/配置宣言から、その層の依存制約 Markdown を生成する。
+  /// どちらの情報も無ければ null(手書きの allowed/forbidden 表示に委ねる)。
+  Future<String?> _constraintsFor(
+    ArchitectureDefinitionEntity arch,
+    String layerPath,
+  ) async {
+    final rules = arch.importRules;
+    if (rules == null || rules.isEmpty) return null;
+
+    final buffer = StringBuffer();
+
+    // 内部依存: dirs 細則(最長一致)が正。無ければ層グラフ
+    final segments =
+        layerPath.split('/').where((s) => s.isNotEmpty).toList();
+    InternalImportRule? dirRule;
+    var best = -1;
+    for (final rule in rules.internalRules) {
+      final pattern =
+          rule.dirPattern.split('/').where((s) => s.isNotEmpty).toList();
+      if (pattern.length > segments.length || pattern.length <= best) continue;
+      var matched = false;
+      for (var start = 0; start <= segments.length - pattern.length; start++) {
+        matched = true;
+        for (var i = 0; i < pattern.length; i++) {
+          if (segments[start + i] != pattern[i]) {
+            matched = false;
+            break;
+          }
+        }
+        if (matched) break;
+      }
+      if (matched) {
+        dirRule = rule;
+        best = pattern.length;
+      }
+    }
+
+    buffer.writeln('### import してよい内部依存(`utakata imports` が検証)');
+    if (dirRule != null) {
+      final allow = ['自層(${dirRule.dirPattern})', ...dirRule.allow];
+      for (final entry in allow) {
+        buffer.writeln('- $entry');
+      }
+    } else if (segments.isNotEmpty &&
+        rules.layerGraph.containsKey(segments.first)) {
+      final layer = segments.first;
+      final allowed = rules.layerGraph[layer]!;
+      buffer.writeln('- 自層($layer)');
+      for (final entry in allowed) {
+        buffer.writeln('- $entry');
+      }
+    } else {
+      buffer.writeln('- (この層への個別規則なし)');
+    }
+
+    // 外部依存: 配置宣言からこの層で使えるパッケージを列挙
+    final placements =
+        (await _archRepo.getDependencyStack(arch.id)).placements;
+    final usable = <String>[];
+    for (final placement in placements) {
+      final layers = placement.layers;
+      if (layers == null) continue;
+      final applies = layers.any((pattern) {
+        final patternSegments =
+            pattern.split('/').where((s) => s.isNotEmpty).toList();
+        if (patternSegments.isEmpty || patternSegments.length > segments.length) {
+          return false;
+        }
+        for (var start = 0;
+            start <= segments.length - patternSegments.length;
+            start++) {
+          var matched = true;
+          for (var i = 0; i < patternSegments.length; i++) {
+            if (segments[start + i] != patternSegments[i]) {
+              matched = false;
+              break;
+            }
+          }
+          if (matched) return true;
+        }
+        return false;
+      });
+      if (applies) usable.add(placement.package);
+    }
+    if (placements.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('### この層での使用が宣言されている外部パッケージ');
+      if (usable.isEmpty) {
+        buffer.writeln('- (なし)');
+      } else {
+        for (final pkg in usable..sort()) {
+          buffer.writeln('- $pkg');
+        }
+      }
+      buffer.writeln();
+      buffer.writeln('※ 配置制約の無いパッケージ(`layers` 未指定)と'
+          '宣言外のパッケージは制限されません。');
+    }
+
+    return buffer.toString();
   }
 
   Future<String?> _resolveDetail(ArchitectureDefinitionEntity arch, GuideEntity guide) async {

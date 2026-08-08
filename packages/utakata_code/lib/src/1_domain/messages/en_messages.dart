@@ -48,6 +48,9 @@ class EnMessages implements CliMessages {
   String importsExternalViolation(String pattern, String pkg, String deny) =>
       '"$pattern" must not import $pkg (deny: $deny)';
   @override
+  String importsPlacementViolation(String pkg, String layers) =>
+      '$pkg is only declared for use in: $layers';
+  @override
   String get cmdStatusDesc => 'Show overall project status';
   @override
   String get cmdRunnerDesc =>

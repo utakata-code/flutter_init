@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:utakata/src/1_domain/1_entities/dependency_stack_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/architecture_definition_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/imports/import_audit_report.dart';
 import 'package:utakata/src/1_domain/2_repositories/architecture_repository.dart';
@@ -222,6 +223,123 @@ void main() {
     });
   });
 
+  group('層間依存グラフ(v2)', () {
+    const graphRules = ImportRuleSet(
+      layerGraph: {
+        '1_domain': [],
+        '2_infrastructure': ['1_domain'],
+        '3_application': ['1_domain', '2_infrastructure'],
+        '4_presentation': ['1_domain', '3_application'],
+      },
+      internalRules: [
+        // 細則はグラフより優先される
+        InternalImportRule(
+          dirPattern: '3_application/1_states',
+          allow: ['1_domain/1_entities'],
+        ),
+      ],
+    );
+    const layerNames = [
+      '1_domain',
+      '2_infrastructure',
+      '3_application',
+      '4_presentation',
+    ];
+
+    ImportAuditReport auditGraph(String path, List<String> imports) =>
+        ImportAuditor.audit(
+          rules: graphRules,
+          selfPackage: 'myapp',
+          files: [DartSourceFile(path: path, imports: imports)],
+          knownScopes: layerNames.toSet(),
+          layerNames: layerNames,
+        );
+
+    test('グラフのエッジにある層への import は許可', () {
+      final report = auditGraph(
+        'lib/features/user/todo/4_presentation/2_pages/todo_page.dart',
+        [
+          '../../3_application/3_notifiers/todo_notifier.dart',
+          '../../1_domain/1_entities/todo_entity.dart',
+          '../1_widgets/3_organisms/todo_organism.dart', // 自層
+        ],
+      );
+      expect(report.violations, isEmpty);
+    });
+
+    test('グラフのエッジに無い層への import は違反', () {
+      final report = auditGraph(
+        'lib/features/user/todo/4_presentation/2_pages/todo_page.dart',
+        ['../../2_infrastructure/3_repositories/todo_repository_impl.dart'],
+      );
+      expect(report.violations, hasLength(1));
+      expect(report.violations.single.rulePattern, '4_presentation');
+      expect(report.violations.single.target, '2_infrastructure');
+    });
+
+    test('dirs 細則があるディレクトリではグラフより細則が優先される', () {
+      // グラフ上 3_application → 1_domain は許可だが、states の細則は
+      // 1_domain/1_entities のみ許可
+      final report = auditGraph(
+        'lib/features/user/todo/3_application/1_states/todo_state.dart',
+        ['../../1_domain/3_usecases/get_todo_usecase.dart'],
+      );
+      expect(report.violations, hasLength(1));
+    });
+  });
+
+  group('配置宣言(v2)', () {
+    const placements = [
+      PackagePlacement(
+        package: 'dio',
+        layers: ['2_infrastructure/2_data_sources/2_remote'],
+      ),
+      PackagePlacement(package: 'sqlite3_flutter_libs', layers: []),
+      PackagePlacement(package: 'freezed_annotation'), // 制約なし
+    ];
+
+    ImportAuditReport auditPlacement(String path, List<String> imports) =>
+        ImportAuditor.audit(
+          rules: const ImportRuleSet(layerGraph: {'1_domain': []}),
+          selfPackage: 'myapp',
+          files: [DartSourceFile(path: path, imports: imports)],
+          knownScopes: knownScopes,
+          placements: placements,
+          layerNames: const ['1_domain', '2_infrastructure'],
+        );
+
+    test('宣言された層でのパッケージ import は許可', () {
+      final report = auditPlacement(
+        'lib/features/user/todo/2_infrastructure/2_data_sources/2_remote/todo_remote_data_source.dart',
+        ['package:dio/dio.dart'],
+      );
+      expect(report.violations, isEmpty);
+    });
+
+    test('宣言外の層でのパッケージ import は違反(placement)', () {
+      final report = auditPlacement(entityPath, ['package:dio/dio.dart']);
+      expect(report.violations, hasLength(1));
+      expect(report.violations.single.kind, ImportViolationKind.placement);
+      expect(report.violations.single.ruleDetail,
+          ['2_infrastructure/2_data_sources/2_remote']);
+    });
+
+    test('layers: [] はどの層でも import 不可(ビルド時のみの依存)', () {
+      final report =
+          auditPlacement(entityPath, ['package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart']);
+      expect(report.violations, hasLength(1));
+      expect(report.violations.single.kind, ImportViolationKind.placement);
+    });
+
+    test('layers 未指定・宣言外のパッケージは制約なし', () {
+      final report = auditPlacement(entityPath, [
+        'package:freezed_annotation/freezed_annotation.dart',
+        'package:undeclared_pkg/undeclared_pkg.dart',
+      ]);
+      expect(report.violations, isEmpty);
+    });
+  });
+
   group('exclude', () {
     test('生成ファイルは監査から除外される', () {
       final report = auditOne(
@@ -295,16 +413,31 @@ import 'package:myapp/features/user/todo/2_infrastructure/1_models/todo_model.da
   });
 
   group('同梱アーキテクチャ定義', () {
-    test('clean_architecture と mvvm の import_rules がパースできる', () async {
+    test('clean_architecture と mvvm の import_rules(v2)がパースできる', () async {
       final repo = ArchitectureRepositoryImpl(
           const FilesystemDataSource(), const YamlDataSource());
       for (final id in ['clean_architecture', 'mvvm']) {
         final arch = await repo.getById(id);
         final importRules = arch.importRules;
         expect(importRules, isNotNull, reason: '$id has import_rules');
-        expect(importRules!.internalRules, isNotEmpty);
-        expect(importRules.externalRules, isNotEmpty);
+        // v2: 層間依存グラフ + 細則。外部依存は deny ではなく配置宣言
+        expect(importRules!.layerGraph, isNotEmpty);
+        expect(importRules.internalRules, isNotEmpty);
+        expect(importRules.externalRules, isEmpty,
+            reason: '$id: v2 では deny を使わない(配置宣言へ移行済み)');
         expect(importRules.excludePatterns, contains('**.g.dart'));
+        // 層グラフの全エントリが実在の層を指している
+        final layerNames = {for (final l in arch.layers) l.name};
+        for (final entry in importRules.layerGraph.entries) {
+          expect(layerNames, contains(entry.key));
+          for (final target in entry.value) {
+            expect(layerNames, contains(target),
+                reason: '$id: ${entry.key} → $target が未知の層');
+          }
+        }
+        // 配置宣言が読める
+        final stack = await repo.getDependencyStack(id);
+        expect(stack.placements, isNotEmpty);
       }
     });
   });
@@ -322,6 +455,10 @@ class _NoConfigRepo implements ConfigRepository {
 }
 
 class _FixedArchRepo implements ArchitectureRepository {
+  @override
+  Future<DependencyStack> getDependencyStack(String architectureId) async =>
+      DependencyStack.empty;
+
   final ArchitectureDefinitionEntity arch;
   _FixedArchRepo(this.arch);
 

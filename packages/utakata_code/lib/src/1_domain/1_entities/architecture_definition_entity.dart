@@ -99,25 +99,40 @@ class NamingRuleEntity {
 /// import 監査規則(Issue #20)。
 ///
 /// arch_definition.yaml の `import_rules` セクションに対応する。
-/// guides の `allowed_imports`/`forbidden_imports`(人間向けの例示)を
-/// 機械可読に正式化したもので、`utakata imports` が決定論的に検証する。
+/// `utakata imports` が決定論的に検証する。
+///
+/// **v2 書式**(推奨): [layerGraph](`layers:`)で層間依存の一意なグラフを
+/// 宣言し、層既定より絞りたいディレクトリだけ [internalRules](`dirs:`)で
+/// 上書きする。外部依存は deny リストではなく `dependencies/*.yaml` の
+/// 配置宣言([PackagePlacement])で管理する。
+///
+/// **v1 書式**(後方互換): `internal:`(フラットなホワイトリスト)+
+/// `external:`(deny ブラックリスト)。既存の eject 済みローカル定義を
+/// 壊さないため引き続き読める。
 final class ImportRuleSet {
-  /// 内部依存(プロジェクト内 import)のホワイトリスト。
+  /// 層間依存グラフ(v2 の `layers:`)。キー = 層名、値 = import してよい層名。
+  /// 自層は常に許可。[internalRules] に該当しないファイルはこのグラフで判定する。
+  final Map<String, List<String>> layerGraph;
+
+  /// ディレクトリ単位の内部依存ホワイトリスト(v2 の `dirs:` / v1 の `internal:`)。
+  /// 該当するファイルには層グラフより優先して適用される。
   final List<InternalImportRule> internalRules;
 
-  /// 外部依存(`package:` / `dart:` import)のブラックリスト。
+  /// 外部依存の deny ブラックリスト(v1 の `external:`。後方互換)。
   final List<ExternalImportRule> externalRules;
 
   /// 監査対象外にするファイルパスの glob(例: `**.g.dart`)。
   final List<String> excludePatterns;
 
   const ImportRuleSet({
+    this.layerGraph = const {},
     this.internalRules = const [],
     this.externalRules = const [],
     this.excludePatterns = const [],
   });
 
-  bool get isEmpty => internalRules.isEmpty && externalRules.isEmpty;
+  bool get isEmpty =>
+      layerGraph.isEmpty && internalRules.isEmpty && externalRules.isEmpty;
 }
 
 /// 「この層ディレクトリのファイルは、どの層を import してよいか」の宣言。

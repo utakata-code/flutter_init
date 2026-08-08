@@ -1,15 +1,24 @@
 # アーキテクチャ定義: Clean Architecture (4-layer)
 #
-# この定義ファイルが utakata feature add / feature init が生成する
-# ディレクトリ構造と命名規則を決定する。
-# utakata apply / feature add が生成するディレクトリ構造の正である。
+# utakata の check / apply / feature add / imports が使う機械可読定義。
+# ここには「構造」だけを書く:
+#   - 層とディレクトリ(layers)・命名規則(naming_rules)・コア(core_modules)
+#   - 層間依存グラフと細則(import_rules)
+#   - 層ごとの要点(guides の do/dont — オフライン時の要約用)
 #
-# 新しいアーキテクチャを追加する際は、
-# templates/architectures/{arch_id}/arch_definition.yaml を追加するだけでよい。
+# 構造以外は別の場所が正:
+#   - 外部依存(バージョン + 使ってよい層)→ dependencies/*.yaml
+#   - 読み物(解説・コード例)→ layers/**/GUIDE.md, principles/
+#
+# guides の apply_to / detail_content_path / naming_pattern / title は
+# 規約から導出されるため書かない(必要な場合のみ明示で上書き可能):
+#   apply_to            = lib/features/**/<layer_path>/**
+#   detail_content_path = layers/features/<layer_path>/GUIDE.md
+#   naming_pattern      = naming_rules の該当 description
 
 id: clean_architecture
 displayName: "Clean Architecture (4-layer)"
-# プロジェクト内の対応ガイドへのパス（utakata check が違反時に案内する）
+# 違反時に CLI が案内するガイドのパス
 guides_path: "principles"
 
 # コアモジュールの追跡定義 (動的生成用)
@@ -38,69 +47,6 @@ core_modules:
   - id: exceptions
     path: "lib/core/exceptions"
     displayName: "exceptions/"
-
-# 推奨される依存関係
-dependencies:
-  flutter:
-    sdk: flutter
-
-  # ─── Firebase ───
-  firebase_core: ^4.7.0
-  firebase_auth: ^6.4.0
-
-  # ─── 認証 ───
-  google_sign_in: ^7.2.0
-
-  # ─── 状態管理 ───
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-  hooks_riverpod: ^2.6.1
-  flutter_hooks: ^0.20.5
-
-  # ─── データモデル ───
-  freezed_annotation: ^3.0.0
-  json_annotation: ^4.9.0
-
-  # ─── 画面遷移 ───
-  go_router: ^15.1.3
-
-  # ─── ローカルDB（riverpod_generator互換のためv2.27.0に固定） ───
-  drift: ^2.27.0
-  sqlite3_flutter_libs: ^0.5.41
-
-  # ─── Google API 連携（Sheets / Drive） ───
-  googleapis: ^16.0.0
-  googleapis_auth: ^2.0.0
-
-  # ─── UI ───
-  fl_chart: ^1.2.0
-  pdfrx: ^1.0.98
-
-  # ─── ユーティリティ ───
-  shared_preferences: ^2.5.5
-  path_provider: ^2.1.5
-  path: ^1.9.1
-  logger: ^2.6.2
-  http: ^1.6.0
-  intl: ^0.20.2
-  url_launcher: ^6.3.2
-
-  # ─── デスクトップ専用 ───
-  window_manager: ^0.5.1
-  crypto: ^3.0.7
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^5.0.0
-
-  # ─── コード生成 ───
-  build_runner: ^2.4.15
-  freezed: ^3.0.6
-  json_serializable: ^6.9.5
-  riverpod_generator: ^2.6.5
-  drift_dev: ^2.27.0
-
 
 layers:
   - name: 1_domain
@@ -205,334 +151,30 @@ naming_rules:
     file_pattern: "^.+_page\\.dart$"
     description: "{feature}_page.dart"
 
-guides:
-  - title: "Entity Layer Instructions - エンティティ層"
-    layer_path: "1_domain/1_entities"
-    apply_to: "lib/features/**/1_domain/1_entities/**"
-    naming_pattern: "{対象名}_entity.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/1_domain/1_entities/GUIDE.md"
-    do_list:
-      - "ビジネスオブジェクトの定義: アプリケーションで扱う中核的なデータ構造"
-      - "ビジネスルールの実装: ドメイン固有のバリデーションやビジネスロジック"
-      - "不変性の保証: オブジェクトの整合性を維持"
-      - "純粋なDartコード: 外部ライブラリに依存しない実装"
-    dont_list:
-      - "UIフレームワークへの依存: Flutterウィジェットのimport禁止"
-      - "データベースアクセス: 永続化に関する処理の記述"
-      - "HTTP通信: 外部APIへのアクセス処理"
-      - "状態管理ライブラリへの依存: Riverpodなどのimport禁止"
-    allowed_imports:
-      - "import 'dart:core';"
-      - "import 'package:freezed_annotation/freezed_annotation.dart';"
-      - "import 'package:json_annotation/json_annotation.dart';"
-      - "import 'other_entity.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:riverpod/riverpod.dart';"
-      - "import 'package:dio/dio.dart';"
-      - "import 'package:drift/drift.dart';"
-      - "import '../../infrastructure/models/user_model.dart';"
-
-  - title: "Repository Interface Layer - リポジトリインターフェース層"
-    layer_path: "1_domain/2_repositories"
-    apply_to: "lib/features/**/1_domain/2_repositories/**"
-    naming_pattern: "{対象名}_repository.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/1_domain/2_repositories/GUIDE.md"
-    do_list:
-      - "データアクセスの抽象化: データの永続化や取得に関するインターフェースの定義"
-      - "ドメイン境界の保護: 外部のデータソース仕様がドメインモデルに影響しないように隠蔽"
-      - "関心の分離: Domain層は「何をするか」のみを定義し、「どうやるか」はInfrastructure層に委譲"
-    dont_list:
-      - "具象クラスの実装: classでの定義は禁止（abstract interface classを使用）"
-      - "データベース・通信ライブラリへの依存: driftやdioなどの直接のimport"
-      - "状態管理ライブラリへの依存: Riverpodなどの直接のimport"
-    allowed_imports:
-      - "import '../1_entities/some_entity.dart';"
-      - "import '../exceptions/some_exceptions.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:drift/drift.dart';"
-      - "import 'package:dio/dio.dart';"
-      - "import '../../infrastructure/models/some_model.dart';"
-
-  - title: "UseCase Layer - ユースケース層"
-    layer_path: "1_domain/3_usecases"
-    apply_to: "lib/features/**/1_domain/3_usecases/**"
-    naming_pattern: "{動詞}_{対象名}_usecase.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/1_domain/3_usecases/GUIDE.md"
-    do_list:
-      - "ビジネスユースケースの表現: ユーザーアクションに対するアプリケーション独自のビジネスロジックを実装"
-      - "リポジトリ・サービスの協調: 複数のリポジトリインターフェースを組み合わせて処理を調整"
-      - "ドメインイベントの発行: 必要に応じたイベント通知やトランザクション境界の定義"
-    dont_list:
-      - "外部APIの直接呼び出し: 具体的なHTTP通信やクエリロジックを直接記述しない"
-      - "UI表示状態の管理: ウィジェットツリーと直結する状態管理ロジックの排除"
-    allowed_imports:
-      - "import '../1_entities/some_entity.dart';"
-      - "import '../2_repositories/some_repository.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:riverpod/riverpod.dart';"
-      - "import '../../infrastructure/repositories/some_repository_impl.dart';"
-
-  - title: "Domain Exceptions Layer - ドメイン例外層"
-    layer_path: "1_domain/exceptions"
-    apply_to: "lib/features/**/1_domain/exceptions/**"
-    naming_pattern: "{対象名}_exceptions.dart または domain_exceptions.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/1_domain/exceptions/GUIDE.md"
-    do_list:
-      - "ドメイン固有エラーの定義: ビジネスロジックで発生する特定の異常系（例: UserNotFoundException）"
-      - "不変かつ明確な構造: 例外の発生理由やユーザー向けのメッセージをカプセル化"
-    dont_list:
-      - "インフラ層エラーの漏洩: HTTP 404やSQL違反エラーをそのままドメイン例外としてスローしない"
-    allowed_imports:
-      - "import 'dart:core';"
-    forbidden_imports:
-      - "import 'package:dio/dio.dart';"
-
-  - title: "Data Model Layer - データモデル層"
-    layer_path: "2_infrastructure/1_models"
-    apply_to: "lib/features/**/2_infrastructure/1_models/**"
-    naming_pattern: "{対象名}_model.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/1_models/GUIDE.md"
-    do_list:
-      - "外部データのマッピング: JSONやDBレコードと、ドメインエンティティの相互変換を担当"
-      - "シリアライズ処理: fromJson / toJson 等のシリアライザ定義"
-    dont_list:
-      - "ビジネスロジックの混入: 計算処理や整合性チェックはエンティティ側に記述する"
-    allowed_imports:
-      - "import 'package:freezed_annotation/freezed_annotation.dart';"
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import '../../../1_domain/3_usecases/some_usecase.dart';"
-
-  - title: "Local Data Source Layer - ローカルデータソース層"
-    layer_path: "2_infrastructure/2_data_sources/1_local"
-    apply_to: "lib/features/**/2_infrastructure/2_data_sources/1_local/**"
-    naming_pattern: "{対象名}_local_data_source.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/2_data_sources/1_local/GUIDE.md"
-    do_list:
-      - "ローカル永続化アクセス: SQLite, SharedPreferences などのローカルストレージからの生データ取得・保存"
-    dont_list:
-      - "ドメインエンティティの直接返却: 生データまたはインフラ用モデルを返し、エンティティの変換はリポジトリ実装で行う"
-    allowed_imports:
-      - "import '../../1_models/some_model.dart';"
-      - "import 'package:drift/drift.dart';"
-    forbidden_imports:
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-      - "import 'package:dio/dio.dart';"
-
-  - title: "Local Data Source Exceptions Layer - ローカルデータソース例外層"
-    layer_path: "2_infrastructure/2_data_sources/1_local/exceptions"
-    apply_to: "lib/features/**/2_infrastructure/2_data_sources/1_local/exceptions/**"
-    naming_pattern: "{対象名}_local_exceptions.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/2_data_sources/1_local/exceptions/GUIDE.md"
-    do_list:
-      - "ローカルデータソース固有エラーの定義: SQLクエリ失敗やキャッシュ消失エラーなど"
-    dont_list:
-      - "ドメイン層への直接伝播: リポジトリ層で適切にキャッチ・ドメイン例外に変換すること"
-    allowed_imports:
-      - "import 'dart:core';"
-    forbidden_imports:
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-
-  - title: "Remote Data Source Layer - リモートデータソース層"
-    layer_path: "2_infrastructure/2_data_sources/2_remote"
-    apply_to: "lib/features/**/2_infrastructure/2_data_sources/2_remote/**"
-    naming_pattern: "{対象名}_remote_data_source.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/2_data_sources/2_remote/GUIDE.md"
-    do_list:
-      - "外部API通信: REST API, GraphQL などのリモートサーバーとの生の通信処理"
-    dont_list:
-      - "キャッシュ制御の記述: HTTPキャッシュ以外のビジネス要件に基づく永続化キャッシュはここに書かない"
-    allowed_imports:
-      - "import '../../1_models/some_model.dart';"
-      - "import 'package:dio/dio.dart';"
-    forbidden_imports:
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-      - "import 'package:drift/drift.dart';"
-
-  - title: "Remote Data Source Exceptions Layer - リモートデータソース例外層"
-    layer_path: "2_infrastructure/2_data_sources/2_remote/exceptions"
-    apply_to: "lib/features/**/2_infrastructure/2_data_sources/2_remote/exceptions/**"
-    naming_pattern: "{対象名}_remote_exceptions.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/2_data_sources/2_remote/exceptions/GUIDE.md"
-    do_list:
-      - "リモートデータソース固有エラーの定義: APIタイムアウト、500内部サーバーエラーなど"
-    dont_list:
-      - "UI層での直接ハンドリング: リポジトリ層を通じて例外をドメイン境界に翻訳する"
-    allowed_imports:
-      - "import 'dart:core';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-
-  - title: "Repository Implementation Layer - リポジトリ実装層"
-    layer_path: "2_infrastructure/3_repositories"
-    apply_to: "lib/features/**/2_infrastructure/3_repositories/**"
-    naming_pattern: "{対象名}_repository_impl.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/2_infrastructure/3_repositories/GUIDE.md"
-    do_list:
-      - "抽象インターフェースの実装: Domain層のRepositoryインターフェースを具象化"
-      - "データソースの調整: ローカルとリモートのデータソースを適切に使い分ける"
-      - "例外の翻訳: インフラ層で発生した固有の例外をドメイン例外へ翻訳する"
-    dont_list:
-      - "ドメインルールの追加実装: ビジネスロジックをここに書くことは厳禁"
-    allowed_imports:
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-      - "import '../../../1_domain/2_repositories/some_repository.dart';"
-      - "import '../../1_models/some_model.dart';"
-      - "import '../../2_data_sources/1_local/some_local_data_source.dart';"
-      - "import '../../2_data_sources/2_remote/some_remote_data_source.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:riverpod/riverpod.dart';"
-
-  - title: "Application State Layer - アプリケーション状態層"
-    layer_path: "3_application/1_states"
-    apply_to: "lib/features/**/3_application/1_states/**"
-    naming_pattern: "{対象名}_state.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/3_application/1_states/GUIDE.md"
-    do_list:
-      - "UI状態の定義: ローディング、成功、失敗など、プレゼンテーション層が描画するための不変状態オブジェクト"
-    dont_list:
-      - "ミュータブルな状態表現: 状態クラスは原則として @freezed を用いイミュータブルに定義する"
-    allowed_imports:
-      - "import 'package:freezed_annotation/freezed_annotation.dart';"
-      - "import '../../../1_domain/1_entities/some_entity.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:riverpod/riverpod.dart';"
-
-  - title: "Application Providers Layer - プロバイダ定義層"
-    layer_path: "3_application/2_providers"
-    apply_to: "lib/features/**/3_application/2_providers/**"
-    naming_pattern: "{対象名}_providers.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/3_application/2_providers/GUIDE.md"
-    do_list:
-      - "DI定義: ユースケース、リポジトリ、コントローラーなどの依存注入設定を Riverpod の Provider を用いて定義"
-    dont_list:
-      - "ウィジェット内部でのDIロジック記述: DI は一箇所（このレイヤー）にまとめる"
-    allowed_imports:
-      - "import 'package:riverpod_annotation/riverpod_annotation.dart';"
-      - "import '../../../1_domain/3_usecases/some_usecase.dart';"
-      - "import '../../../2_infrastructure/3_repositories/some_repository_impl.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-
-  - title: "Application Notifiers Layer - ノティファイア層"
-    layer_path: "3_application/3_notifiers"
-    apply_to: "lib/features/**/3_application/3_notifiers/**"
-    naming_pattern: "{対象名}_notifier.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/3_application/3_notifiers/GUIDE.md"
-    do_list:
-      - "UI状態変更ロジックの管理: ユーザーイベントを受け取り、ユースケースを呼び出して状態 (State) を更新する"
-    dont_list:
-      - "ビジネスルールの直接記述: 実際の業務要件ロジックはドメインユースケースやエンティティに委譲すること"
-    allowed_imports:
-      - "import 'package:riverpod_annotation/riverpod_annotation.dart';"
-      - "import '../1_states/some_state.dart';"
-      - "import '../../../1_domain/3_usecases/some_usecase.dart';"
-    forbidden_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import '../../../2_infrastructure/3_repositories/some_repository_impl.dart';"
-
-  - title: "Presentation Atoms Layer - アトム UI 部品層"
-    layer_path: "4_presentation/1_widgets/1_atoms"
-    apply_to: "lib/features/**/4_presentation/1_widgets/1_atoms/**"
-    naming_pattern: "{対象名}_atom.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/4_presentation/1_widgets/1_atoms/GUIDE.md"
-    do_list:
-      - "最小 UI 部品の定義: テキスト、ボタン、アイコンなどのこれ以上分割できない末端 UI コンポーネント"
-    dont_list:
-      - "アプリケーション状態 (Riverpod) の直接参照: アトムは純粋な UI 描画のみ行い、状態に依存しない（引数で受け取る）"
-      - "他レイヤー（Domain, Infrastructure）への依存: ビジネスオブジェクトやAPIに直接依存しない"
-    allowed_imports:
-      - "import 'package:flutter/material.dart';"
-    forbidden_imports:
-      - "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-      - "import '../../../../1_domain/1_entities/some_entity.dart';"
-
-  - title: "Presentation Molecules Layer - モレキュール UI 部品層"
-    layer_path: "4_presentation/1_widgets/2_molecules"
-    apply_to: "lib/features/**/4_presentation/1_widgets/2_molecules/**"
-    naming_pattern: "{対象名}_molecule.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/4_presentation/1_widgets/2_molecules/GUIDE.md"
-    do_list:
-      - "UI 部品の組み合わせ: 複数のアトムを組み合わせた、特定のコンテキストを持たない中型 UI コンポーネント（例: 検索バー）"
-    dont_list:
-      - "アプリケーション状態への依存: 原則として状態管理から隔離され、引数でパラメータを受け取る設計にする"
-    allowed_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import '../1_atoms/some_atom.dart';"
-    forbidden_imports:
-      - "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-      - "import '../../../../1_domain/3_usecases/some_usecase.dart';"
-
-  - title: "Presentation Organisms Layer - オーガニズム UI 部品層"
-    layer_path: "4_presentation/1_widgets/3_organisms"
-    apply_to: "lib/features/**/4_presentation/1_widgets/3_organisms/**"
-    naming_pattern: "{対象名}_organism.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/4_presentation/1_widgets/3_organisms/GUIDE.md"
-    do_list:
-      - "自己完結する UI ブロックの定義: アトムやモレキュールを組み合わせ、特定のドメインコンテキストを持つ大型 UI コンポーネント（例: ユーザープロフィールカード）"
-      - "ドメインエンティティへの依存: レンダリングのためにエンティティ型を引数として受け取ることが可能"
-    dont_list:
-      - "直接の HTTP 通信や API コール: 表示データはノティファイアから流し込まれるようにする"
-    allowed_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import '../../../../1_domain/1_entities/some_entity.dart';"
-      - "import '../1_atoms/some_atom.dart';"
-      - "import '../2_molecules/some_molecule.dart';"
-    forbidden_imports:
-      - "import '../../../../2_infrastructure/3_repositories/some_repository_impl.dart';"
-
-  - title: "Presentation Pages Layer - 画面・ページ層"
-    layer_path: "4_presentation/2_pages"
-    apply_to: "lib/features/**/4_presentation/2_pages/**"
-    naming_pattern: "{対象名}_page.dart"
-    detail_content_path: "architectures/clean_architecture/layers/features/4_presentation/2_pages/GUIDE.md"
-    do_list:
-      - "完全な画面レイアウトの構築: オーガニズムやモレキュールを配置して一つの画面を定義する"
-      - "状態の監視とイベントディスパッチ: ConsumerWidget 等を用いてノティファイアの状態を監視（watch）し、ユーザーアクションをトリガーする"
-    dont_list:
-      - "画面遷移以外のビジネスロジック記述: イベントをノティファイアに通知するのみとし、ロジック自体は書かない"
-    allowed_imports:
-      - "import 'package:flutter/material.dart';"
-      - "import 'package:flutter_riverpod/flutter_riverpod.dart';"
-      - "import '../../../3_application/3_notifiers/some_notifier.dart';"
-      - "import '../1_widgets/3_organisms/some_organism.dart';"
-    forbidden_imports:
-      - "import '../../../../2_infrastructure/3_repositories/some_repository_impl.dart';"
-
 # ─── import 監査規則 (`utakata imports` が使用) ───
-# guides の allowed_imports / forbidden_imports(人間向けの例示)を
-# 機械可読に正式化したもの。
-#   internal: 各層ディレクトリが import してよい層(ホワイトリスト)。
-#             自層は常に許可。層に属さないパス(core/、main.dart 等)への
-#             import は監査対象外(composition root の逃げ道)。
-#   external: 層ディレクトリごとに import を禁止するパッケージ(ブラックリスト)。
-#             パッケージ名は glob 可(例: *riverpod*)。dart:xxx も指定可。
-#             同じパスに複数ルールが該当する場合はすべて適用される。
-#   exclude : 監査から除外するファイル(コード生成物)。
+# layers: 層間依存グラフ。「この層はこの層たちを見てよい」の一意な宣言
+#         (許可の上限であって強制ではない。自層は常に許可)。
+# dirs  : 層既定より絞りたいディレクトリだけ上書きする細則(最長一致が正)。
+# 層に属さないパス(core/、main.dart 等)は監査対象外(composition root の逃げ道)。
+# 外部パッケージの制約はここではなく dependencies/*.yaml の layers:(配置宣言)。
 import_rules:
   exclude:
     - "**.g.dart"
     - "**.freezed.dart"
 
-  internal:
+  layers:
+    1_domain: []                                      # 何にも依存しない
+    2_infrastructure: [1_domain]
+    3_application: [1_domain, 2_infrastructure]       # infra は providers(DI) が束ねる
+    4_presentation: [1_domain, 3_application]
+
+  dirs:
+    # ドメイン層内の細則
     - dir_pattern: "1_domain/1_entities"
       allow: ["1_domain/exceptions"]
-    - dir_pattern: "1_domain/2_repositories"
-      allow: ["1_domain/1_entities", "1_domain/exceptions"]
-    # GUIDE が公認する services/ や value_objects/ などドメイン内の
-    # 任意サブディレクトリも含めて、ドメイン層内はすべて import 可
-    - dir_pattern: "1_domain/3_usecases"
-      allow: ["1_domain"]
     - dir_pattern: "1_domain/exceptions"
       allow: ["1_domain/1_entities"]
-    - dir_pattern: "2_infrastructure/1_models"
-      allow: ["1_domain"]
+    # データソースはモデルの受け渡しのみ(エンティティを直接扱わない)
     - dir_pattern: "2_infrastructure/2_data_sources/1_local"
       allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/2_data_sources/1_local/exceptions"
@@ -541,49 +183,138 @@ import_rules:
       allow: ["2_infrastructure/1_models"]
     - dir_pattern: "2_infrastructure/2_data_sources/2_remote/exceptions"
       allow: ["2_infrastructure/1_models"]
-    - dir_pattern: "2_infrastructure/3_repositories"
-      allow: ["1_domain", "2_infrastructure"]
+    # 状態クラスは純粋(エンティティ以外を見ない)
     - dir_pattern: "3_application/1_states"
       allow: ["1_domain/1_entities"]
-    # providers は DI 定義層(composition root)なので広く許可する
-    - dir_pattern: "3_application/2_providers"
-      allow: ["1_domain", "2_infrastructure", "3_application"]
+    # notifier はインフラへ行かない(DI は providers 経由)
     - dir_pattern: "3_application/3_notifiers"
-      allow: ["1_domain/1_entities", "1_domain/3_usecases", "1_domain/exceptions",
-              "3_application/1_states", "3_application/2_providers"]
+      allow: ["1_domain", "3_application"]
+    # UI 部品は小さいほど依存が少ない(atoms → molecules → organisms)
     - dir_pattern: "4_presentation/1_widgets/1_atoms"
       allow: []
     - dir_pattern: "4_presentation/1_widgets/2_molecules"
       allow: ["1_domain/1_entities", "4_presentation/1_widgets/1_atoms"]
     - dir_pattern: "4_presentation/1_widgets/3_organisms"
       allow: ["1_domain/1_entities", "4_presentation/1_widgets"]
-    - dir_pattern: "4_presentation/2_pages"
-      allow: ["1_domain/1_entities", "3_application", "4_presentation"]
 
-  external:
-    # ドメイン層は純粋 Dart(UI・状態管理・IO ライブラリを持ち込まない)
-    - dir_pattern: "1_domain"
-      deny: ["flutter", "flutter_hooks", "*riverpod*", "go_router",
-             "dio", "http", "drift", "sqflite", "shared_preferences",
-             "firebase_*", "googleapis*"]
-    # インフラ層は UI・状態管理に依存しない
-    - dir_pattern: "2_infrastructure"
-      deny: ["flutter", "flutter_hooks", "*riverpod*", "go_router"]
-    - dir_pattern: "2_infrastructure/2_data_sources/1_local"
-      deny: ["dio", "http"]
-    - dir_pattern: "2_infrastructure/2_data_sources/2_remote"
-      deny: ["drift", "sqflite", "shared_preferences"]
-    # アプリケーション層は UI(ウィジェット)に依存しない
-    - dir_pattern: "3_application"
-      deny: ["flutter", "go_router"]
-    # 状態クラスは純粋な freezed オブジェクト(riverpod にも依存しない)
-    - dir_pattern: "3_application/1_states"
-      deny: ["*riverpod*", "flutter_hooks"]
-    # プレゼンテーション層は IO を直接行わない
-    - dir_pattern: "4_presentation"
-      deny: ["dio", "http", "drift", "sqflite"]
-    # atoms / molecules は状態管理から隔離する(引数で受け取る)
-    - dir_pattern: "4_presentation/1_widgets/1_atoms"
-      deny: ["*riverpod*"]
-    - dir_pattern: "4_presentation/1_widgets/2_molecules"
-      deny: ["*riverpod*"]
+# 層ごとの要点(オフライン時の guide show 用の要約。本文は layers/**/GUIDE.md)
+guides:
+  - layer_path: "1_domain/1_entities"
+    title: "Entity Layer - エンティティ層"
+    do:
+      - "ビジネスオブジェクトの定義とビジネスルールの実装(不変性を保証)"
+      - "純粋な Dart コード(外部ライブラリに依存しない)"
+    dont:
+      - "UI・状態管理・DB・HTTP など外部への依存"
+
+  - layer_path: "1_domain/2_repositories"
+    title: "Repository Interface Layer - リポジトリインターフェース層"
+    do:
+      - "データアクセスの抽象化(abstract interface class)とドメイン境界の保護"
+    dont:
+      - "具象実装・DB/通信/状態管理ライブラリへの依存"
+
+  - layer_path: "1_domain/3_usecases"
+    title: "UseCase Layer - ユースケース層"
+    do:
+      - "ビジネスユースケースの表現(リポジトリ・サービスの協調)"
+    dont:
+      - "外部 API の直接呼び出し・UI 状態の管理"
+
+  - layer_path: "1_domain/exceptions"
+    title: "Domain Exceptions Layer - ドメイン例外層"
+    do:
+      - "ドメイン固有エラーの定義(例: UserNotFoundException)"
+    dont:
+      - "インフラ層エラー(HTTP 404 / SQL 違反)の漏洩"
+
+  - layer_path: "2_infrastructure/1_models"
+    title: "Data Model Layer - データモデル層"
+    do:
+      - "外部データとエンティティの相互変換・シリアライズ(fromJson/toJson)"
+    dont:
+      - "ビジネスロジックの混入(計算・整合性チェックはエンティティへ)"
+
+  - layer_path: "2_infrastructure/2_data_sources/1_local"
+    title: "Local Data Source Layer - ローカルデータソース層"
+    do:
+      - "ローカル永続化(SQLite / SharedPreferences 等)への生アクセス"
+    dont:
+      - "ドメインエンティティの直接返却(変換はリポジトリ実装で行う)"
+
+  - layer_path: "2_infrastructure/2_data_sources/1_local/exceptions"
+    title: "Local Data Source Exceptions Layer - ローカルデータソース例外層"
+    do:
+      - "ローカルデータソース固有エラーの定義(SQL 失敗・キャッシュ消失等)"
+    dont:
+      - "ドメイン層への直接伝播(リポジトリ実装でドメイン例外へ翻訳)"
+
+  - layer_path: "2_infrastructure/2_data_sources/2_remote"
+    title: "Remote Data Source Layer - リモートデータソース層"
+    do:
+      - "外部 API(REST / GraphQL 等)との生の通信処理"
+    dont:
+      - "ビジネス要件に基づく永続化キャッシュの実装"
+
+  - layer_path: "2_infrastructure/2_data_sources/2_remote/exceptions"
+    title: "Remote Data Source Exceptions Layer - リモートデータソース例外層"
+    do:
+      - "リモートデータソース固有エラーの定義(タイムアウト・5xx 等)"
+    dont:
+      - "UI 層での直接ハンドリング(リポジトリ経由でドメイン境界へ翻訳)"
+
+  - layer_path: "2_infrastructure/3_repositories"
+    title: "Repository Implementation Layer - リポジトリ実装層"
+    do:
+      - "ドメインのリポジトリ I/F の具象化・データソースの調整・例外の翻訳"
+    dont:
+      - "ドメインルールの追加実装(ビジネスロジック厳禁)"
+
+  - layer_path: "3_application/1_states"
+    title: "Application State Layer - アプリケーション状態層"
+    do:
+      - "UI 状態(ローディング/成功/失敗)の不変オブジェクト定義(@freezed)"
+    dont:
+      - "ミュータブルな状態表現"
+
+  - layer_path: "3_application/2_providers"
+    title: "Application Providers Layer - プロバイダ定義層"
+    do:
+      - "DI 定義(composition root): ユースケース・リポジトリ等の注入設定"
+    dont:
+      - "ウィジェット内部での DI ロジック記述(DI はこの層に集約)"
+
+  - layer_path: "3_application/3_notifiers"
+    title: "Application Notifiers Layer - ノティファイア層"
+    do:
+      - "ユーザーイベントを受け、ユースケースを呼び出して状態を更新"
+    dont:
+      - "ビジネスルールの直接記述(ユースケース・エンティティへ委譲)"
+
+  - layer_path: "4_presentation/1_widgets/1_atoms"
+    title: "Presentation Atoms Layer - アトム UI 部品層"
+    do:
+      - "これ以上分割できない末端 UI 部品(テキスト・ボタン等)の定義"
+    dont:
+      - "状態管理・他レイヤーへの依存(データは引数で受け取る)"
+
+  - layer_path: "4_presentation/1_widgets/2_molecules"
+    title: "Presentation Molecules Layer - モレキュール UI 部品層"
+    do:
+      - "アトムを組み合わせた中型 UI 部品(例: 検索バー・カード)"
+    dont:
+      - "状態管理への依存(パラメータは引数で受け取る)"
+
+  - layer_path: "4_presentation/1_widgets/3_organisms"
+    title: "Presentation Organisms Layer - オーガニズム UI 部品層"
+    do:
+      - "ドメインコンテキストを持つ大型 UI 部品(エンティティを引数で受け取り可)"
+    dont:
+      - "直接の HTTP 通信・API コール(データはノティファイアから)"
+
+  - layer_path: "4_presentation/2_pages"
+    title: "Presentation Pages Layer - 画面・ページ層"
+    do:
+      - "画面レイアウトの構築とノティファイアの watch・イベント通知"
+    dont:
+      - "画面遷移以外のビジネスロジック記述"

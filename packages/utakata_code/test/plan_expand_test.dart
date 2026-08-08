@@ -1,4 +1,5 @@
 import 'package:test/test.dart';
+import 'package:utakata/src/1_domain/1_entities/dependency_stack_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/architecture_definition_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/plan/plan_intent.dart';
 import 'package:utakata/src/1_domain/2_repositories/architecture_repository.dart';
@@ -163,6 +164,10 @@ class _RecordingPlanRepo implements PlanRepository {
 }
 
 class _FixedArchRepo implements ArchitectureRepository {
+  @override
+  Future<DependencyStack> getDependencyStack(String architectureId) async =>
+      DependencyStack.empty;
+
   final ArchitectureDefinitionEntity arch;
   _FixedArchRepo(this.arch);
 

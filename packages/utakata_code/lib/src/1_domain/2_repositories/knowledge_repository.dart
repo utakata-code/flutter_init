@@ -30,7 +30,7 @@ abstract interface class KnowledgeRepository {
   /// 埋め込むことで、リポジトリ側の変更が過去の CLI を壊さないようにする。
   static const defaultUrl =
       'https://github.com/utakata-code/utakata_arch_lib.git';
-  static const defaultRef = 'v1.1.0';
+  static const defaultRef = 'v1.2.0';
 
   Future<KnowledgeLock?> readLock(String projectDir);
 

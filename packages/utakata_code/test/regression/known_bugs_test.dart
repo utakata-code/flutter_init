@@ -6,6 +6,7 @@
 // 同じシナリオを新 CheckUsecase で実行し、両方とも解消されていることを
 // 回帰テストとして固定する。
 import 'package:test/test.dart';
+import 'package:utakata/src/1_domain/1_entities/dependency_stack_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/architecture_definition_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/plan/plan_intent.dart';
 import 'package:utakata/src/1_domain/1_entities/structure/structure_node.dart';
@@ -50,6 +51,10 @@ class _FakeStructureRepository implements StructureRepository {
 }
 
 class _FakeArchitectureRepository implements ArchitectureRepository {
+  @override
+  Future<DependencyStack> getDependencyStack(String architectureId) async =>
+      DependencyStack.empty;
+
   final ArchitectureDefinitionEntity definition;
   _FakeArchitectureRepository(this.definition);
 

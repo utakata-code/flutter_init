@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
+import 'package:utakata/src/1_domain/1_entities/dependency_stack_entity.dart';
 import 'package:utakata/utakata.dart';
 import 'package:test/test.dart';
 import 'package:utakata/src/2_infrastructure/2_data_sources/1_local/filesystem_data_source.dart';
@@ -265,10 +266,16 @@ naming_rules: []
       expect(definition.guides.isNotEmpty, isTrue);
 
       // エンティティ層のガイドが正しくパースされているか検証
+      // (v2 スリム書式: apply_to / detail_content_path / naming_pattern は
+      //  規約から導出される)
       final entityGuide = definition.guides.firstWhere((g) => g.layerPath == '1_domain/1_entities');
-      expect(entityGuide.title, contains('Entity Layer Instructions'));
+      expect(entityGuide.title, contains('Entity Layer'));
       expect(entityGuide.doList, contains(contains('ビジネスオブジェクトの定義')));
-      expect(entityGuide.forbiddenImports, contains(contains('package:flutter/material.dart')));
+      expect(entityGuide.applyTo,
+          'lib/features/**/1_domain/1_entities/**');
+      expect(entityGuide.detailContentPath,
+          'architectures/clean_architecture/layers/features/1_domain/1_entities/GUIDE.md');
+      expect(entityGuide.namingPattern, '{name}_entity.dart');
     });
 
     test('GuideEntity.render renders GUIDE.md correctly', () {
@@ -298,16 +305,23 @@ naming_rules: []
   });
 
   group('Phase 3: Automatically Insert Dependencies', () {
-    test('ArchitectureRepository loads dependencies from yaml', () async {
+    test('ArchitectureRepository loads the dependency stack from dependencies/*.yaml',
+        () async {
       final fs = const FilesystemDataSource();
       final yaml = const YamlDataSource();
       final archRepo = ArchitectureRepositoryImpl(fs, yaml);
 
-      final definition = await archRepo.getById('clean_architecture');
-      expect(definition.dependencies.containsKey('freezed_annotation'), isTrue);
-      expect(definition.dependencies['freezed_annotation'], equals('^3.0.0'));
-      expect(definition.devDependencies.containsKey('build_runner'), isTrue);
-      expect(definition.devDependencies['build_runner'], equals('^2.4.15'));
+      final stack = await archRepo.getDependencyStack('clean_architecture');
+      expect(stack.dependencies.containsKey('freezed_annotation'), isTrue);
+      expect(stack.dependencies['freezed_annotation'], equals('^3.0.0'));
+      expect(stack.dependencies['flutter'], equals({'sdk': 'flutter'}));
+      expect(stack.devDependencies.containsKey('build_runner'), isTrue);
+      // 配置宣言: drift はローカルデータソース層のみ
+      final drift =
+          stack.placements.firstWhere((pl) => pl.package == 'drift');
+      expect(drift.layers, ['2_infrastructure/2_data_sources/1_local']);
+      // recommended.yaml の配置宣言も読まれる
+      expect(stack.placements.any((pl) => pl.package == 'dio'), isTrue);
     });
 
     test('CreateProjectUsecase merges dependencies into pubspec.yaml', () async {
@@ -435,6 +449,16 @@ dev_dependencies:
 
 class DummyArchitectureRepository implements ArchitectureRepository {
   @override
+  Future<DependencyStack> getDependencyStack(String architectureId) async {
+    // 実装のフォールバックと同じ: 定義内の dependencies を使う
+    final arch = await getById(architectureId);
+    return DependencyStack(
+      dependencies: arch.dependencies,
+      devDependencies: arch.devDependencies,
+    );
+  }
+
+  @override
   Future<ArchitectureDefinitionEntity> getById(String id) async {
     return const ArchitectureDefinitionEntity(
       id: 'clean_architecture',
@@ -464,6 +488,10 @@ class DummyTemplateRepository implements TemplateRepository {
 }
 
 class DummyArchitectureRepositoryWithCoreModules implements ArchitectureRepository {
+  @override
+  Future<DependencyStack> getDependencyStack(String architectureId) async =>
+      DependencyStack.empty;
+
   @override
   Future<ArchitectureDefinitionEntity> getById(String id) async {
     return const ArchitectureDefinitionEntity(

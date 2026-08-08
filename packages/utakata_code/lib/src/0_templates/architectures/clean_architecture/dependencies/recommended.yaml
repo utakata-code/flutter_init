@@ -1,0 +1,40 @@
+# 推奨スタック: 必要な機能がある場合に追加する推奨パッケージ
+#
+# 書式は core_stack.yaml と同じ(バージョン + 配置宣言)。
+# ここに書いた layers も utakata imports の検証対象になる
+# (pubspec への追加は core_stack と違い自動では行われない)。
+
+dependencies:
+  # 状態管理(hooks を使わない場合の代替)
+  flutter_riverpod:
+    version: ^2.6.1
+    layers: [3_application, 4_presentation]
+
+  # HTTP クライアント(外部API通信用)
+  dio:
+    version: ^5.7.0
+    layers: [2_infrastructure/2_data_sources/2_remote]
+
+  # ローカル軽量ストレージ
+  shared_preferences:
+    version: ^2.5.5
+    layers: [2_infrastructure/2_data_sources/1_local]
+
+  # アイコン・UI拡張
+  font_awesome_flutter:
+    version: ^10.8.0
+    layers: [4_presentation]
+  cached_network_image:
+    version: ^3.4.1
+    layers: [4_presentation]
+
+  # ローカリゼーション・多言語対応
+  # ※ flutter_localizations は sdk 依存のため手動で pubspec.yaml に追加してください
+  intl:
+    version: ^0.20.2
+
+  # デバイス情報・ネイティブ機能(必要時コメントを外す)
+  # device_info_plus:
+  #   version: ^11.1.0
+  # package_info_plus:
+  #   version: ^8.1.0

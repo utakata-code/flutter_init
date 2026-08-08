@@ -1,14 +1,19 @@
 import '../1_entities/architecture_definition_entity.dart';
+import '../1_entities/dependency_stack_entity.dart';
 import '../1_entities/imports/import_audit_report.dart';
 
 /// import の健全性を決定論的に監査する純関数サービス(Issue #20)。
 ///
-/// - **内部依存**(プロジェクト内 import): [InternalImportRule] のホワイトリスト。
-///   自層への import は常に許可。どの層にも属さないパス(`core/`、`main.dart`、
-///   DI を束ねる composition root 等)への import は監査対象外 —
+/// - **内部依存**(プロジェクト内 import): [InternalImportRule](`dirs:`)の
+///   最長一致ルールがあればそれが正。無ければ [ImportRuleSet.layerGraph]
+///   (層間依存グラフ)で層単位に判定する。自層への import は常に許可。
+///   どの層にも属さないパス(`core/`、`main.dart`、DI を束ねる
+///   composition root 等)への import は監査対象外 —
 ///   これが「例外パターン」の受け皿になる。
-/// - **外部依存**(`package:` / `dart:` import): [ExternalImportRule] の
-///   ブラックリスト。該当する全ルールの deny を重ねて適用する。
+/// - **外部依存**(`package:` / `dart:` import):
+///   [PackagePlacement](配置宣言)に**宣言されたパッケージのみ**を論じ、
+///   宣言された層の外での import を違反とする(宣言外のパッケージは全許可)。
+///   v1 の [ExternalImportRule](deny ブラックリスト)も後方互換で適用する。
 ///
 /// 監査対象は `lib/features/` 配下のみ(層構造が定義されるのはそこだけ。
 /// `lib/core/` などに層名と同名のディレクトリがあっても層として誤分類しない)。
@@ -27,11 +32,15 @@ abstract final class ImportAuditor {
     required String selfPackage,
     required Iterable<DartSourceFile> files,
     required Set<String> knownScopes,
+    List<PackagePlacement> placements = const [],
+    List<String> layerNames = const [],
   }) {
     final excludeRegexps =
         rules.excludePatterns.map(_globToRegExp).toList(growable: false);
     final scopeSegments =
         knownScopes.map(_segments).where((s) => s.isNotEmpty).toList();
+    final constrainedPlacements =
+        placements.where((pl) => pl.isConstrained).toList(growable: false);
 
     final violations = <ImportViolation>[];
     var audited = 0;
@@ -49,6 +58,7 @@ abstract final class ImportAuditor {
       final dirSegments = _segments(_dirname(file.path));
       final internalRule =
           inScope ? _findInternalRule(dirSegments, rules.internalRules) : null;
+      final sourceLayer = inScope ? _layerOf(dirSegments, layerNames) : null;
       final externalRules = !inScope
           ? const <ExternalImportRule>[]
           : rules.externalRules
@@ -68,9 +78,15 @@ abstract final class ImportAuditor {
 
           if (pkg == selfPackage && slash >= 0) {
             _checkInternal(file, uri, 'lib/${rest.substring(slash + 1)}',
-                internalRule, scopeSegments, violations);
+                internalRule, rules, sourceLayer, layerNames, scopeSegments,
+                violations);
           } else {
             _checkExternal(file, uri, pkg, externalRules, violations);
+            if (inScope) {
+              _checkPlacement(
+                  file, uri, pkg, dirSegments, constrainedPlacements,
+                  violations);
+            }
           }
           continue;
         }
@@ -78,8 +94,8 @@ abstract final class ImportAuditor {
         // スキーム無し = 相対 import(プロジェクト内)
         if (!uri.contains(':')) {
           final target = _normalize('${_dirname(file.path)}/$uri');
-          _checkInternal(
-              file, uri, target, internalRule, scopeSegments, violations);
+          _checkInternal(file, uri, target, internalRule, rules, sourceLayer,
+              layerNames, scopeSegments, violations);
         }
       }
     }
@@ -97,41 +113,103 @@ abstract final class ImportAuditor {
   }
 
   /// 内部 import の宛先 [target](プロジェクト相対パス)を検証する。
+  ///
+  /// `dirs:` の最長一致ルールがあればそれが正。無ければ層グラフで
+  /// 層単位に判定する(どちらも無ければ監査しない)。
   static void _checkInternal(
     DartSourceFile file,
     String uri,
     String target,
     InternalImportRule? rule,
+    ImportRuleSet rules,
+    String? sourceLayer,
+    List<String> layerNames,
     List<List<String>> scopeSegments,
     List<ImportViolation> violations,
   ) {
-    if (rule == null) return; // 発信元が層に属さない → 監査対象外
-
     // 宛先が監査ルートの外(core/ 等) → 監査対象外
     if (!target.startsWith(_auditRootPrefix)) return;
 
     final targetDir = _segments(_dirname(target));
 
-    // 自層への import は常に許可
-    if (_containsRun(targetDir, _segments(rule.dirPattern))) return;
+    if (rule != null) {
+      // ディレクトリ細則: 自層への import は常に許可
+      if (_containsRun(targetDir, _segments(rule.dirPattern))) return;
 
-    // ホワイトリスト照合
-    for (final allow in rule.allow) {
-      if (_containsRun(targetDir, _segments(allow))) return;
+      // ホワイトリスト照合
+      for (final allow in rule.allow) {
+        if (_containsRun(targetDir, _segments(allow))) return;
+      }
+
+      // 宛先がどの層にも属さない → 監査対象外
+      final targetScope = _longestScope(targetDir, scopeSegments);
+      if (targetScope == null) return;
+
+      violations.add(ImportViolation(
+        filePath: file.path,
+        importUri: uri,
+        kind: ImportViolationKind.internal,
+        rulePattern: rule.dirPattern,
+        target: targetScope,
+        ruleDetail: rule.allow,
+      ));
+      return;
     }
 
-    // 宛先がどの層にも属さない → 監査対象外
-    final targetScope = _longestScope(targetDir, scopeSegments);
-    if (targetScope == null) return;
+    // 細則が無い → 層間依存グラフで層単位に判定
+    if (sourceLayer == null || rules.layerGraph.isEmpty) return;
+    final allowedLayers = rules.layerGraph[sourceLayer];
+    if (allowedLayers == null) return; // グラフに無い層は監査しない
+
+    final targetLayer = _layerOf(targetDir, layerNames);
+    if (targetLayer == null) return; // 宛先が層に属さない
+    if (targetLayer == sourceLayer) return; // 自層は常に許可
+    if (allowedLayers.contains(targetLayer)) return;
 
     violations.add(ImportViolation(
       filePath: file.path,
       importUri: uri,
       kind: ImportViolationKind.internal,
-      rulePattern: rule.dirPattern,
-      target: targetScope,
-      ruleDetail: rule.allow,
+      rulePattern: sourceLayer,
+      target: targetLayer,
+      ruleDetail: allowedLayers,
     ));
+  }
+
+  /// 配置宣言([PackagePlacement])に照らして外部パッケージ import を検証する。
+  static void _checkPlacement(
+    DartSourceFile file,
+    String uri,
+    String pkg,
+    List<String> dirSegments,
+    List<PackagePlacement> placements,
+    List<ImportViolation> violations,
+  ) {
+    for (final placement in placements) {
+      if (placement.package != pkg) continue;
+      final layers = placement.layers!;
+      final allowed =
+          layers.any((l) => _containsRun(dirSegments, _segments(l)));
+      if (!allowed) {
+        violations.add(ImportViolation(
+          filePath: file.path,
+          importUri: uri,
+          kind: ImportViolationKind.placement,
+          rulePattern: pkg,
+          target: pkg,
+          ruleDetail: layers,
+        ));
+      }
+      return; // 同一パッケージの宣言は最初の1件を正とする
+    }
+  }
+
+  /// [dirSegments] が属する層(層名の完全一致セグメント)を返す。無ければ null。
+  static String? _layerOf(List<String> dirSegments, List<String> layerNames) {
+    for (final segment in dirSegments) {
+      if (layerNames.contains(segment)) return segment;
+    }
+    return null;
   }
 
   /// 外部 import([pkgName] = パッケージ名または `dart:` URI)を検証する。

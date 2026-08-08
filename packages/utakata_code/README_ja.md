@@ -17,7 +17,7 @@
 - 🏗️ **マルチアーキテクチャ対応**: **Clean Architecture (4層)** と **MVVM (3層)** を標準搭載。`utakata arch eject <id>` でローカルに書き出してカスタマイズ可能。
 - 🔍 **1回の check で全て検証**: `utakata check` が「不足ファイル」「余分なファイル」「命名規則違反」を1回の走査で報告します。違反箇所には GUIDE の抜粋も添えられ、直し方がその場でわかります。
 - 📋 **意図レベルの計画**: `doc/specs/plan.yaml` に feature(名前・権限・entity)を宣言するだけ。`utakata apply` が不足分だけ — 層ディレクトリに加えて必須ファイル(空ファイル)も — を生成し、ファイルの存在自体を plan で管理できます。`utakata plan adopt` は plan.yaml に載っていない実装済みコードを検出し、書式を保ったまま追記します。
-- 🔗 **import の決定論的監査**: `utakata imports` が「ファイル配置」だけでなく「依存の向き」を検証します — `arch_definition.yaml` の `import_rules`(層の内部ホワイトリスト + 層ごとのパッケージブラックリスト)に基づく監査です。
+- 🔗 **import の決定論的監査**: `utakata imports` が「ファイル配置」だけでなく「依存の向き」を検証します — `arch_definition.yaml` の層間依存グラフ(`import_rules`)と、外部パッケージの**配置宣言**(`dependencies/core_stack.yaml` にバージョンと使ってよい層を1箇所で宣言。宣言外のパッケージは論じない)に基づく監査です。
 - 🎚️ **層ごとの粒度指定**: feature を宣言しても「全層が必須」にはなりません。必要な層だけを `layers:` に書き、使わない層は空リスト(`[]`)で除外し、命名が自由な層でもファイルを明示できます。`utakata plan expand` で自動導出の結果を書き出してから編集できます。
 - 📚 **ナレッジはリポジトリにもパッケージにも置かない**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理し、参照時にオンデマンド取得します(バージョン固定タグ・`~/.utakata/` にキャッシュ)。パッケージには機械可読な定義だけを同梱するため `create`/`apply`/`check` は完全オフラインで動作。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残り、`apply` がディレクトリごとに GUIDE.md を撒くこともなくなりました(参照は `guide for <file>`)。
 - 🗂️ **クライアント説明用ナレッジ Vault**: `vault:` に自分のナレッジリポジトリを指定すると、生成される `utakata-client-explainer` スキルがそれを根拠にお客様向けの説明文を書きます(料金や審査要否を記憶で書かず、各エントリの検証日時を確認する)。
@@ -114,7 +114,7 @@ features:
 | `utakata plan expand [--dry-run] [--feature <name>]` | 自動導出されている層ごとのファイル構成を `plan.yaml` に書き出す(以後は手で増減できる) |
 | `utakata plan add <feature> <layer> <item...>` / `remove <feature> <layer> <item>` | 層の項目を1件追加・削除する(AI エージェント/スクリプト向け。書式は保持) |
 | `utakata check [--json] [--file <path>]` | 不足ファイル・余分なファイル・命名規則違反を1回の走査で報告する |
-| `utakata imports [--json] [--arch <id>]` | アーキテクチャ定義の `import_rules` に基づき import の健全性を監査する(内部依存はホワイトリスト・外部依存はブラックリスト。違反があれば exit 1) |
+| `utakata imports [--json] [--arch <id>]` | import の健全性を監査する(層間依存グラフ `import_rules` + パッケージ配置宣言 `dependencies/*.yaml`。違反があれば exit 1) |
 | `utakata status [--brief] [--write-report]` | Flutter バージョン + lint + check サマリー。`--brief` は flutter 呼び出しを一切行わない(Claude Code フック用) |
 | `utakata arch list\|show\|eject\|export` | アーキテクチャ定義の確認、またはローカルへの書き出し(カスタマイズ開始) |
 | `utakata arch get [--update]` | `utakata.yaml` の `knowledge_repo`(オプトイン)をフェッチしてコミット SHA を `utakata.lock` に固定する |

@@ -45,7 +45,11 @@ class GuideEntity {
   /// ガイドを Markdown テキストとしてレンダリングする
   ///
   /// [detailContent]: アセットから読み込まれた詳細な解説・コード例テキスト。null の場合はメタデータのみでレンダリングする。
-  String render(String? detailContent) {
+  /// [importConstraints]: `import_rules`/配置宣言から生成された依存制約の
+  /// Markdown。非 null なら手書きの [allowedImports]/[forbiddenImports]
+  /// の代わりにこれを表示する(v2 定義: 例示の二重管理をやめ、監査規則を
+  /// 単一の情報源にする)。
+  String render(String? detailContent, {String? importConstraints}) {
     final buffer = StringBuffer();
 
     // フロントマターの出力
@@ -84,29 +88,34 @@ class GuideEntity {
     // 依存関係の制約
     buffer.writeln('## 依存関係の制約');
     buffer.writeln();
-    buffer.writeln('### 許可されるimport');
-    if (allowedImports.isEmpty) {
-      buffer.writeln('特になし');
+    if (importConstraints != null && importConstraints.trim().isNotEmpty) {
+      buffer.writeln(importConstraints.trim());
+      buffer.writeln();
     } else {
-      buffer.writeln('```dart');
-      for (final imp in allowedImports) {
-        buffer.writeln(imp);
+      buffer.writeln('### 許可されるimport');
+      if (allowedImports.isEmpty) {
+        buffer.writeln('特になし');
+      } else {
+        buffer.writeln('```dart');
+        for (final imp in allowedImports) {
+          buffer.writeln(imp);
+        }
+        buffer.writeln('```');
       }
-      buffer.writeln('```');
-    }
-    buffer.writeln();
+      buffer.writeln();
 
-    buffer.writeln('### 禁止されるimport');
-    if (forbiddenImports.isEmpty) {
-      buffer.writeln('特になし');
-    } else {
-      buffer.writeln('```dart');
-      for (final imp in forbiddenImports) {
-        buffer.writeln(imp);
+      buffer.writeln('### 禁止されるimport');
+      if (forbiddenImports.isEmpty) {
+        buffer.writeln('特になし');
+      } else {
+        buffer.writeln('```dart');
+        for (final imp in forbiddenImports) {
+          buffer.writeln(imp);
+        }
+        buffer.writeln('```');
       }
-      buffer.writeln('```');
+      buffer.writeln();
     }
-    buffer.writeln();
 
     // 命名規則
     buffer.writeln('## 命名規則');

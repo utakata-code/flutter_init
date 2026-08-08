@@ -77,8 +77,11 @@ class CreateProjectUsecase {
       throw Exception(_msg.flutterCreateFailed);
     }
 
-    // 2. アーキテクチャ定義を取得
+    // 2. アーキテクチャ定義と外部依存スタックを取得
+    //    (スタックは dependencies/core_stack.yaml。旧構成では定義内の
+    //     dependencies:/dev_dependencies: へフォールバック)
     final arch = await _archRepo.getById(spec.architectureId);
+    final stack = await _archRepo.getDependencyStack(spec.architectureId);
 
     // 3. pubspec.yaml にアーキテクチャ依存関係を自動追記
     final pubspecPath = p.join(spec.appName, 'pubspec.yaml');
@@ -86,8 +89,8 @@ class CreateProjectUsecase {
     if (pubspecContent != null) {
       final updatedContent = _mergeDependencies(
         pubspecContent,
-        arch.dependencies,
-        arch.devDependencies,
+        stack.dependencies,
+        stack.devDependencies,
       );
       await _writeFile(pubspecPath, updatedContent);
     }

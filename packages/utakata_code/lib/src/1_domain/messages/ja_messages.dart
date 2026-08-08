@@ -44,6 +44,9 @@ class JaMessages implements CliMessages {
   String importsExternalViolation(String pattern, String pkg, String deny) =>
       '「$pattern」では $pkg の import が禁止されています(deny: $deny)';
   @override
+  String importsPlacementViolation(String pkg, String layers) =>
+      '$pkg の使用が宣言されているのは次の層のみです: $layers';
+  @override
   String get cmdStatusDesc => 'プロジェクトの現在の状態を総合表示する';
   @override
   String get cmdRunnerDesc => '仕様駆動開発を支援する Flutter CLI ツール';

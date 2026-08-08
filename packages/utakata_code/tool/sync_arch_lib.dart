@@ -50,7 +50,9 @@ void main(List<String> args) {
 }
 
 /// slim 同梱の対象: このトップレベル配下のみ同梱する。
-const _bundledTopLevel = {'arch_definition.yaml', 'skills'};
+/// dependencies/ は機械可読な *.yaml(バージョン + 配置宣言)のみ同梱し、
+/// *.md(読み物)は従来どおりオンデマンド取得に委ねる。
+const _bundledTopLevel = {'arch_definition.yaml', 'skills', 'dependencies'};
 
 void _copyTree(Directory from, Directory to, {required String archId}) {
   to.createSync(recursive: true);
@@ -61,6 +63,11 @@ void _copyTree(Directory from, Directory to, {required String archId}) {
       continue;
     }
     if (!_bundledTopLevel.contains(parts.first)) continue;
+    if (parts.first == 'dependencies' &&
+        entity is File &&
+        !relative.endsWith('.yaml')) {
+      continue;
+    }
     final targetPath = '${to.path}/$relative';
     if (entity is Directory) {
       Directory(targetPath).createSync(recursive: true);

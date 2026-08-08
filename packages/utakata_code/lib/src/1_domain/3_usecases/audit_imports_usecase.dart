@@ -1,5 +1,6 @@
 import 'package:path/path.dart' as p;
 
+import '../1_entities/architecture_definition_entity.dart';
 import '../1_entities/imports/import_audit_report.dart';
 import '../2_repositories/architecture_repository.dart';
 import '../services/import_auditor.dart';
@@ -38,8 +39,9 @@ class AuditImportsUsecase {
     final archId =
         await _archResolver.resolve(projectDir, explicit: explicitArch);
     final arch = await _archRepo.getById(archId);
-    final rules = arch.importRules;
-    if (rules == null || rules.isEmpty) {
+    final rules = arch.importRules ?? const ImportRuleSet();
+    final placements = (await _archRepo.getDependencyStack(archId)).placements;
+    if (rules.isEmpty && placements.isEmpty) {
       return AuditImportsResult(architectureId: archId, report: null);
     }
 
@@ -71,6 +73,8 @@ class AuditImportsUsecase {
         selfPackage: selfPackage,
         files: files,
         knownScopes: knownScopes,
+        placements: placements,
+        layerNames: [for (final layer in arch.layers) layer.name],
       ),
     );
   }

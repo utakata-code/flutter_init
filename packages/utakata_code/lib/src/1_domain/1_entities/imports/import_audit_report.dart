@@ -14,11 +14,15 @@ final class DartSourceFile {
 }
 
 enum ImportViolationKind {
-  /// 内部依存: ホワイトリストにない層への import
+  /// 内部依存: ホワイトリスト/層グラフにない層への import
   internal,
 
-  /// 外部依存: ブラックリストにあるパッケージの import
+  /// 外部依存: ブラックリスト(v1 deny)にあるパッケージの import
   external,
+
+  /// 外部依存: 配置宣言(v2 `dependencies/*.yaml` の `layers:`)に
+  /// 反する層でのパッケージ import
+  placement,
 }
 
 /// import 違反1件。

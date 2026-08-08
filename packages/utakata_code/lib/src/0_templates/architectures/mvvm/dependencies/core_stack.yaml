@@ -1,0 +1,31 @@
+# コアスタック: 外部依存の正(バージョン + 配置宣言)
+# 書式は clean_architecture の dependencies/core_stack.yaml と同じ。
+
+dependencies:
+  flutter:
+    sdk: flutter
+    layers: [3_view]
+
+  # ─── 状態管理 ───
+  hooks_riverpod:
+    version: ^2.6.1
+    layers: [2_viewmodel, 3_view]
+  flutter_hooks:
+    version: ^0.20.5
+    layers: [3_view]
+
+  # ─── データモデル(全層可) ───
+  freezed_annotation:
+    version: ^3.0.0
+  json_annotation:
+    version: ^4.9.0
+
+  # ─── HTTP クライアント ───
+  dio:
+    version: ^5.4.0
+    layers: [1_model/3_services]
+
+dev_dependencies:
+  build_runner: ^2.4.8
+  freezed: ^3.0.0
+  json_serializable: ^6.8.0

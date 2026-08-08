@@ -25,6 +25,7 @@ abstract interface class CliMessages {
   String importsViolationSummary(int count, int audited, int excluded);
   String importsInternalViolation(String from, String to, String allow);
   String importsExternalViolation(String pattern, String pkg, String deny);
+  String importsPlacementViolation(String pkg, String layers);
 
   // ─── コマンドランナー ───
   String get versionHelp;

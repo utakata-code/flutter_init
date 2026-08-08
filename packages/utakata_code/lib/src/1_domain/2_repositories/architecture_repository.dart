@@ -1,4 +1,5 @@
 import '../1_entities/architecture_definition_entity.dart';
+import '../1_entities/dependency_stack_entity.dart';
 
 /// アーキテクチャ定義を取得するリポジトリのインターフェース
 ///
@@ -19,4 +20,13 @@ abstract interface class ArchitectureRepository {
   /// ローカル優先読み込みルールを適用する。
   /// 該当する定義が存在しない場合は [ArchitectureNotFoundException] をスロー。
   Future<String> getRawDefinition(String architectureId);
+
+  /// 外部依存スタック(`dependencies/*.yaml`)を取得する(v1.5.0)。
+  ///
+  /// `core_stack.yaml` は pubspec 生成(`utakata create`)+ 配置宣言、
+  /// その他の `*.yaml`(recommended 等)は配置宣言のみに使われる。
+  /// `dependencies/` が無い旧構成では、arch_definition.yaml 内の
+  /// `dependencies:`/`dev_dependencies:`(v1 書式)へフォールバックする
+  /// (その場合、配置宣言は空)。
+  Future<DependencyStack> getDependencyStack(String architectureId);
 }

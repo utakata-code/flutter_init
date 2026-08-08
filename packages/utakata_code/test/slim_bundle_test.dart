@@ -7,19 +7,27 @@ import 'package:utakata/src/2_infrastructure/2_data_sources/2_remote/git_data_so
 import 'package:utakata/src/2_infrastructure/3_repositories/knowledge_repository_impl.dart';
 
 /// Issue #15(slim 同梱): 同梱テンプレートは実行時必須の
-/// arch_definition.yaml + skills/ のみで、読み物は同梱しない。
+/// arch_definition.yaml + skills/ + dependencies/*.yaml のみで、
+/// 読み物は同梱しない。
 void main() {
   const fs = FilesystemDataSource();
 
-  test('同梱は arch_definition.yaml と skills/ のみ(読み物は含まない)', () async {
+  test('同梱は arch_definition.yaml / skills / dependencies のみ(読み物は含まない)',
+      () async {
     for (final archId in ['clean_architecture', 'mvvm']) {
       final root = await fs.resolvePackageTemplatePath('architectures/$archId');
       final topLevel = Directory(root)
           .listSync()
           .map((e) => e.uri.pathSegments.where((s) => s.isNotEmpty).last)
           .toSet();
-      expect(topLevel, {'arch_definition.yaml', 'skills'},
+      expect(topLevel, {'arch_definition.yaml', 'skills', 'dependencies'},
           reason: '$archId の同梱が slim になっていない(Issue #15)');
+      // dependencies/ は機械可読な yaml のみ(md 読み物は同梱しない)
+      final depsDir = Directory('$root/dependencies');
+      for (final f in depsDir.listSync().whereType<File>()) {
+        expect(f.path.endsWith('.yaml'), isTrue,
+            reason: 'dependencies/ に yaml 以外が同梱されている: ${f.path}');
+      }
     }
   });
 

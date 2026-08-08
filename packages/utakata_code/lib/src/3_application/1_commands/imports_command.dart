@@ -90,13 +90,18 @@ class ImportsCommand extends BaseCommand {
 
   /// 構造化された違反([ImportViolation])を表示文へ整形する。
   String _detailOf(ImportViolation v) {
-    if (v.kind == ImportViolationKind.internal) {
-      final allow = v.ruleDetail.isEmpty ? '-' : v.ruleDetail.join(', ');
-      return _msg.importsInternalViolation(v.rulePattern, v.target, allow);
-    }
     final pkg =
         v.target.startsWith('dart:') ? v.target : 'package:${v.target}';
-    return _msg.importsExternalViolation(
-        v.rulePattern, pkg, v.ruleDetail.join(', '));
+    switch (v.kind) {
+      case ImportViolationKind.internal:
+        final allow = v.ruleDetail.isEmpty ? '-' : v.ruleDetail.join(', ');
+        return _msg.importsInternalViolation(v.rulePattern, v.target, allow);
+      case ImportViolationKind.external:
+        return _msg.importsExternalViolation(
+            v.rulePattern, pkg, v.ruleDetail.join(', '));
+      case ImportViolationKind.placement:
+        return _msg.importsPlacementViolation(
+            pkg, v.ruleDetail.isEmpty ? '-' : v.ruleDetail.join(', '));
+    }
   }
 }
