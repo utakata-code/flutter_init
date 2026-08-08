@@ -380,6 +380,11 @@ dev_dependencies:
       expect(writtenPubspecContent, contains('build_runner: ^2.4.9'));
       // 重複しない、既存の flutter 依存関係が残っていることの確認
       expect(writtenPubspecContent, contains('cupertino_icons: ^1.0.2'));
+      // 範囲指定はクォートされ、出力全体が有効な YAML であること(1.5.1)
+      expect(writtenPubspecContent, contains('drift_dev: ">=2.25.0 <2.28.2"'));
+      final parsed = const YamlDataSource()
+          .parse(writtenPubspecContent!, source: 'pubspec.yaml');
+      expect(parsed['dev_dependencies']['drift_dev'], '>=2.25.0 <2.28.2');
     });
   });
 
@@ -469,6 +474,8 @@ class DummyArchitectureRepository implements ArchitectureRepository {
       },
       devDependencies: {
         'build_runner': '^2.4.9',
+        // 範囲指定はクォート必須('>' はブロックスカラー指示子。1.5.1 の回帰テスト)
+        'drift_dev': '>=2.25.0 <2.28.2',
       },
     );
   }

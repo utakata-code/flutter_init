@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+* **fix(create)**: `utakata create` wrote version ranges into the generated pubspec.yaml unquoted (`drift_dev: >=2.25.0 <2.28.2`), which is invalid YAML — `>` starts a block scalar — so the very first `flutter pub` / `build_runner` run crashed with "Expected comment or line break". Values that are not safe YAML plain scalars are now double-quoted. If you hit this with 1.5.0, quote the `drift_dev:` line in the generated pubspec.yaml by hand (or re-run `create` with 1.5.1).
+
 ## 1.5.0
 
 * **feat(imports)** ([#20](https://github.com/utakata-code/utakata/issues/20)): New `utakata imports` — a deterministic import-health audit of dependency *direction*, not just file placement. Two declarations drive it:

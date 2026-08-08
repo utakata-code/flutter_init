@@ -129,6 +129,18 @@ class CreateProjectUsecase {
   }
 
   /// pubspec.yaml に依存関係をマージするヘルパーメソッド
+  /// pubspec.yaml に書き込む値を YAML として安全な形にする。
+  ///
+  /// `>=2.25.0 <2.28.2` のような範囲指定は、クォート無しだと先頭の `>` が
+  /// ブロックスカラー指示子と解釈され不正な YAML になる(flutter_tools が
+  /// パースできずクラッシュする)。プレーンスカラーとして安全な文字だけの
+  /// 値以外はダブルクォートで包む。
+  static String _yamlScalar(Object? value) {
+    final text = value.toString();
+    final safePlain = RegExp(r'^[A-Za-z0-9_.^+~-]+$');
+    return safePlain.hasMatch(text) ? text : '"$text"';
+  }
+
   String _mergeDependencies(
     String pubspecContent,
     Map<String, dynamic> archDeps,
@@ -151,10 +163,10 @@ class CreateProjectUsecase {
             if (version is Map) {
               newLines.add('  $pkg:');
               version.forEach((k, v) {
-                newLines.add('    $k: $v');
+                newLines.add('    $k: ${_yamlScalar(v)}');
               });
             } else {
-              newLines.add('  $pkg: $version');
+              newLines.add('  $pkg: ${_yamlScalar(version)}');
             }
           }
         });
@@ -168,10 +180,10 @@ class CreateProjectUsecase {
             if (version is Map) {
               newLines.add('  $pkg:');
               version.forEach((k, v) {
-                newLines.add('    $k: $v');
+                newLines.add('    $k: ${_yamlScalar(v)}');
               });
             } else {
-              newLines.add('  $pkg: $version');
+              newLines.add('  $pkg: ${_yamlScalar(version)}');
             }
           }
         });
