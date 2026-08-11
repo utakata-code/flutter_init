@@ -75,6 +75,51 @@ class DoctorUsecase {
             '編集していなければ削除して問題ありません。');
       }
     }
+
+    // v1.6.0 で status の出力先を doc/preview/ へ移した。旧出力が残っていれば
+    // 案内する(すべて導出可能な生成物なので削除して構わない)。
+    if (_dirExists('$projectDir/AI/snapshots')) {
+      issues.add('AI/snapshots/ が残っています。v1.6.0 から '
+          'doc/preview/project_status.{yaml,md} に出力先が変わりました。'
+          'すべて導出可能な生成物なので削除して構いません'
+          '(`utakata doctor --migrate` でも削除できます)。');
+    }
+
+    issues.addAll(await _diagnoseRecordsPolicy(projectDir));
+    return issues;
+  }
+
+  /// `records.agent_write`(v1.6.0)の設定と、生成済み
+  /// `.claude/settings.json` の乖離を検出する。
+  ///
+  /// `claude init` は既存 settings.json を上書きしないため、設定だけ変えても
+  /// 実際の許可は変わらない。この取りこぼしは気づきにくいので明示的に警告する。
+  Future<List<String>> _diagnoseRecordsPolicy(String projectDir) async {
+    final config = await _configRepo?.read(projectDir);
+    if (config == null) return const [];
+    final issues = <String>[];
+
+    if (config.recordsAgentWrite == 'full') {
+      issues.add('records.agent_write: full が設定されています。AI が '
+          'doc/records/ を直接編集できます(クライアント案件では非推奨。'
+          '追記だけ許すなら append を使ってください)。');
+    }
+
+    final settingsPath = '$projectDir/.claude/settings.json';
+    if (!_fileExists(settingsPath)) return issues;
+    final settings = await _readFile(settingsPath);
+    if (settings == null) return issues;
+
+    final denied = settings.contains('"Write(doc/records/**)"');
+    final allowsCli = settings.contains('Bash(utakata log add:');
+    final expectedDenied = config.recordsAgentWrite != 'full';
+    final expectedAllowsCli = config.recordsAgentWrite != 'none';
+
+    if (denied != expectedDenied || allowsCli != expectedAllowsCli) {
+      issues.add('.claude/settings.json が records.agent_write '
+          '(${config.recordsAgentWrite})と一致していません。'
+          '`utakata claude init --force` で再生成してください。');
+    }
     return issues;
   }
 

@@ -11,7 +11,7 @@
 
 ## Features
 
-- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent) + a project `CLAUDE.md`. `utakata mcp` exposes a read-only, stateless MCP server (11 tools) so an agent can inspect structure/plan/logs/agreements/config without ever writing to them.
+- 🤖 **Claude Code Native**: `create` generates `.mcp.json` + `.claude/` (hooks, skills, an agent) + a project `CLAUDE.md`. `utakata mcp` exposes a read-only, stateless MCP server so an agent can inspect structure/plan/logs/agreements/config without writing to them. How much an agent may write back to `doc/records/` is a three-way choice (`records.agent_write: none | append | full`).
 - 🧭 **Master config (`utakata.yaml`)**: one file declares the architecture, the `team` (client / developer / AI agents and who decides what), the `skills` to sync into `.claude/skills/`, and an optional remote `knowledge_repo` — pinned by commit SHA in `utakata.lock` via `utakata arch get`. Without it, everything ships bundled and fully offline.
 - 🏗️ **Multi-Architecture Support**: Ships with **Clean Architecture (4-layer)** and **MVVM (3-layer)**. Customize by ejecting a definition with `utakata arch eject <id>`.
 - 🔍 **One Structural Check**: `utakata check` reports missing files, unexpected files, and naming violations in a single pass against your `arch_definition.yaml` — with GUIDE excerpts inline so the fix is obvious.
@@ -20,7 +20,7 @@
 - 🎚️ **Per-Layer Granularity**: A feature doesn't have to mean *every* layer. Declare only the layers you need (`layers:`), mark one as not applicable with an empty list, and pin exact files even where naming is free-form. `utakata plan expand` writes the auto-derived baseline into the plan so you can edit it.
 - 📚 **Knowledge stays out of your repo — and out of the package**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) and are fetched on demand (version-pinned, cached in `~/.utakata/`). The package bundles only the machine-readable definitions, so `create`/`apply`/`check` work fully offline; projects contain only the app + `doc/` + config — no copied guide tree, and `apply` no longer writes per-directory GUIDE.md files (use `guide for <file>`).
 - 🗂️ **Client-Facing Knowledge Vault**: point `vault:` at your own repo of how-to-obtain-an-account / pricing / review-requirement notes, and the generated `utakata-client-explainer` skill writes client explanations from it — checking each entry's recorded verification date instead of quoting prices from memory.
-- 💬 **Client Conversation Tracking**: `utakata log` records client conversations (human-only writes, JSONL, append-only) and `utakata agree` tracks agreements — the record an AI agent can read but never write to.
+- 💬 **Client Conversation Tracking**: `utakata log` records summarized conversations, `utakata message` keeps the **verbatim** correspondence you sent and received (unmodified, append-only), and `utakata agree` tracks agreements. All JSONL and append-only; how much an agent may add is set by `records.agent_write` (`append` lets it add entries via the CLI without ever editing past records).
 - 📝 **Implementation Plans & Summary**: `utakata impl` manages a per-feature implementation-plan lifecycle; `utakata summary` regenerates the agreement ledger section of your project summary automatically.
 - 🌐 **Internationalized**: CLI messages support English and Japanese.
 
@@ -99,7 +99,7 @@ features:
 | Command | Description |
 |---|---|
 | `utakata doc init` | Create the `doc/` workspace (specs/records/preview/impl/knowledge/archive) + `utakata.yaml`, ahead of the Flutter project itself |
-| `utakata doc show <config\|plan\|imports>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` (matches the installed version; also available as the MCP `doc_get` tool) |
+| `utakata doc show <config\|plan\|imports\|records>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` / records policy (matches the installed version; also available as the MCP `doc_get` tool) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | Create a new Flutter project with the chosen architecture, plus `.mcp.json` + `.claude/` |
 | `utakata doctor [--migrate]` | Diagnose the project; `--migrate` moves a legacy `AI/`-based layout (or an ad-hoc `doc/`) to the current one |
 
@@ -118,13 +118,16 @@ features:
 | `utakata arch list\|show\|eject\|export` | Inspect architecture definitions or eject one locally to customize |
 | `utakata arch get [--update]` | Fetch the opt-in `knowledge_repo` from `utakata.yaml` and pin its commit SHA in `utakata.lock` |
 
-### Client & records (human writes, AI reads)
+### Client & records (append-only; AI access set by `records.agent_write`)
 
 | Command | Description |
 |---|---|
 | `utakata log add "..." -s client\|developer\|system\|third_party [--at] [--thread] [--tag] [--reply-to] [--draft]` | Append one conversation entry (`doc/records/log/YYYY-MM.jsonl`) |
 | `utakata log show [--date] [--thread] [--tag]` / `utakata log render` | Query entries / regenerate the Markdown preview under `doc/preview/` |
 | `utakata log import claude-session [--list\|--last\|--session <id>] [--full] [-y]` | Human-driven import of a Claude Code session transcript into `doc/records/sessions/` (user/assistant text only by default, secrets `[REDACTED]`, interactive confirmation) |
+| `utakata message add -d inbound\|outbound [-c <channel>] [--at] [--from\|--to] [--subject] [--thread] [--external-id] "..."` | Record verbatim correspondence, unmodified (`doc/records/messages/YYYY-MM.jsonl`) |
+| `utakata message import --format jsonl\|md [--file <path>] [--channel] [--dry-run]` | Bulk-import existing correspondence; duplicates skipped by `external_id` or content |
+| `utakata message list\|show\|render\|link` | Query / print in full / regenerate `doc/preview/messages/` / attach a log or agreement reference |
 | `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg ids>]` | Record an agreement (`doc/records/agreements.jsonl`, append-only) |
 | `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | Update, supersede, or link an agreement; list unreflected ones |
 | `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | Manage a feature's implementation-plan lifecycle (`doc/impl/PLAN-NNNN_{feature}.md`) |
@@ -141,7 +144,7 @@ features:
 
 | Command | Description |
 |---|---|
-| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`, `doc_get`, `vault_list`, `vault_get`) |
+| `utakata mcp` | Start a stateless, read-only MCP server over stdio (`structure_get`, `check_run`, `plan_get`, `log_query`, `agreements_query`, `guide_get`, `guide_for_file`, `config_get`, `doc_get`, `vault_list`, `vault_get`, plus `message_query` when `records.agent_read.messages` is enabled) |
 | `utakata vault list\|show\|get` | Browse the personal knowledge vault used to write client-facing explanations (configured via `vault:`, usually in `~/.utakata/config.yaml`) |
 | `utakata skills sync [--force]` | Sync the architecture's bundled SKILLs listed in `utakata.yaml` into `.claude/skills/` (managed-marker protection: human files are never overwritten) |
 | `utakata claude init [--force]` | Add or repair the Claude Code integration (`.claude/` + `.mcp.json` + `CLAUDE.md`) in an existing project. Default writes missing files only; `--force` regenerates everything |

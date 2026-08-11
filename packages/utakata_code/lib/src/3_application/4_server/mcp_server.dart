@@ -6,6 +6,8 @@ import '../../1_domain/3_usecases/check_usecase.dart';
 import '../../1_domain/2_repositories/config_repository.dart';
 import '../../1_domain/3_usecases/architecture_resolver.dart';
 import '../../1_domain/3_usecases/guide_for_file_usecase.dart';
+import '../../1_domain/1_entities/record/message_record.dart';
+import '../../1_domain/2_repositories/message_repository.dart';
 import '../../1_domain/2_repositories/vault_repository.dart';
 import '../../1_domain/3_usecases/show_doc_usecase.dart';
 import '../../1_domain/3_usecases/guide_usecase.dart';
@@ -33,6 +35,7 @@ class McpServer {
   final ArchitectureResolver? _archResolver;
   final ShowDocUsecase? _showDocUsecase;
   final VaultRepository? _vaultRepo;
+  final MessageRepository? _messageRepo;
 
   McpServer({
     required CheckUsecase checkUsecase,
@@ -45,6 +48,7 @@ class McpServer {
     ArchitectureResolver? archResolver,
     ShowDocUsecase? showDocUsecase,
     VaultRepository? vaultRepo,
+    MessageRepository? messageRepo,
   })  : _checkUsecase = checkUsecase,
         _planRepo = planRepo,
         _queryLogUsecase = queryLogUsecase,
@@ -54,7 +58,8 @@ class McpServer {
         _configRepo = configRepo,
         _archResolver = archResolver,
         _showDocUsecase = showDocUsecase,
-        _vaultRepo = vaultRepo;
+        _vaultRepo = vaultRepo,
+        _messageRepo = messageRepo;
 
   static const _protocolVersion = '2024-11-05';
 
@@ -162,6 +167,34 @@ class McpServer {
     },
   ];
 
+  /// 送受信原文の参照ツール(v1.6.0)。
+  ///
+  /// 原文は既定で AI に見せない。`utakata.yaml` の
+  /// `records.agent_read.messages: true` のときだけ tools/list に載せる
+  /// (公開しなければ呼べない = 最も確実な保護)。
+  static final _messageTool = {
+    'name': 'message_query',
+    'description': 'クライアントとの送受信原文を検索する(読み取り専用)',
+    'inputSchema': {
+      'type': 'object',
+      'properties': {
+        'direction': {'type': 'string', 'description': 'inbound | outbound'},
+        'channel': {'type': 'string'},
+        'thread': {'type': 'string'},
+        'month': {'type': 'string', 'description': 'YYYY-MM'},
+        'id': {'type': 'string'},
+      },
+    },
+  };
+
+  /// このプロジェクトで公開するツール一覧(設定で増減する)。
+  Future<List<Map<String, dynamic>>> _visibleTools(String projectDir) async {
+    final config = await _configRepo?.read(projectDir);
+    final allowMessages =
+        (config?.agentCanReadMessages ?? false) && _messageRepo != null;
+    return [..._tools, if (allowMessages) _messageTool];
+  }
+
   /// stdin から1行ずつ JSON-RPC リクエストを読み、stdout に応答を書く。
   /// stdin が閉じたら(EOF)終了する(プロセス残留を作らない)。
   Future<void> serve(String projectDir) async {
@@ -199,7 +232,7 @@ class McpServer {
           'capabilities': {'tools': {}},
         });
       case 'tools/list':
-        return _result(id, {'tools': _tools});
+        return _result(id, {'tools': await _visibleTools(projectDir)});
       case 'tools/call':
         return _callTool(id, request, projectDir);
       default:
@@ -265,10 +298,13 @@ class McpServer {
             .toList(),
         'vault_get' =>
           await _vaultRepo?.read(projectDir, args['entry_id'] as String),
+        'message_query' => await _queryMessages(projectDir, args),
         _ => null,
       };
 
-      if (toolName == null || !_tools.any((t) => t['name'] == toolName)) {
+      // 公開していないツールは存在しない扱い(設定でオフの message_query 等)
+      final visible = await _visibleTools(projectDir);
+      if (toolName == null || !visible.any((t) => t['name'] == toolName)) {
         return _error(id, -32602, 'Unknown tool: $toolName');
       }
 
@@ -285,6 +321,41 @@ class McpServer {
         ],
       });
     }
+  }
+
+  /// `message_query` の実体。公開されている場合のみ到達する。
+  Future<List<Map<String, dynamic>>?> _queryMessages(
+    String projectDir,
+    Map<String, dynamic> args,
+  ) async {
+    final repo = _messageRepo;
+    if (repo == null) return null;
+    final directionRaw = args['direction'] as String?;
+    final records = await repo.query(
+      projectDir,
+      direction: directionRaw != null
+          ? MessageRecord.directionFromString(directionRaw)
+          : null,
+      channel: args['channel'] as String?,
+      thread: args['thread'] as String?,
+      month: args['month'] as String?,
+      id: args['id'] as String?,
+    );
+    return records
+        .map((r) => {
+              'id': r.id,
+              'direction': MessageRecord.directionToString(r.direction),
+              'at': r.at.toIso8601String(),
+              if (r.channel != null) 'channel': r.channel,
+              if (r.from != null) 'from': r.from,
+              if (r.to != null) 'to': r.to,
+              if (r.subject != null) 'subject': r.subject,
+              'body': r.body,
+              if (r.thread != null) 'thread': r.thread,
+              if (r.logRef != null) 'log_ref': r.logRef,
+              if (r.agreementRef != null) 'agreement_ref': r.agreementRef,
+            })
+        .toList();
   }
 
   Future<String> _resolveArchId(String projectDir, String? explicit) async {

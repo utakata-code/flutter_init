@@ -141,6 +141,22 @@ final class UtakataConfig {
   /// `records.git`: 'commit' | 'ignore'
   final String recordsGit;
 
+  /// `records.agent_write`: AI エージェントによる記録への書き込み許可(v1.6.0)。
+  ///
+  /// - `none`(既定) — 一切書けない(`.claude/settings.json` で deny)
+  /// - `append` — **CLI 経由の追記のみ**許可。ファイル直接編集は引き続き deny
+  ///   なので、ID 採番・スキーマ検証を必ず通り、過去の記録は改変できない
+  /// - `full` — `doc/records/` の直接編集も許可(自分用プロジェクト向け。
+  ///   クライアント案件では非推奨)
+  final String recordsAgentWrite;
+
+  /// `records.agent_read`: 記録系統ごとの AI からの参照可否(v1.6.0)。
+  /// 現在意味を持つキーは `messages`(既定 false = 原文は AI に見せない)。
+  final Map<String, bool> recordsAgentRead;
+
+  /// [recordsAgentWrite] の妥当な値。
+  static const agentWriteModes = {'none', 'append', 'full'};
+
   final String? lang;
 
   const UtakataConfig({
@@ -152,8 +168,19 @@ final class UtakataConfig {
     this.vault,
     this.implPlanEnforcement = 'on',
     this.recordsGit = 'commit',
+    this.recordsAgentWrite = 'none',
+    this.recordsAgentRead = const {},
     this.lang,
   });
+
+  /// AI が `doc/records/` を直接編集してよいか(`full` のみ true)。
+  bool get agentCanEditRecords => recordsAgentWrite == 'full';
+
+  /// AI が CLI 経由で記録を追記してよいか(`append` / `full`)。
+  bool get agentCanAppendRecords => recordsAgentWrite != 'none';
+
+  /// AI が原文メッセージ(`doc/records/messages/`)を参照してよいか。
+  bool get agentCanReadMessages => recordsAgentRead['messages'] ?? false;
 
   factory UtakataConfig.fromMap(Map<String, dynamic> map) {
     final project = map['project'];
@@ -186,7 +213,28 @@ final class UtakataConfig {
           ? (enforcement['impl_plan']?.toString() ?? 'on')
           : 'on',
       recordsGit: records is Map ? (records['git']?.toString() ?? 'commit') : 'commit',
+      recordsAgentWrite: _parseAgentWrite(records),
+      recordsAgentRead: _parseAgentRead(records),
       lang: map['lang'] as String?,
     );
+  }
+
+  /// 未知の値は既定(`none`)に倒す — 誤記で意図せず書き込みが緩むより、
+  /// 厳しい側で止めて `doctor` に警告させる方が安全。
+  static String _parseAgentWrite(Object? records) {
+    if (records is! Map) return 'none';
+    final raw = records['agent_write']?.toString();
+    if (raw == null) return 'none';
+    return agentWriteModes.contains(raw) ? raw : 'none';
+  }
+
+  static Map<String, bool> _parseAgentRead(Object? records) {
+    if (records is! Map) return const {};
+    final raw = records['agent_read'];
+    if (raw is! Map) return const {};
+    return {
+      for (final entry in raw.entries)
+        entry.key.toString(): entry.value == true,
+    };
   }
 }

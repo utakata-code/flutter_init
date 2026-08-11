@@ -14,6 +14,12 @@ abstract class BaseCommand extends Command<int> {
     } on Exception catch (e) {
       stderr.writeln('❌ $e');
       return 1;
+    } on ArgumentError catch (e) {
+      // 入力値の検証失敗(未来日時・不正な direction 等)は利用者のミスであり、
+      // スタックトレースではなくメッセージだけを見せる。
+      // ArgumentError は Exception ではなく Error なので個別に捕捉する。
+      stderr.writeln('❌ ${e.message ?? e}');
+      return 64; // EX_USAGE
     }
   }
 

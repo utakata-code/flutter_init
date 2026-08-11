@@ -17,10 +17,13 @@ import 'package:utakata/src/1_domain/3_usecases/guide_for_file_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/guide_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_doc_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/import_messages_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_agreements_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/query_log_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/record_agreement_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/record_message_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/render_log_preview_usecase.dart';
+import 'package:utakata/src/1_domain/3_usecases/render_messages_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/render_summary_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/scan_project_status_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/show_doc_usecase.dart';
@@ -41,6 +44,7 @@ import 'package:utakata/src/2_infrastructure/3_repositories/config_repository_im
 import 'package:utakata/src/2_infrastructure/3_repositories/conversation_log_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/feature_template_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/impl_plan_repository_impl.dart';
+import 'package:utakata/src/2_infrastructure/3_repositories/message_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/plan_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/project_repository_impl.dart';
 import 'package:utakata/src/2_infrastructure/3_repositories/structure_repository_impl.dart';
@@ -60,12 +64,14 @@ import 'package:utakata/src/3_application/1_commands/impl_command.dart';
 import 'package:utakata/src/3_application/1_commands/imports_command.dart';
 import 'package:utakata/src/3_application/1_commands/log_command.dart';
 import 'package:utakata/src/3_application/1_commands/mcp_command.dart';
+import 'package:utakata/src/3_application/1_commands/message_command.dart';
 import 'package:utakata/src/3_application/1_commands/plan_command.dart';
 import 'package:utakata/src/3_application/1_commands/skills_command.dart';
 import 'package:utakata/src/3_application/1_commands/status_command.dart';
 import 'package:utakata/src/3_application/1_commands/summary_command.dart';
 import 'package:utakata/src/3_application/1_commands/vault_command.dart';
 import 'package:utakata/src/3_application/3_presenters/log_preview_presenter.dart';
+import 'package:utakata/src/3_application/3_presenters/message_preview_presenter.dart';
 import 'package:utakata/src/3_application/3_presenters/summary_presenter.dart';
 import 'package:utakata/src/3_application/4_server/mcp_server.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_architectures_usecase.dart';
@@ -142,6 +148,7 @@ Future<void> main(List<String> arguments) async {
   final planRepo = PlanRepositoryImpl(fs, yaml, yamlEdit, configRepo: configRepo);
   final structureRepo = StructureRepositoryImpl(fs);
   final logRepo = ConversationLogRepositoryImpl(jsonl);
+  final messageRepo = MessageRepositoryImpl(jsonl);
   final agreementRepo = AgreementRepositoryImpl(jsonl);
   final implPlanRepo = ImplPlanRepositoryImpl(fs, frontMatter);
   final featureTemplateRepo = FeatureTemplateRepositoryImpl(fs, yaml);
@@ -267,6 +274,14 @@ Future<void> main(List<String> arguments) async {
     writeFile: fs.writeFile,
   );
 
+  final recordMessageUsecase = RecordMessageUsecase(repo: messageRepo);
+  final importMessagesUsecase = ImportMessagesUsecase(repo: messageRepo);
+  final renderMessagesUsecase = RenderMessagesUsecase(
+    repo: messageRepo,
+    renderMonth: MessagePreviewPresenter.renderMonth,
+    writeFile: fs.writeFile,
+  );
+
   final doctorUsecase = DoctorUsecase(
     planRepo: planRepo,
     configRepo: configRepo,
@@ -356,6 +371,7 @@ Future<void> main(List<String> arguments) async {
     archResolver: archResolver,
     showDocUsecase: showDocUsecase,
     vaultRepo: vaultRepo,
+    messageRepo: messageRepo,
   );
 
   // ─── Application 層の組み立て ───
@@ -382,6 +398,8 @@ Future<void> main(List<String> arguments) async {
     ),
     docCommand: DocCommand(initDocUsecase, msg, showUsecase: showDocUsecase),
     logCommand: LogCommand(addLogEntryUsecase, queryLogUsecase, renderLogPreviewUsecase, msg),
+    messageCommand: MessageCommand(recordMessageUsecase, importMessagesUsecase,
+        renderMessagesUsecase, messageRepo, msg),
     doctorCommand: DoctorCommand(doctorUsecase, msg),
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
     implCommand: ImplCommand(implPlanUsecase, msg),

@@ -28,6 +28,87 @@ class EnMessages implements CliMessages {
   @override
   String get cmdImportsDesc =>
       'Audit import health against the architecture import_rules (exit 1 on violations)';
+  // ─── message (v1.6.0) ───
+  @override
+  String get cmdMessageDesc =>
+      'Record verbatim correspondence with the client (separate from log summaries)';
+  @override
+  String get cmdMessageAddDesc =>
+      'Record one message (body from arguments or stdin)';
+  @override
+  String get cmdMessageImportDesc =>
+      'Bulk-import existing correspondence (duplicates are skipped)';
+  @override
+  String get cmdMessageListDesc => 'List recorded messages';
+  @override
+  String get cmdMessageShowDesc => 'Print one message in full';
+  @override
+  String get cmdMessageRenderDesc =>
+      'Regenerate the monthly preview under doc/preview/messages/';
+  @override
+  String get cmdMessageLinkDesc =>
+      'Attach a log/agreement reference to a message';
+  @override
+  String get optMessageDirection => 'Direction (inbound | outbound)';
+  @override
+  String get optMessageChannel => 'Channel (coconala / mail / chatwork …)';
+  @override
+  String get optMessageFrom => 'Sender';
+  @override
+  String get optMessageTo => 'Recipient';
+  @override
+  String get optMessageSubject => 'Subject';
+  @override
+  String get optMessageThread => 'Thread name (groups related exchanges)';
+  @override
+  String get optMessageExternalId =>
+      'ID in the source system (used to skip duplicates on re-import)';
+  @override
+  String get optMessageAttachment => 'Attachment path (repeatable)';
+  @override
+  String get optMessageFormat => 'Source format (jsonl|md)';
+  @override
+  String get optMessageFile => 'File to import (defaults to stdin)';
+  @override
+  String get optMessageMonth => 'Target month (YYYY-MM)';
+  @override
+  String get optMessageLogRef => 'Conversation log ID to link';
+  @override
+  String get optMessageAgreementRef => 'Agreement ID to link';
+  @override
+  String get messageDirectionRequired =>
+      'Specify --direction (inbound | outbound)';
+  @override
+  String get messageBodyRequired =>
+      'Provide a body: utakata message add -d inbound "text…" or pipe it via stdin';
+  @override
+  String get messageIdRequired =>
+      'Specify a message ID (see utakata message list)';
+  @override
+  String get messageImportSourceRequired =>
+      'Pass --file or pipe the source via stdin';
+  @override
+  String get messageLinkTargetRequired => 'Specify --log or --agreement';
+  @override
+  String get messageListEmpty => 'No messages recorded.';
+  @override
+  String messageAddDone(String id) => 'Recorded: $id';
+  @override
+  String messageImportDone(int imported, int skipped) =>
+      'Imported $imported message(s) ($skipped duplicate(s) skipped)';
+  @override
+  String messageImportDryRun(int imported, int skipped) =>
+      '[DRY] Would import $imported message(s) ($skipped duplicate(s) skipped)';
+  @override
+  String messageRenderDone(int months) =>
+      'Wrote $months month(s) under doc/preview/messages/';
+  @override
+  String messageLinkDone(String id) => 'Linked: $id';
+  @override
+  String messageNotFound(String id) => 'Message "$id" not found.';
+  @override
+  String messageFileNotFound(String path) => 'File not found: $path';
+
   @override
   String importsSection(String archId) =>
       '🔎 utakata imports — import audit ($archId)';

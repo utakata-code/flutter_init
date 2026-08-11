@@ -52,8 +52,12 @@ class GenerateClaudeIntegrationUsecase {
       written.add(relativePath);
     }
 
+    // 記録への書き込みポリシー(records.agent_write)を settings.json と
+    // CLAUDE.md の両方に反映する(v1.6.0)。
+    final config = await _configRepo?.read(projectDir);
+
     await write('.mcp.json', _mcpJson());
-    await write('.claude/settings.json', _settingsJson());
+    await write('.claude/settings.json', _settingsJson(config));
     await write('.claude/skills/utakata-structure/SKILL.md', _structureSkill());
     await write(
         '.claude/skills/utakata-client-context/SKILL.md', _clientContextSkill());
@@ -65,11 +69,26 @@ class GenerateClaudeIntegrationUsecase {
     final claudeMdPath = '$projectDir/CLAUDE.md';
     final fileExists = _fileExists;
     if (forceClaudeMd || fileExists == null || !fileExists(claudeMdPath)) {
-      final config = await _configRepo?.read(projectDir);
       await _writeFile(claudeMdPath, _claudeMd(config));
       written.add('CLAUDE.md');
     }
     return written;
+  }
+
+  /// `records.agent_write` に応じた CLAUDE.md の記述(settings.json と連動)。
+  String _recordsPolicyLine(UtakataConfig? config) {
+    switch (config?.recordsAgentWrite ?? 'none') {
+      case 'append':
+        return '**直接編集は禁止**。追記は `utakata log add` / '
+            '`utakata agree add` / `utakata message add` 経由でのみ行う'
+            '(既存の記録の書き換え・削除は不可)。';
+      case 'full':
+        return '編集が許可されています(`records.agent_write: full`)。'
+            'ただし送受信原文(`messages/`)は一次証跡なので書き換えないこと。';
+      default:
+        return '**読み取り専用**。書き込みは人間が `utakata log add` / '
+            '`utakata agree add` で行う。';
+    }
   }
 
   String _claudeMd(UtakataConfig? config) {
@@ -82,8 +101,8 @@ class GenerateClaudeIntegrationUsecase {
       ..writeln()
       ..writeln('- `doc/summary.md` — 案件整理サマリー(合意の台帳。ビジネス上の決定事項)')
       ..writeln('- `doc/specs/plan.yaml` — feature の意図レベル計画')
-      ..writeln('- `doc/records/` — お客様との会話ログ・合意(**読み取り専用**。'
-          '書き込みは人間が `utakata log add` / `utakata agree add` で行う)')
+      ..writeln('- `doc/records/` — お客様との会話ログ・合意・送受信原文。'
+          '${_recordsPolicyLine(config)}')
       ..writeln('- `utakata.yaml` — プロジェクトのマスター設定')
       ..writeln()
       ..writeln('設定ファイルの書き方は `utakata doc show plan` / '
@@ -128,16 +147,57 @@ class GenerateClaudeIntegrationUsecase {
 }
 ''';
 
-  String _settingsJson() => '''
+  /// `.claude/settings.json` を `records.agent_write` に応じて組み立てる。
+  ///
+  /// - `none`(既定): 記録もプレビューも編集不可(従来どおり)
+  /// - `append`: **deny はそのまま**。代わりに追記系 CLI の実行だけ allow する
+  ///   → エージェントは CLI を通してしか書けず、ID 採番・スキーマ検証を
+  ///     必ず通り、過去の記録を改変・削除できない
+  /// - `full`: `doc/records/**` の deny を外す(プレビューは生成物なので
+  ///   引き続き deny)
+  String _settingsJson(UtakataConfig? config) {
+    final mode = config?.recordsAgentWrite ?? 'none';
+
+    final deny = <String>[
+      if (mode != 'full') ...[
+        'Edit(doc/records/**)',
+        'Write(doc/records/**)',
+      ],
+      'Edit(doc/preview/**)',
+      'Write(doc/preview/**)',
+    ];
+
+    // 追記系 CLI(append / full 共通)。ファイル直接編集の代替経路になる。
+    final allow = <String>[
+      if (mode != 'none') ...[
+        'Bash(utakata log add:*)',
+        'Bash(utakata agree add:*)',
+        'Bash(utakata message add:*)',
+      ],
+    ];
+
+    String jsonArray(List<String> items) =>
+        items.map((e) => '      "$e"').join(',\n');
+
+    final permissions = StringBuffer()
+      ..writeln('  "permissions": {')
+      ..writeln('    "deny": [')
+      ..writeln(jsonArray(deny))
+      ..write('    ]');
+    if (allow.isNotEmpty) {
+      permissions
+        ..writeln(',')
+        ..writeln('    "allow": [')
+        ..writeln(jsonArray(allow))
+        ..write('    ]');
+    }
+    permissions
+      ..writeln()
+      ..write('  },');
+
+    return '''
 {
-  "permissions": {
-    "deny": [
-      "Edit(doc/records/**)",
-      "Write(doc/records/**)",
-      "Edit(doc/preview/**)",
-      "Write(doc/preview/**)"
-    ]
-  },
+${permissions.toString()}
   "hooks": {
     "SessionStart": [
       {
@@ -164,6 +224,7 @@ class GenerateClaudeIntegrationUsecase {
   }
 }
 ''';
+  }
 
   String _structureSkill() => '''
 ---

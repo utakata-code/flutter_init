@@ -8,10 +8,11 @@ import '../../1_domain/3_usecases/import_claude_session_usecase.dart';
 import '../../1_domain/3_usecases/query_log_usecase.dart';
 import '../../1_domain/3_usecases/render_log_preview_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../../1_domain/services/actor_resolver.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
-/// utakata log — お客様会話ログの構造化記録(人間専用)
+/// utakata log — お客様会話ログの構造化記録
 class LogCommand extends Command<int> {
   final CliMessages _msg;
 
@@ -85,7 +86,7 @@ class _LogAddCommand extends BaseCommand {
       speakerRaw: speaker,
       atRaw: argResults!['at'] as String?,
       now: DateTime.now(),
-      recordedBy: Platform.environment['USER'] ?? Platform.environment['USERNAME'] ?? 'unknown',
+      recordedBy: ActorResolver.resolve(Platform.environment),
       name: argResults!['name'] as String?,
       thread: argResults!['thread'] as String?,
       tags: argResults!['tag'] as List<String>,

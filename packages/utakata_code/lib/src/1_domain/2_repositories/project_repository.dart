@@ -1,34 +1,14 @@
-/// プロジェクト状態の読み書きを行うリポジトリのインターフェース
+/// プロジェクト状態(導出可能な生成物)の書き出しを行うリポジトリのインターフェース。
 ///
 /// 実装は 2_infrastructure/3_repositories/project_repository_impl.dart に存在する。
-/// AI/specs/ や AI/snapshots/ 配下の YAML ファイルを操作する。
+/// 出力先は `doc/preview/`(v1.6.0〜。それ以前は `AI/snapshots/`)。
+///
+/// ここで書き出すのはすべて**導出可能な生成物**であり、正はコード自体と
+/// `doc/specs/plan.yaml` にある。読み戻して判断に使うことはしない(P1)。
 abstract interface class ProjectRepository {
-  /// feature_request.yaml を読み込んで Map として返す
-  ///
-  /// [projectDir]: プロジェクトのルートディレクトリパス
-  Future<Map<String, dynamic>> readFeatureRequest(String projectDir);
-
-  /// plan_architecture.yaml を書き込む
-  ///
-  /// [projectDir]: プロジェクトのルートディレクトリパス
-  /// [plan]: 書き込む計画データ
-  Future<void> writePlanArchitecture(String projectDir, Map<String, dynamic> plan);
-
-  /// plan_architecture.yaml を読み込む
-  Future<Map<String, dynamic>?> readPlanArchitecture(String projectDir);
-
-  /// current_structure.yaml を読み込む
-  Future<Map<String, dynamic>?> readCurrentStructure(String projectDir);
-
-  /// current_structure.yaml を書き込む
-  Future<void> writeCurrentStructure(String projectDir, Map<String, dynamic> structure);
-
-  /// lib/features/ 配下のディレクトリ構造をスキャンして返す
-  Future<Map<String, dynamic>> scanFeaturesStructure(String projectDir);
-
-  /// project_status.yaml を書き込む
+  /// `doc/preview/project_status.yaml` を書き込む(機械可読)
   Future<void> writeProjectStatus(String projectDir, Map<String, dynamic> status);
 
-  /// AI/snapshots/preview/project_status.md を書き込む
+  /// `doc/preview/project_status.md` を書き込む(人間向け)
   Future<void> writeProjectStatusMarkdown(String projectDir, String markdown);
 }

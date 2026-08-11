@@ -211,6 +211,29 @@ MCP からは `vault_list` / `vault_get` で参照できます。生成される
 
 ---
 
+## `records` — 記録の扱いと AI に許す範囲
+
+```yaml
+records:
+  agent_write: none        # none | append | full(既定: none)
+  agent_read:
+    messages: false        # 既定 false(送受信原文は AI に見せない)
+```
+
+| キー | 説明 |
+|---|---|
+| `agent_write` | AI エージェントによる記録への書き込み許可。`none` = 読むだけ / `append` = **CLI 経由の追記のみ**(ファイル直接編集は不可) / `full` = 直接編集も可 |
+| `agent_read.messages` | `true` で MCP に `message_query` を公開する(false ならツール自体が現れない) |
+
+`append` は「エージェントに記録させたいが、過去の記録は改変させたくない」場合の
+中間段階です。詳細・運用のコツは [records.md](records.md)
+(`utakata doc show records`)を参照してください。
+
+> **設定を変えたら** `utakata claude init --force` で `.claude/settings.json` を
+> 再生成してください(既存ファイルは上書きされません)。食い違いは `utakata doctor` が検出します。
+
+---
+
 ## 予約キー(現在は未配線)
 
 以下は `doc init` の雛形に含まれ、`doctor` の検証も通りますが、

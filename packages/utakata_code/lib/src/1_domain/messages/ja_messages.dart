@@ -24,6 +24,81 @@ class JaMessages implements CliMessages {
   @override
   String get cmdImportsDesc =>
       'import の健全性を監査する（アーキテクチャ定義の import_rules に基づく。違反があれば exit 1）';
+  // ─── message (v1.6.0) ───
+  @override
+  String get cmdMessageDesc => 'クライアントとの送受信原文を記録する(log の要約とは別系統)';
+  @override
+  String get cmdMessageAddDesc => '送受信メッセージを1件記録する(本文は引数か stdin)';
+  @override
+  String get cmdMessageImportDesc => '既存のやり取りを一括取り込みする(重複は自動でスキップ)';
+  @override
+  String get cmdMessageListDesc => '記録済みメッセージの一覧を表示する';
+  @override
+  String get cmdMessageShowDesc => '指定 ID のメッセージ全文を表示する';
+  @override
+  String get cmdMessageRenderDesc =>
+      'doc/preview/messages/ に月別プレビューを再生成する';
+  @override
+  String get cmdMessageLinkDesc => 'メッセージに要約ログ・合意への参照を付ける';
+  @override
+  String get optMessageDirection => '向き(inbound=受信 / outbound=送信)';
+  @override
+  String get optMessageChannel => 'やり取りの経路(coconala / mail / chatwork 等)';
+  @override
+  String get optMessageFrom => '送信者';
+  @override
+  String get optMessageTo => '宛先';
+  @override
+  String get optMessageSubject => '件名';
+  @override
+  String get optMessageThread => 'スレッド名(関連するやり取りをまとめる)';
+  @override
+  String get optMessageExternalId => '取り込み元での ID(再取り込み時の重複排除に使う)';
+  @override
+  String get optMessageAttachment => '添付ファイルのパス(複数指定可)';
+  @override
+  String get optMessageFormat => '取り込み元の形式(jsonl|md)';
+  @override
+  String get optMessageFile => '取り込むファイル(省略時は stdin)';
+  @override
+  String get optMessageMonth => '対象月(YYYY-MM)';
+  @override
+  String get optMessageLogRef => '紐付ける会話ログの ID';
+  @override
+  String get optMessageAgreementRef => '紐付ける合意の ID';
+  @override
+  String get messageDirectionRequired =>
+      '--direction を指定してください(inbound=受信 / outbound=送信)';
+  @override
+  String get messageBodyRequired =>
+      '本文を指定してください: utakata message add -d inbound "本文..." もしくは stdin から渡してください';
+  @override
+  String get messageIdRequired => 'メッセージ ID を指定してください(utakata message list で確認)';
+  @override
+  String get messageImportSourceRequired =>
+      '--file を指定するか、stdin から取り込み元を渡してください';
+  @override
+  String get messageLinkTargetRequired => '--log か --agreement のどちらかを指定してください';
+  @override
+  String get messageListEmpty => '記録されたメッセージがありません。';
+  @override
+  String messageAddDone(String id) => '記録しました: $id';
+  @override
+  String messageImportDone(int imported, int skipped) =>
+      '取り込みました: $imported 件(重複スキップ: $skipped 件)';
+  @override
+  String messageImportDryRun(int imported, int skipped) =>
+      '[DRY] 取り込み予定: $imported 件(重複スキップ: $skipped 件)';
+  @override
+  String messageRenderDone(int months) =>
+      'doc/preview/messages/ に $months か月分を生成しました';
+  @override
+  String messageLinkDone(String id) => '参照を追加しました: $id';
+  @override
+  String messageNotFound(String id) => 'メッセージ "$id" が見つかりません。';
+  @override
+  String messageFileNotFound(String path) => 'ファイルが見つかりません: $path';
+
   @override
   String importsSection(String archId) =>
       '🔎 utakata imports — import 監査 ($archId)';

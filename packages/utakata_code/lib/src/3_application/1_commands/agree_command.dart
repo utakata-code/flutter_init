@@ -5,11 +5,12 @@ import 'package:args/command_runner.dart';
 import '../../1_domain/3_usecases/list_agreements_usecase.dart';
 import '../../1_domain/3_usecases/record_agreement_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../../1_domain/services/actor_resolver.dart';
 import 'base_command.dart';
 import 'logger.dart';
 
-String _currentUser() =>
-    Platform.environment['USER'] ?? Platform.environment['USERNAME'] ?? 'unknown';
+/// 記録者。`UTAKATA_ACTOR` があればそれ(エージェント実行時は `agent:claude` 等)。
+String _currentUser() => ActorResolver.resolve(Platform.environment);
 
 /// utakata agree — 合意トラッキング(お客様合意・内部決定)
 class AgreeCommand extends Command<int> {

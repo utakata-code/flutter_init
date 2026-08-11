@@ -18,6 +18,41 @@ abstract interface class CliMessages {
   String get cmdStatusDesc;
   String get cmdRunnerDesc;
 
+  // ─── message (v1.6.0: 送受信原文) ───
+  String get cmdMessageDesc;
+  String get cmdMessageAddDesc;
+  String get cmdMessageImportDesc;
+  String get cmdMessageListDesc;
+  String get cmdMessageShowDesc;
+  String get cmdMessageRenderDesc;
+  String get cmdMessageLinkDesc;
+  String get optMessageDirection;
+  String get optMessageChannel;
+  String get optMessageFrom;
+  String get optMessageTo;
+  String get optMessageSubject;
+  String get optMessageThread;
+  String get optMessageExternalId;
+  String get optMessageAttachment;
+  String get optMessageFormat;
+  String get optMessageFile;
+  String get optMessageMonth;
+  String get optMessageLogRef;
+  String get optMessageAgreementRef;
+  String get messageDirectionRequired;
+  String get messageBodyRequired;
+  String get messageIdRequired;
+  String get messageImportSourceRequired;
+  String get messageLinkTargetRequired;
+  String get messageListEmpty;
+  String messageAddDone(String id);
+  String messageImportDone(int imported, int skipped);
+  String messageImportDryRun(int imported, int skipped);
+  String messageRenderDone(int months);
+  String messageLinkDone(String id);
+  String messageNotFound(String id);
+  String messageFileNotFound(String path);
+
   // ─── imports (#20) ───
   String importsSection(String archId);
   String importsNoRules(String archId);

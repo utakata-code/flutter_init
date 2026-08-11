@@ -17,6 +17,7 @@ import '../1_commands/impl_command.dart';
 import '../1_commands/imports_command.dart';
 import '../1_commands/log_command.dart';
 import '../1_commands/mcp_command.dart';
+import '../1_commands/message_command.dart';
 import '../1_commands/plan_command.dart';
 import '../1_commands/status_command.dart';
 import '../1_commands/skills_command.dart';
@@ -67,6 +68,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     required ArchCommand archCommand,
     required DocCommand docCommand,
     required LogCommand logCommand,
+    required MessageCommand messageCommand,
     required DoctorCommand doctorCommand,
     required AgreeCommand agreeCommand,
     required ImplCommand implCommand,
@@ -100,6 +102,7 @@ class UtakataCommandRunner extends CommandRunner<int> {
     addCommand(archCommand);
     addCommand(docCommand);
     addCommand(logCommand);
+    addCommand(messageCommand);
     addCommand(doctorCommand);
     addCommand(agreeCommand);
     addCommand(implCommand);
