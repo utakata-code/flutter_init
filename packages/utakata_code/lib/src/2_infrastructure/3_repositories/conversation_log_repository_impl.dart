@@ -33,13 +33,15 @@ class ConversationLogRepositoryImpl implements ConversationLogRepository {
         '${at.month.toString().padLeft(2, '0')}'
         '${at.day.toString().padLeft(2, '0')}';
     final prefix = 'MSG-$dateKey-';
-    final sameDay = records
-        .map((r) => r['id'] as String?)
-        .whereType<String>()
-        .where((id) => id.startsWith(prefix))
-        .toList();
-    final nextSeq = sameDay.length + 1;
-    return '$prefix${nextSeq.toString().padLeft(3, '0')}';
+    // 件数ではなく既存の最大連番 + 1(行が消えていても ID を再発行しない)
+    var maxSeq = 0;
+    for (final row in records) {
+      final id = row['id'];
+      if (id is! String || !id.startsWith(prefix)) continue;
+      final seq = int.tryParse(id.substring(prefix.length));
+      if (seq != null && seq > maxSeq) maxSeq = seq;
+    }
+    return '$prefix${(maxSeq + 1).toString().padLeft(3, '0')}';
   }
 
   @override

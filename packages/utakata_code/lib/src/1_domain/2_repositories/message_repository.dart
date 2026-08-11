@@ -26,13 +26,6 @@ abstract interface class MessageRepository {
   /// 全件を月別ファイル横断で読み出す(render / 重複判定用)。
   Future<List<MessageRecord>> readAll(String projectDir);
 
-  /// [externalId] または [dedupeKey] に一致する既存レコードがあるか。
-  Future<bool> existsDuplicate(
-    String projectDir, {
-    String? externalId,
-    String? dedupeKey,
-  });
-
   /// 既存レコードに要約ログ・合意への参照を付ける(本文は変更しない)。
   /// 対象が見つからなければ false。
   Future<bool> link(

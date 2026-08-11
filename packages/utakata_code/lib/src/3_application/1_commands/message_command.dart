@@ -163,8 +163,14 @@ class _MessageImportCommand extends BaseCommand {
       now: DateTime.now(),
       recordedBy: ActorResolver.resolve(Platform.environment),
       defaultChannel: argResults!['channel'] as String?,
+      sourceKey: filePath,
       dryRun: dryRun,
     );
+
+    if (results.isEmpty) {
+      Logger.warn(_msg.messageImportNothingParsed);
+      return 65; // EX_DATAERR
+    }
 
     final imported = results.where((r) => !r.skipped).length;
     final skipped = results.length - imported;

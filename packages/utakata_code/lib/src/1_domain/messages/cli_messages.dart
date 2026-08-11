@@ -43,6 +43,7 @@ abstract interface class CliMessages {
   String get messageBodyRequired;
   String get messageIdRequired;
   String get messageImportSourceRequired;
+  String get messageImportNothingParsed;
   String get messageLinkTargetRequired;
   String get messageListEmpty;
   String messageAddDone(String id);

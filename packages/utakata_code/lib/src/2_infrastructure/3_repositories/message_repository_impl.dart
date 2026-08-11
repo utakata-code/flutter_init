@@ -37,12 +37,18 @@ class MessageRepositoryImpl implements MessageRepository {
         '${at.month.toString().padLeft(2, '0')}'
         '${at.day.toString().padLeft(2, '0')}';
     final prefix = 'MSGR-$dateKey-';
-    final sameDay = records
-        .map((r) => r['id'] as String?)
-        .whereType<String>()
-        .where((id) => id.startsWith(prefix))
-        .length;
-    return '$prefix${(sameDay + 1).toString().padLeft(3, '0')}';
+
+    // 件数ではなく**既存の最大連番 + 1**。行が削除されたり破損して読めない
+    // 場合でも、既に使った ID を再発行しない(ID 重複は show/link の
+    // 取り違えに直結する)。
+    var maxSeq = 0;
+    for (final row in records) {
+      final id = row['id'];
+      if (id is! String || !id.startsWith(prefix)) continue;
+      final seq = int.tryParse(id.substring(prefix.length));
+      if (seq != null && seq > maxSeq) maxSeq = seq;
+    }
+    return '$prefix${(maxSeq + 1).toString().padLeft(3, '0')}';
   }
 
   @override
@@ -78,27 +84,30 @@ class MessageRepositoryImpl implements MessageRepository {
       ..sort((a, b) => a.path.compareTo(b.path));
 
     final records = <MessageRecord>[];
+    var skipped = 0;
     for (final file in monthFiles) {
       final rows = await _jsonl.readAll(file.path);
-      records.addAll(rows.map(MessageRecordModel.fromMap));
+      for (final row in rows) {
+        // JSON としては正しいがスキーマが違う行(手編集・別ツール由来)は
+        // 全体を落とさずスキップし、件数だけ警告する。
+        final record = MessageRecordModel.tryFromMap(row);
+        if (record == null) {
+          skipped++;
+          continue;
+        }
+        records.add(record);
+      }
     }
-    records.sort((a, b) => a.at.compareTo(b.at));
-    return records;
-  }
-
-  @override
-  Future<bool> existsDuplicate(
-    String projectDir, {
-    String? externalId,
-    String? dedupeKey,
-  }) async {
-    if (externalId == null && dedupeKey == null) return false;
-    final all = await readAll(projectDir);
-    return all.any((record) {
-      if (externalId != null && record.externalId == externalId) return true;
-      if (dedupeKey != null && record.dedupeKey == dedupeKey) return true;
-      return false;
+    if (skipped > 0) {
+      stderr.writeln('⚠️  doc/records/messages/ に解釈できない行が $skipped 件あります'
+          '(スキップしました)。');
+    }
+    // 同時刻でも順序が決まるよう ID を第2キーにする(非安定ソート対策)。
+    records.sort((a, b) {
+      final byAt = a.at.compareTo(b.at);
+      return byAt != 0 ? byAt : a.id.compareTo(b.id);
     });
+    return records;
   }
 
   @override
@@ -114,17 +123,41 @@ class MessageRepositoryImpl implements MessageRepository {
     for (final file in dir.listSync().whereType<File>().where(
           (f) => f.path.endsWith('.jsonl'),
         )) {
-      final rows = await _jsonl.readAll(file.path);
-      final index = rows.indexWhere((r) => r['id'] == id);
-      if (index < 0) continue;
+      // **生行**を読む(パース済みの Map ではなく)。対象行だけ差し替え、
+      // 他の行はバイトのまま書き戻す — 破損行や未知フィールドを持つ行を
+      // link のたびに失わないため。
+      final lines = await file.readAsLines();
+      var targetIndex = -1;
+      Map<String, dynamic>? targetRow;
+      for (var i = 0; i < lines.length; i++) {
+        if (lines[i].trim().isEmpty) continue;
+        try {
+          final decoded = jsonDecode(lines[i]);
+          if (decoded is Map<String, dynamic> && decoded['id'] == id) {
+            targetIndex = i;
+            targetRow = decoded;
+            break;
+          }
+        } on FormatException {
+          continue; // 破損行はそのまま保持する
+        }
+      }
+      if (targetIndex < 0 || targetRow == null) continue;
 
-      final updated = MessageRecordModel.fromMap(rows[index])
-          .copyWith(logRef: logRef, agreementRef: agreementRef);
-      rows[index] = MessageRecordModel.toMap(updated);
-      // 参照の付与のみファイル全体を書き直す(本文には触れない)。
-      await file.writeAsString(
-        '${rows.map(jsonEncode).join('\n')}\n',
-      );
+      // 既存キーを保ったまま参照だけ差分マージする(モデルが知らない
+      // フィールドも消さない。本文にも触れない)。
+      final merged = <String, dynamic>{
+        ...targetRow,
+        if (logRef != null) 'log_ref': logRef,
+        if (agreementRef != null) 'agreement_ref': agreementRef,
+      };
+      lines[targetIndex] = jsonEncode(merged);
+
+      // 一時ファイル + rename で原子的に置換する(書き込み中断で
+      // 月ファイルごと失わないため)。
+      final temp = File('${file.path}.tmp');
+      await temp.writeAsString('${lines.join('\n')}\n', flush: true);
+      await temp.rename(file.path);
       return true;
     }
     return false;

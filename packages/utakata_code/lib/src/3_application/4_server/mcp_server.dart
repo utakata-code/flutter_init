@@ -137,8 +137,9 @@ class McpServer {
         'properties': {
           'topic': {
             'type': 'string',
-            'description': 'config = utakata.yaml / plan = doc/specs/plan.yaml',
-            'enum': ['config', 'plan', 'index'],
+            'description': 'config = utakata.yaml / plan = doc/specs/plan.yaml '
+                '/ imports = import_rules / records = doc/records の扱い',
+            'enum': ShowDocUsecase.topics.keys.toList(),
           },
         },
         'required': ['topic'],
@@ -188,10 +189,18 @@ class McpServer {
   };
 
   /// このプロジェクトで公開するツール一覧(設定で増減する)。
+  ///
+  /// utakata.yaml が壊れていてもサーバーを落とさない — 既定(原文は非公開)に
+  /// 倒して既存ツールだけを返す。
   Future<List<Map<String, dynamic>>> _visibleTools(String projectDir) async {
-    final config = await _configRepo?.read(projectDir);
-    final allowMessages =
-        (config?.agentCanReadMessages ?? false) && _messageRepo != null;
+    var allowMessages = false;
+    try {
+      final config = await _configRepo?.read(projectDir);
+      allowMessages =
+          (config?.agentCanReadMessages ?? false) && _messageRepo != null;
+    } catch (_) {
+      allowMessages = false;
+    }
     return [..._tools, if (allowMessages) _messageTool];
   }
 
@@ -250,6 +259,13 @@ class McpServer {
     final args = params['arguments'] as Map<String, dynamic>? ?? {};
 
     try {
+      // 可視性の判定は**実行前**に行う。非公開ツール(設定でオフの
+      // message_query 等)は一切データに触れずに拒否する。
+      final visible = await _visibleTools(projectDir);
+      if (toolName == null || !visible.any((t) => t['name'] == toolName)) {
+        return _error(id, -32602, 'Unknown tool: $toolName');
+      }
+
       final Object? payload = switch (toolName) {
         'structure_get' => (await _planRepo.read(projectDir))?.toMap(),
         'check_run' => _checkReportToMap(await _checkUsecase.execute(projectDir)),
@@ -302,12 +318,6 @@ class McpServer {
         _ => null,
       };
 
-      // 公開していないツールは存在しない扱い(設定でオフの message_query 等)
-      final visible = await _visibleTools(projectDir);
-      if (toolName == null || !visible.any((t) => t['name'] == toolName)) {
-        return _error(id, -32602, 'Unknown tool: $toolName');
-      }
-
       return _result(id, {
         'content': [
           {'type': 'text', 'text': jsonEncode(payload)}
@@ -318,6 +328,15 @@ class McpServer {
         'isError': true,
         'content': [
           {'type': 'text', 'text': e.toString()}
+        ],
+      });
+    } on ArgumentError catch (e) {
+      // 引数の検証失敗(不正な direction 等)。ArgumentError は Exception では
+      // ないため個別に捕捉しないとサーバーごと落ちる。
+      return _result(id, {
+        'isError': true,
+        'content': [
+          {'type': 'text', 'text': (e.message ?? e).toString()}
         ],
       });
     }

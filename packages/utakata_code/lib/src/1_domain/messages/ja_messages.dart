@@ -78,6 +78,10 @@ class JaMessages implements CliMessages {
   String get messageImportSourceRequired =>
       '--file を指定するか、stdin から取り込み元を渡してください';
   @override
+  String get messageImportNothingParsed =>
+      '取り込めるメッセージが1件もありませんでした。形式(--format)と'
+      '見出し(例: "## [inbound] 2026-08-11 10:24 山田様")を確認してください。';
+  @override
   String get messageLinkTargetRequired => '--log か --agreement のどちらかを指定してください';
   @override
   String get messageListEmpty => '記録されたメッセージがありません。';

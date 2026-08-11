@@ -85,7 +85,13 @@ class DoctorUsecase {
           '(`utakata doctor --migrate` でも削除できます)。');
     }
 
-    issues.addAll(await _diagnoseRecordsPolicy(projectDir));
+    // utakata.yaml が壊れていても診断結果ごと失わない
+    // (壊れている事実は configRepo.validate が既に報告している)。
+    try {
+      issues.addAll(await _diagnoseRecordsPolicy(projectDir));
+    } catch (_) {
+      // 設定を読めない場合はポリシー診断だけ諦める
+    }
     return issues;
   }
 
@@ -110,8 +116,14 @@ class DoctorUsecase {
     final settings = await _readFile(settingsPath);
     if (settings == null) return issues;
 
+    // utakata が生成した settings.json でなければ乖離を判定しない
+    // (手書きの設定に「--force で再生成せよ」と言うと壊してしまう)。
+    final isGenerated = settings.contains('utakata status --brief') ||
+        settings.contains('doc/preview/**');
+    if (!isGenerated) return issues;
+
     final denied = settings.contains('"Write(doc/records/**)"');
-    final allowsCli = settings.contains('Bash(utakata log add:');
+    final allowsCli = settings.contains('Bash(utakata log add');
     final expectedDenied = config.recordsAgentWrite != 'full';
     final expectedAllowsCli = config.recordsAgentWrite != 'none';
 

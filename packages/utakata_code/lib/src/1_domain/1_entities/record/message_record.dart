@@ -112,8 +112,16 @@ final class MessageRecord {
 
   /// [externalId] が無い取り込み元のための重複判定キー。
   /// 同一 direction・同一時刻・同一本文なら同じメッセージとみなす。
+  ///
+  /// 正規化は改行コードの統一と行末空白の除去のみ。空白を全て潰すと
+  /// 改行構造だけが違う別の文面まで同一視してしまう。
   String get dedupeKey {
-    final normalized = body.trim().replaceAll(RegExp(r'\s+'), ' ');
+    final normalized = body
+        .replaceAll('\r\n', '\n')
+        .split('\n')
+        .map((line) => line.trimRight())
+        .join('\n')
+        .trim();
     return '${directionToString(direction)}|'
         '${at.toIso8601String()}|'
         '${_fnv1a(normalized)}';

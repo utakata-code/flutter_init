@@ -60,7 +60,8 @@ class GenerateClaudeIntegrationUsecase {
     await write('.claude/settings.json', _settingsJson(config));
     await write('.claude/skills/utakata-structure/SKILL.md', _structureSkill());
     await write(
-        '.claude/skills/utakata-client-context/SKILL.md', _clientContextSkill());
+        '.claude/skills/utakata-client-context/SKILL.md',
+        _clientContextSkill(config));
     await write('.claude/skills/utakata-impl-flow/SKILL.md', _implFlowSkill());
     await write('.claude/skills/utakata-client-explainer/SKILL.md',
         _clientExplainerSkill());
@@ -195,10 +196,17 @@ class GenerateClaudeIntegrationUsecase {
       ..writeln()
       ..write('  },');
 
+    // エージェントが記録を追記できるモードでは、記録者を環境変数で名乗らせる。
+    // コマンド前置き(`UTAKATA_ACTOR=… utakata log add`)にすると allow の
+    // パターンに一致しなくなるため、settings.json の env で渡す。
+    final env = mode == 'none'
+        ? ''
+        : '  "env": {\n    "UTAKATA_ACTOR": "agent:claude"\n  },\n';
+
     return '''
 {
 ${permissions.toString()}
-  "hooks": {
+$env  "hooks": {
     "SessionStart": [
       {
         "hooks": [
@@ -284,7 +292,7 @@ description: |
   使えない場合は同名機能を Bash の `utakata` コマンドで代替する
 ''';
 
-  String _clientContextSkill() => '''
+  String _clientContextSkill(UtakataConfig? config) => '''
 ---
 name: utakata-client-context
 description: |
@@ -309,16 +317,47 @@ description: |
 - 過去の開発セッション記録: `doc/records/sessions/`(人間が取り込んだもの)
 - 人間向けプレビューは `doc/preview/` にあるが、正本は常に `doc/records/` の JSONL
 
+${_skillRecordsSection(config)}
+- `doc/summary.md` の合意台帳区間(`<!-- utakata:begin agreements -->`)は
+  `utakata summary` が再生成する。マーカー内は手で編集しない
+''';
+
+  /// SKILL.md の「記録への書き込み」節。`records.agent_write` と連動させる
+  /// (settings.json の許可と食い違う説明を配らないため)。
+  String _skillRecordsSection(UtakataConfig? config) {
+    switch (config?.recordsAgentWrite ?? 'none') {
+      case 'append':
+        return '''
+## 記録の追記: CLI 経由のみ(直接編集は禁止)
+
+- `doc/records/**` と `doc/preview/**` への Edit/Write は deny 設定で拒否される
+- 追記は次のコマンドで行える(既存の記録の書き換え・削除はできない):
+  - 会話の記録: `utakata log add "..." -s client|developer`
+  - 送受信原文: `utakata message add -d inbound|outbound "..."`
+  - 合意の記録: `utakata agree add --title "..." --kind client_agreement`
+- 記録者は環境変数 `UTAKATA_ACTOR`(既定で `agent:claude`)として残るため、
+  人間の記録と区別できる。**事実だけを記録し、要約や解釈を混ぜない**
+- 判断を伴う記録(合意の確定など)は、実行前に人間に確認する''';
+      case 'full':
+        return '''
+## 記録の編集: 許可されている(`records.agent_write: full`)
+
+- `doc/records/**` は編集できるが、**送受信原文(`messages/`)は一次証跡**なので
+  書き換えない。追記は CLI(`utakata log add` / `message add` / `agree add`)を使う
+- `doc/preview/**` は生成物なので編集しない(`... render` で再生成する)
+- 判断を伴う記録(合意の確定など)は、実行前に人間に確認する''';
+      default:
+        return '''
 ## 絶対ルール: AI は記録に書き込まない
 
 - `doc/records/**` と `doc/preview/**` への Edit/Write は deny 設定で拒否される
 - 記録が必要になったら、人間に次のコマンドの実行を**提案**する:
   - 会話の記録: `utakata log add "..." -s client|developer`
+  - 送受信原文: `utakata message add -d inbound|outbound "..."`
   - 合意の記録: `utakata agree add --title "..." --kind client_agreement`
-  - セッションの取り込み: `utakata log import claude-session --last`
-- `doc/summary.md` の合意台帳区間(`<!-- utakata:begin agreements -->`)は
-  `utakata summary` が再生成する。マーカー内は手で編集しない
-''';
+  - セッションの取り込み: `utakata log import claude-session --last`''';
+    }
+  }
 
   String _implFlowSkill() => '''
 ---

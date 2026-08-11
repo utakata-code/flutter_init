@@ -64,6 +64,43 @@ class ConfigRepositoryImpl implements ConfigRepository {
       }
     }
 
+    // records セクションは誤記が「黙って既定(none)に落ちる」ため、
+    // 値・キーの妥当性を明示的に報告する(気づけないと権限設定が効かない)。
+    final records = doc['records'];
+    if (records is Map) {
+      const knownRecordKeys = {'git', 'agent_write', 'agent_read'};
+      for (final key in records.keys) {
+        if (!knownRecordKeys.contains(key.toString())) {
+          issues.add('utakata.yaml の records に未知のキー "$key" があります'
+              '(タイポの可能性)。');
+        }
+      }
+
+      final agentWrite = records['agent_write'];
+      if (agentWrite != null &&
+          !UtakataConfig.agentWriteModes.contains(agentWrite.toString())) {
+        issues.add('records.agent_write: "$agentWrite" は未対応の値です'
+            '(${UtakataConfig.agentWriteModes.join(" | ")})。'
+            '既定の none として扱われます。');
+      }
+
+      final agentRead = records['agent_read'];
+      if (agentRead is Map) {
+        for (final entry in agentRead.entries) {
+          if (entry.key.toString() != 'messages') {
+            issues.add('records.agent_read の "${entry.key}" は未対応のキーです'
+                '(現在は messages のみ)。');
+          } else if (entry.value is! bool) {
+            issues.add('records.agent_read.messages は true / false で'
+                '指定してください(現在: ${entry.value})。');
+          }
+        }
+      } else if (agentRead != null) {
+        issues.add('records.agent_read はマップで指定してください'
+            '(例: agent_read:\\n    messages: true)。');
+      }
+    }
+
     return issues;
   }
 }

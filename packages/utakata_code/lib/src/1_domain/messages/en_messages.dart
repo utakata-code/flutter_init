@@ -88,6 +88,10 @@ class EnMessages implements CliMessages {
   String get messageImportSourceRequired =>
       'Pass --file or pipe the source via stdin';
   @override
+  String get messageImportNothingParsed =>
+      'No messages could be parsed. Check --format and the heading form '
+      '(e.g. "## [inbound] 2026-08-11 10:24 Yamada").';
+  @override
   String get messageLinkTargetRequired => 'Specify --log or --agreement';
   @override
   String get messageListEmpty => 'No messages recorded.';

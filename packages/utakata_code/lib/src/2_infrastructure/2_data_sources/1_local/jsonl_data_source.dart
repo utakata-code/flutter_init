@@ -45,13 +45,22 @@ class JsonlDataSource {
     }
 
     if (corruptLines.isNotEmpty) {
+      // readAll は繰り返し呼ばれるため、既に退避済みの行は書かない
+      // (同じ破損行が読むたびに積み上がって肥大するのを防ぐ)。
       final corruptFile = File('$path.corrupt');
-      final sink = corruptFile.openWrite(mode: FileMode.append);
-      for (final line in corruptLines) {
-        sink.writeln(line);
+      final alreadySaved = corruptFile.existsSync()
+          ? (await corruptFile.readAsLines()).toSet()
+          : <String>{};
+      final newLines =
+          corruptLines.where((line) => !alreadySaved.contains(line)).toList();
+      if (newLines.isNotEmpty) {
+        final sink = corruptFile.openWrite(mode: FileMode.append);
+        for (final line in newLines) {
+          sink.writeln(line);
+        }
+        await sink.flush();
+        await sink.close();
       }
-      await sink.flush();
-      await sink.close();
     }
 
     return records;

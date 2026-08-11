@@ -205,6 +205,35 @@ void main() {
       expect(await repo.readAll(dir.path), isEmpty);
     });
 
+    test('dry-run のプレビュー ID は実行時と同じ連番になる', () async {
+      final source = [
+        jsonEncode({
+          'direction': 'inbound',
+          'at': '2026-08-10T09:00:00',
+          'body': '一件目',
+        }),
+        jsonEncode({
+          'direction': 'outbound',
+          'at': '2026-08-10T10:00:00',
+          'body': '二件目',
+        }),
+      ].join('\n');
+
+      final preview = await import.execute(dir.path,
+          content: source,
+          format: 'jsonl',
+          now: now,
+          recordedBy: 'haruma',
+          dryRun: true);
+      final actual = await import.execute(dir.path,
+          content: source, format: 'jsonl', now: now, recordedBy: 'haruma');
+
+      expect(preview.map((r) => r.record.id).toList(),
+          ['MSGR-20260810-001', 'MSGR-20260810-002']);
+      expect(preview.map((r) => r.record.id).toList(),
+          actual.map((r) => r.record.id).toList());
+    });
+
     test('markdown の見出しで区切って取り込む', () async {
       const source = '''
 ## [inbound] 2026-08-11 10:24 山田様
@@ -236,6 +265,186 @@ void main() {
             content: '', format: 'csv', now: now, recordedBy: 'haruma'),
         throwsArgumentError,
       );
+    });
+  });
+
+  group('レビュー指摘の回帰(1.6.0)', () {
+    test('日時のない md は同一本文でも別メッセージとして残る', () async {
+      const source = '''
+## [inbound] 山田様
+承知しました。
+
+## [outbound]
+ではこちらで進めます。
+
+## [inbound] 山田様
+承知しました。
+''';
+      final results = await import.execute(dir.path,
+          content: source,
+          format: 'md',
+          now: now,
+          recordedBy: 'haruma',
+          sourceKey: 'thread.md');
+
+      expect(results.where((r) => !r.skipped).length, 3);
+      expect((await repo.readAll(dir.path)).length, 3);
+    });
+
+    test('日時のない md でも同じソースの再取り込みは増えない', () async {
+      const source = '## [inbound] 山田様\n承知しました。\n';
+      await import.execute(dir.path,
+          content: source,
+          format: 'md',
+          now: now,
+          recordedBy: 'haruma',
+          sourceKey: 'thread.md');
+      final again = await import.execute(dir.path,
+          content: source,
+          format: 'md',
+          now: now,
+          recordedBy: 'haruma',
+          sourceKey: 'thread.md');
+
+      expect(again.single.skipped, isTrue);
+      expect((await repo.readAll(dir.path)).length, 1);
+    });
+
+    test('external_id が別なら同一本文・同一日時でも両方残る', () async {
+      final source = [
+        jsonEncode({
+          'direction': 'inbound',
+          'at': '2026-08-11T10:24:00',
+          'body': '了解です',
+          'external_id': 'm1',
+        }),
+        jsonEncode({
+          'direction': 'inbound',
+          'at': '2026-08-11T10:24:00',
+          'body': '了解です',
+          'external_id': 'm2',
+        }),
+      ].join('\n');
+
+      final results = await import.execute(dir.path,
+          content: source, format: 'jsonl', now: now, recordedBy: 'haruma');
+      expect(results.where((r) => !r.skipped).length, 2);
+    });
+
+    test('欠番があっても既存 ID を再発行しない', () async {
+      final file = File('${dir.path}/doc/records/messages/2026-08.jsonl')
+        ..createSync(recursive: true);
+      file.writeAsStringSync([
+        jsonEncode({
+          'id': 'MSGR-20260811-001',
+          'direction': 'inbound',
+          'at': '2026-08-11T10:00:00',
+          'body': 'A',
+          'recorded_at': '2026-08-11T10:00:00',
+          'recorded_by': 'haruma',
+        }),
+        jsonEncode({
+          'id': 'MSGR-20260811-003',
+          'direction': 'inbound',
+          'at': '2026-08-11T12:00:00',
+          'body': 'C',
+          'recorded_at': '2026-08-11T12:00:00',
+          'recorded_by': 'haruma',
+        }),
+      ].join('\n'));
+
+      final saved =
+          await add(direction: 'inbound', body: 'D', at: '2026-08-11 13:00');
+      expect(saved.id, 'MSGR-20260811-004');
+    });
+
+    test('link は破損行と未知フィールドを保持する', () async {
+      final file = File('${dir.path}/doc/records/messages/2026-08.jsonl')
+        ..createSync(recursive: true);
+      final valid = jsonEncode({
+        'id': 'MSGR-20260811-001',
+        'direction': 'inbound',
+        'at': '2026-08-11T10:00:00',
+        'body': 'A',
+        'custom_note': '独自メモ',
+        'recorded_at': '2026-08-11T10:00:00',
+        'recorded_by': 'haruma',
+      });
+      file.writeAsStringSync('$valid\n{"id": "broken", oops\n');
+
+      expect(await repo.link(dir.path, 'MSGR-20260811-001', logRef: 'MSG-1'),
+          isTrue);
+
+      final lines = file.readAsLinesSync().where((l) => l.trim().isNotEmpty);
+      expect(lines.length, 2, reason: '破損行が消えてはいけない');
+      final updated =
+          jsonDecode(lines.first) as Map<String, dynamic>;
+      expect(updated['log_ref'], 'MSG-1');
+      expect(updated['custom_note'], '独自メモ', reason: '未知フィールドを消さない');
+      expect(lines.last, contains('oops'));
+    });
+
+    test('スキーマ不正な行があっても読み出しは落ちない', () async {
+      final file = File('${dir.path}/doc/records/messages/2026-08.jsonl')
+        ..createSync(recursive: true);
+      file.writeAsStringSync([
+        jsonEncode({'id': 123, 'direction': 'inbound', 'body': 'A'}),
+        jsonEncode({
+          'id': 'MSGR-20260811-001',
+          'direction': 'inbound',
+          'at': '2026-08-11T10:00:00',
+          'body': 'ok',
+          'recorded_at': '2026-08-11T10:00:00',
+          'recorded_by': 'haruma',
+        }),
+      ].join('\n'));
+
+      final all = await repo.readAll(dir.path);
+      expect(all.map((r) => r.body).toList(), ['ok']);
+    });
+
+    test('オフセット付きの日時はローカル日付で採番・保存される', () async {
+      final saved = await add(
+          direction: 'inbound', body: 'A', at: '2026-08-11T08:24:00+09:00');
+      final local = DateTime.parse('2026-08-11T08:24:00+09:00').toLocal();
+      final expectedDay =
+          '${local.year}${local.month.toString().padLeft(2, '0')}'
+          '${local.day.toString().padLeft(2, '0')}';
+      expect(saved.id, 'MSGR-$expectedDay-001');
+      expect(saved.at.isUtc, isFalse);
+    });
+
+    test('コードブロック内の見出し風の行では分割しない', () {
+      const source = '''
+## [inbound] 2026-08-11 10:00 山田様
+以下の形式で送ってください。
+
+```md
+## [outbound] これは例です
+```
+
+以上です。
+''';
+      final drafts = ImportMessagesUsecase.parseMarkdown(source);
+      expect(drafts.length, 1);
+      expect(drafts.single.body, contains('以上です。'));
+    });
+
+    test('改行構造だけが違う本文は別レコードとして扱う', () async {
+      final a = await add(
+          direction: 'inbound', body: 'A\nB', at: '2026-08-11 10:00');
+      final b = await add(
+          direction: 'inbound', body: 'A B', at: '2026-08-11 10:00');
+      expect(a.dedupeKey == b.dedupeKey, isFalse);
+    });
+
+    test('壊れた行を含む JSONL は該当行だけ飛ばして続行する', () {
+      const source = '{"direction":"inbound","body":"ok","at":"2026-08-11T10:00:00"}\n'
+          'not json\n'
+          '{"direction":"sideways","body":"bad"}\n';
+      final drafts = ImportMessagesUsecase.parseJsonl(source);
+      expect(drafts.length, 1);
+      expect(drafts.single.body, 'ok');
     });
   });
 

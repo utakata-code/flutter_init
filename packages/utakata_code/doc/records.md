@@ -62,8 +62,14 @@ utakata message link MSGR-20260811-001 --log MSG-20260811-003 --agreement AGR-00
 
 ### 重複排除
 
-`external_id` があればそれで、無ければ `(direction, 日時, 本文)` の一致で判定します。
-同じエクスポートを何度流し込んでも増えません。
+判定の主軸は `external_id` です。取り込み元が ID を持たない場合は
+**取り込み元の内容と並び順から合成した ID** を使うため、同じファイルを
+何度流し込んでも増えず、かつ同じ文面が複数回現れても別メッセージとして残ります
+(日時が原文に無い md では時刻が記録時刻になるため、本文の一致だけで
+判定すると「はい」「承知しました」のような定型文が消えてしまう)。
+
+取り込み元が `external_id` を持たず、かつ**日時が原文由来**である場合のみ、
+`(direction, 日時, 本文)` の一致でも重複と判定します。
 
 ### `--format md` の書式
 
@@ -111,12 +117,11 @@ records:
 - **追記しかできない** = 過去の記録の改変・削除が構造的に不可能(証跡性が保たれる)
 - `recorded_by` に実行者が残り、人間の記録と区別できる
 
-エージェント側は `UTAKATA_ACTOR=agent:claude` を付けて実行してください。
-`recorded_by` がその値になり、あとから「これは AI が入れた記録」と判別できます:
-
-```sh
-UTAKATA_ACTOR=agent:claude utakata message add -d inbound "…"
-```
+記録者は環境変数 `UTAKATA_ACTOR` で決まります。`append` / `full` では
+生成される `.claude/settings.json` が `UTAKATA_ACTOR=agent:claude` を
+env として渡すので、エージェントの記録は `recorded_by: agent:claude` として
+残り、人間の記録と区別できます(手動で確認するなら
+`UTAKATA_ACTOR=agent:claude utakata message add …` のように前置きしても同じです)。
 
 `full` は社内案件・自分用プロジェクト向けの逃げ道です。
 **クライアント案件では推奨しません**(`utakata doctor` が警告します)。

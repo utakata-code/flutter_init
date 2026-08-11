@@ -11,9 +11,13 @@ abstract final class DateResolver {
 
   /// [raw] が ISO 8601 ならそのまま解析し、`M/d[ H:mm]` 形式なら
   /// [now] を基準に年を補完する。
+  ///
+  /// `+09:00` や `Z` 付きの入力は**ローカル時刻へ正規化**する。ID の日付・
+  /// 月別ファイルの振り分け・一覧表示はすべてローカルの壁時計基準なので、
+  /// UTC のまま扱うと利用者が言った日付と最大1日ずれる。
   static DateTime resolve(String raw, DateTime now) {
     final iso = DateTime.tryParse(raw);
-    if (iso != null) return iso;
+    if (iso != null) return toLocal(iso);
 
     final match = _monthDayTime.firstMatch(raw.trim());
     if (match == null) {
@@ -31,4 +35,8 @@ abstract final class DateResolver {
     }
     return candidate;
   }
+
+  /// 絶対時刻(UTC)をローカルの壁時計へ揃える。既にローカルならそのまま。
+  static DateTime toLocal(DateTime value) =>
+      value.isUtc ? value.toLocal() : value;
 }

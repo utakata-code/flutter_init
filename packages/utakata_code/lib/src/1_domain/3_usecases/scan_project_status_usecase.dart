@@ -73,11 +73,15 @@ class ScanProjectStatusUsecase {
     }
 
     // documents — テンプレートのみか編集済みか
+    // 現行レイアウトは doc/。旧 AI/specs/ は後方互換のフォールバック。
     final specStatus = await _checkDocumentStatus(
-      p.join(projectDir, 'AI', 'specs', 'application_specification.md'),
+      p.join(projectDir, 'doc', 'specs', 'application_specification.md'),
+      fallbackPath:
+          p.join(projectDir, 'AI', 'specs', 'application_specification.md'),
     );
     final planStatus = await _checkDocumentStatus(
-      p.join(projectDir, 'AI', 'specs', 'structure_plan.md'),
+      p.join(projectDir, 'doc', 'specs', 'plan.yaml'),
+      fallbackPath: p.join(projectDir, 'AI', 'specs', 'structure_plan.md'),
     );
 
     // features count
@@ -101,11 +105,15 @@ class ScanProjectStatusUsecase {
     );
   }
 
-  /// feature_request.yaml から architectureId を検出する
+  /// architectureId を検出する(utakata.yaml → plan.yaml → 旧 feature_request)
   Future<String> _detectArchitectureId(String projectDir) async {
-    final path = p.join(projectDir, 'AI', 'specs', 'feature_request.yaml');
-    final content = await _readFile(path);
-    if (content != null) {
+    for (final path in [
+      p.join(projectDir, 'utakata.yaml'),
+      p.join(projectDir, 'doc', 'specs', 'plan.yaml'),
+      p.join(projectDir, 'AI', 'specs', 'feature_request.yaml'),
+    ]) {
+      final content = await _readFile(path);
+      if (content == null) continue;
       final archId = _extractYamlValue(content, 'architecture');
       if (archId != null && archId.isNotEmpty) return archId;
     }
@@ -113,8 +121,13 @@ class ScanProjectStatusUsecase {
     return 'clean_architecture';
   }
 
-  /// ドキュメントがテンプレートのままか編集済みかを判定する
-  Future<String> _checkDocumentStatus(String path) async {
+  /// ドキュメントがテンプレートのままか編集済みかを判定する。
+  /// [fallbackPath] は旧レイアウト用(現行パスが無い場合のみ見る)。
+  Future<String> _checkDocumentStatus(String path,
+      {String? fallbackPath}) async {
+    if (!_fileExists(path) && fallbackPath != null) {
+      path = fallbackPath;
+    }
     if (!_fileExists(path)) return 'not_found';
     final content = await _readFile(path);
     if (content == null) return 'not_found';
