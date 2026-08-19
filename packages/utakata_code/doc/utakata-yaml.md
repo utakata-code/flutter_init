@@ -211,6 +211,22 @@ MCP からは `vault_list` / `vault_get` で参照できます。生成される
 
 ---
 
+## `enforcement.impl_plan` — 計画なしの実装を止める
+
+```yaml
+enforcement:
+  impl_plan: "on"     # 既定は off
+```
+
+`on` にすると `utakata apply --scope feature` と `utakata feature add` が
+**feature 単位で**ゲートし、実装計画の無い feature のスキャフォールドを
+スキップします(他の feature は通常どおり生成され、スキップがあれば exit 1)。
+既にディスクにある feature には作用しません。
+
+詳細は [impl-plan.md](impl-plan.md)(`utakata doc show impl`)を参照してください。
+
+---
+
 ## `records` — 記録の扱いと AI に許す範囲
 
 ```yaml
@@ -241,7 +257,6 @@ records:
 
 | キー | 想定 | 現状 |
 |---|---|---|
-| `enforcement.impl_plan` | `on` で feature 実装前に `utakata impl new` を必須化 | パースのみ。強制は未実装 |
 | `records.git` | `doc/records/` を commit するか ignore するか | パースのみ |
 | `lang` | CLI メッセージの言語 | パースのみ。**現在の言語切り替えは環境変数** `UTAKATA_LANG=ja\|en`(未設定時は `LANG` から推定)で行う |
 

@@ -21,7 +21,7 @@
 - 📚 **Knowledge stays out of your repo — and out of the package**: guides live in [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) and are fetched on demand (version-pinned, cached in `~/.utakata/`). The package bundles only the machine-readable definitions, so `create`/`apply`/`check` work fully offline; projects contain only the app + `doc/` + config — no copied guide tree, and `apply` no longer writes per-directory GUIDE.md files (use `guide for <file>`).
 - 🗂️ **Client-Facing Knowledge Vault**: point `vault:` at your own repo of how-to-obtain-an-account / pricing / review-requirement notes, and the generated `utakata-client-explainer` skill writes client explanations from it — checking each entry's recorded verification date instead of quoting prices from memory.
 - 💬 **Client Conversation Tracking**: `utakata log` records summarized conversations, `utakata message` keeps the **verbatim** correspondence you sent and received (unmodified, append-only), and `utakata agree` tracks agreements. All JSONL and append-only; how much an agent may add is set by `records.agent_write` (`append` lets it add entries via the CLI without ever editing past records).
-- 📝 **Implementation Plans & Summary**: `utakata impl` manages a per-feature implementation-plan lifecycle; `utakata summary` regenerates the agreement ledger section of your project summary automatically.
+- 📝 **Implementation Plans & Summary**: `utakata impl` tracks each feature's plan on **two axes** — implementation (`todo → in_progress → review → done`) and verification (`todo → in_progress → review → done`, or `not_required`) — and the plan file moves between lane directories (`doc/impl/2_in_progress/`, `4_test_todo/` …) as it advances, with a board regenerated at `doc/preview/impl_board.md`. Set `enforcement.impl_plan: on` to refuse scaffolding a feature that has no plan yet. `utakata summary` regenerates the agreement ledger section of your project summary.
 - 🌐 **Internationalized**: CLI messages support English and Japanese.
 
 ---
@@ -99,7 +99,7 @@ features:
 | Command | Description |
 |---|---|
 | `utakata doc init` | Create the `doc/` workspace (specs/records/preview/impl/knowledge/archive) + `utakata.yaml`, ahead of the Flutter project itself |
-| `utakata doc show <config\|plan\|imports\|records>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` / records policy (matches the installed version; also available as the MCP `doc_get` tool) |
+| `utakata doc show <config\|plan\|imports\|records\|impl>` / `utakata doc list` | Print the bundled reference for `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` / records policy (matches the installed version; also available as the MCP `doc_get` tool) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | Create a new Flutter project with the chosen architecture, plus `.mcp.json` + `.claude/` |
 | `utakata doctor [--migrate]` | Diagnose the project; `--migrate` moves a legacy `AI/`-based layout (or an ad-hoc `doc/`) to the current one |
 
@@ -130,7 +130,10 @@ features:
 | `utakata message list\|show\|render\|link` | Query / print in full / regenerate `doc/preview/messages/` / attach a log or agreement reference |
 | `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg ids>]` | Record an agreement (`doc/records/agreements.jsonl`, append-only) |
 | `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | Update, supersede, or link an agreement; list unreflected ones |
-| `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | Manage a feature's implementation-plan lifecycle (`doc/impl/PLAN-NNNN_{feature}.md`) |
+| `utakata impl new <feature> [--agreement] [--spec] [--basis]` | Open an implementation plan (`doc/impl/1_todo/PLAN-NNNN_{feature}.md`) |
+| `utakata impl start\|review\|done\|archive <id>` | Advance the implementation axis; the file moves to the matching lane |
+| `utakata impl test start\|review\|done\|todo\|skip <id>` | Advance the verification axis (only once implementation is `done`; `skip --reason` declares testing unnecessary) |
+| `utakata impl list [--status] [--test] [--lane] [--json]` / `board` / `sync [--dry-run]` | Query, print the lane board (regenerates `doc/preview/impl_board.md`), or move files back to the lane their frontmatter implies |
 | `utakata summary` | Regenerate the agreement-ledger section of `doc/summary.md`, leaving hand-written sections untouched |
 
 ### Knowledge

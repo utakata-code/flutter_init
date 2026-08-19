@@ -16,6 +16,7 @@ import 'package:utakata/src/1_domain/3_usecases/generate_core_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/guide_for_file_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/guide_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
+import 'package:utakata/src/1_domain/services/impl_plan_gate.dart';
 import 'package:utakata/src/1_domain/3_usecases/init_doc_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/import_messages_usecase.dart';
 import 'package:utakata/src/1_domain/3_usecases/list_agreements_usecase.dart';
@@ -199,6 +200,18 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
   );
 
+  // enforcement.impl_plan: on のときだけ、実装計画のある feature 名を返す
+  // (off なら null を返してゲートを完全に無効化する)。
+  Future<Set<String>> featuresWithImplPlan(String projectDir) async {
+    final config = await configRepo.read(projectDir);
+    if (config?.implPlanEnforcement != 'on') {
+      // ゲート無効: 全 feature を「計画あり」とみなす
+      final plan = await planRepo.read(projectDir);
+      return {for (final f in plan?.features ?? const []) f.name};
+    }
+    return ImplPlanGate.featuresWithPlan(await implPlanRepo.listAll(projectDir));
+  }
+
   final applyUsecase = ApplyUsecase(
     planRepo: planRepo,
     archRepo: archRepo,
@@ -206,6 +219,7 @@ Future<void> main(List<String> arguments) async {
     generateCoreUsecase: generateCoreUsecase,
     fileExists: fs.entityExists,
     writeFile: fs.writeFile,
+    featuresWithPlan: featuresWithImplPlan,
   );
 
   final expandPlanUsecase = ExpandPlanUsecase(
@@ -283,6 +297,9 @@ Future<void> main(List<String> arguments) async {
   );
 
   final doctorUsecase = DoctorUsecase(
+    detectMisplacedPlans: implPlanRepo.detectMisplaced,
+    featuresWithImplPlan: (dir) async =>
+        ImplPlanGate.featuresWithPlan(await implPlanRepo.listAll(dir)),
     planRepo: planRepo,
     configRepo: configRepo,
     fileExists: fs.fileExists,
@@ -402,7 +419,7 @@ Future<void> main(List<String> arguments) async {
         renderMessagesUsecase, messageRepo, msg),
     doctorCommand: DoctorCommand(doctorUsecase, msg),
     agreeCommand: AgreeCommand(recordAgreementUsecase, listAgreementsUsecase, msg),
-    implCommand: ImplCommand(implPlanUsecase, msg),
+    implCommand: ImplCommand(implPlanUsecase, msg, writeFile: fs.writeFile),
     summaryCommand: SummaryCommand(renderSummaryUsecase, msg),
     guideCommand: GuideCommand(guideUsecase, msg,
         guideForFileUsecase: guideForFileUsecase, archResolver: archResolver),

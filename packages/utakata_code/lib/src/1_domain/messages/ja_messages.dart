@@ -464,6 +464,72 @@ class JaMessages implements CliMessages {
   @override
   String implArchiveDone(String id) => '✅ $id を archive/ へ移動しました';
 
+  // ─── impl の2軸ライフサイクル (v1.7.0) ───
+  @override
+  String get cmdImplStartDesc => '実装を開始する(status: in_progress)';
+  @override
+  String get cmdImplReviewDesc => '自分のレビュー段階へ進める(status: review)';
+  @override
+  String get cmdImplBoardDesc =>
+      'レーン別のボードを表示し doc/preview/impl_board.md を再生成する';
+  @override
+  String get cmdImplTestDesc => '検証軸の状態を進める(start|review|done|todo|skip)';
+  @override
+  String cmdImplTestTransitionDesc(String name) {
+    switch (name) {
+      case 'start':
+        return 'テストを開始する(test: in_progress)';
+      case 'review':
+        return 'テスト結果のレビューへ進める(test: review)';
+      case 'done':
+        return 'テスト完了にする(test: done)';
+      case 'todo':
+        return 'テスト未着手へ戻す(test: todo)';
+      default:
+        return 'テスト不要と明示する(test: not_required)';
+    }
+  }
+  @override
+  String get cmdImplSyncDesc => 'frontmatter に合わせてファイルの配置を是正する';
+  @override
+  String get optImplStatus => '実装の状態で絞る(todo|in_progress|review|done|archived)';
+  @override
+  String get optImplTest =>
+      '検証の状態で絞る(not_required|todo|in_progress|review|done)';
+  @override
+  String get optImplLane => 'レーン(ディレクトリ名)で絞る';
+  @override
+  String get optImplSkipReason => 'テスト不要とする理由';
+  @override
+  String get implFeatureRequired => 'feature 名を指定してください: utakata impl new <feature>';
+  @override
+  String get implIdRequired => '実装計画 ID を指定してください(utakata impl list で確認)';
+  @override
+  String implUnknownLane(String given, String known) =>
+      'レーン "$given" は存在しません。指定できるのは: $known';
+  @override
+  String implTransitionDone(String id, String status, String test) =>
+      '$id: status=$status / test=$test';
+  @override
+  String implMovedTo(String path) => '移動: $path';
+  @override
+  String implBoardDone(String path) => 'ボードを再生成しました: $path';
+  @override
+  String get implSyncClean => '配置は frontmatter と一致しています。';
+  @override
+  String implSyncDryRun(int count) => '[DRY] $count 件を移動します';
+  @override
+  String implSyncDone(int count) => '$count 件を正しいレーンへ移動しました';
+  @override
+  String implPlanRequired(String feature) =>
+      'feature "$feature" には実装計画がありません(enforcement.impl_plan: on)。'
+      '`utakata impl new $feature` で作成してください。';
+  @override
+  String implPlanMissingForCode(int count) =>
+      '実装があるのに実装計画が無い feature が $count 件あります'
+      '(`utakata impl new <feature>` で作成できます)。';
+
+
   // ─── summary (v0.9) ───
   @override
   String get cmdSummaryDesc => '案件整理サマリーのマーカー区間を再生成する';

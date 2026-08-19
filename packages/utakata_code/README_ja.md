@@ -22,7 +22,7 @@
 - 📚 **ナレッジはリポジトリにもパッケージにも置かない**: ガイドは [utakata_arch_lib](https://github.com/utakata-code/utakata_arch_lib) で一元管理し、参照時にオンデマンド取得します(バージョン固定タグ・`~/.utakata/` にキャッシュ)。パッケージには機械可読な定義だけを同梱するため `create`/`apply`/`check` は完全オフラインで動作。プロジェクトにはアプリ本体 + `doc/` + 設定だけが残り、`apply` がディレクトリごとに GUIDE.md を撒くこともなくなりました(参照は `guide for <file>`)。
 - 🗂️ **クライアント説明用ナレッジ Vault**: `vault:` に自分のナレッジリポジトリを指定すると、生成される `utakata-client-explainer` スキルがそれを根拠にお客様向けの説明文を書きます(料金や審査要否を記憶で書かず、各エントリの検証日時を確認する)。
 - 💬 **お客様との会話の記録**: `utakata log` が要約した会話を、`utakata message` が実際に送受信した**原文**を無加工で残します。`utakata agree` は合意をトラッキング。すべて JSONL・追記専用で、AI にどこまで書かせるかは `records.agent_write` で決められます(`append` なら CLI 経由の追記だけ許可され、過去の記録は改変できません)。
-- 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの実装計画のライフサイクルを管理し、`utakata summary` が案件整理サマリーの合意ログ区間を自動再生成します。
+- 📝 **実装計画とサマリー**: `utakata impl` が feature ごとの計画を**2軸**(実装: `todo → in_progress → review → done` / 検証: 同様の4段階と `not_required`)で管理します。進行に応じて計画ファイルがレーンのディレクトリ(`doc/impl/2_in_progress/`・`4_test_todo/` 等)を移動し、`doc/preview/impl_board.md` にボードが再生成されます。`enforcement.impl_plan: on` にすると、計画の無い feature のスキャフォールドを止められます。`utakata summary` は案件整理サマリーの合意ログ区間を自動再生成します。
 - 🌐 **多言語対応**: CLI メッセージは日本語・英語に対応しています。
 
 ---
@@ -100,7 +100,7 @@ features:
 | コマンド | 説明 |
 |---|---|
 | `utakata doc init` | Flutter プロジェクト本体より先に `doc/` ワークスペース(specs/records/preview/impl/knowledge/archive)+ `utakata.yaml` を作成する |
-| `utakata doc show <config\|plan\|imports\|records>` / `utakata doc list` | `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` / 記録の扱いのリファレンスを表示する(インストール済みバージョンに対応。MCP の `doc_get` でも取得可能) |
+| `utakata doc show <config\|plan\|imports\|records\|impl>` / `utakata doc list` | `utakata.yaml` / `doc/specs/plan.yaml` / `import_rules` / 記録の扱いのリファレンスを表示する(インストール済みバージョンに対応。MCP の `doc_get` でも取得可能) |
 | `utakata create <name> [--org] [--platforms] [--arch]` | 選択したアーキテクチャで Flutter プロジェクトを新規作成し、`.mcp.json` + `.claude/` も生成する |
 | `utakata doctor [--migrate]` | プロジェクトを診断する。`--migrate` は旧 `AI/` ベースのレイアウト(または独自運用の `doc/`)を現行レイアウトへ移行する |
 
@@ -131,7 +131,10 @@ features:
 | `utakata message list\|show\|render\|link` | 一覧 / 全文表示 / `doc/preview/messages/` の再生成 / 要約ログ・合意への紐付け |
 | `utakata agree add --title "..." --kind client_agreement\|internal_decision\|tentative [--amount] [--from <msg id>]` | 合意を記録する(`doc/records/agreements.jsonl`・追記専用) |
 | `utakata agree status <id> <status>` / `correct <id>` / `reflect <id> --plan\|--spec` / `list [--unreflected]` | 合意の状態更新・訂正(supersede)・反映記録・未反映合意の一覧 |
-| `utakata impl new <feature> [--agreement] [--spec] [--basis]` / `list` / `done <id>` / `archive <id>` | feature 実装計画のライフサイクル管理(`doc/impl/PLAN-NNNN_{feature}.md`) |
+| `utakata impl new <feature> [--agreement] [--spec] [--basis]` | 実装計画を作成する(`doc/impl/1_todo/PLAN-NNNN_{feature}.md`) |
+| `utakata impl start\|review\|done\|archive <id>` | 実装軸を進める。ファイルは対応するレーンへ移動する |
+| `utakata impl test start\|review\|done\|todo\|skip <id>` | 検証軸を進める(実装が `done` になってから。`skip --reason` はテスト不要の明示) |
+| `utakata impl list [--status] [--test] [--lane] [--json]` / `board` / `sync [--dry-run]` | 一覧 / レーン別ボード表示(`doc/preview/impl_board.md` を再生成)/ frontmatter に合わせた再配置 |
 | `utakata summary` | `doc/summary.md` の合意ログ区間を再生成する(手書き部分はそのまま) |
 
 ### ナレッジ

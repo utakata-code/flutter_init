@@ -39,7 +39,12 @@ class ApplyCommand extends BaseCommand {
       dryRun: dryRun,
     );
 
+    for (final feature in result.blockedFeatures) {
+      Logger.error(_msg.implPlanRequired(feature));
+    }
+
     if (result.features.isEmpty && result.coreModulePaths.isEmpty) {
+      if (result.blockedFeatures.isNotEmpty) return 1;
       Logger.warn(_msg.applyNothingToDo);
       return 0;
     }
@@ -63,6 +68,6 @@ class ApplyCommand extends BaseCommand {
         Logger.success(_msg.applyFilesDone(result.createdFiles.length));
       }
     }
-    return 0;
+    return result.blockedFeatures.isEmpty ? 0 : 1;
   }
 }

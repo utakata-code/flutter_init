@@ -27,6 +27,12 @@ class DoctorUsecase {
   final List<String> Function(String dirPath) _listEntries;
   final List<String> Function(String dirPath, String fileName)? _listFilesNamed;
 
+  /// 実装計画のレーン乖離・未作成を診断するための注入(v1.7.0)。
+  /// 未注入なら該当の診断を行わない。
+  final Future<Map<String, ({String actual, String expected})>> Function(
+      String projectDir)? _detectMisplacedPlans;
+  final Future<Set<String>> Function(String projectDir)? _featuresWithImplPlan;
+
   const DoctorUsecase({
     required PlanRepository planRepo,
     ConfigRepository? configRepo,
@@ -38,6 +44,10 @@ class DoctorUsecase {
     required Future<void> Function(String from, String to) movePath,
     required List<String> Function(String dirPath) listEntries,
     List<String> Function(String dirPath, String fileName)? listFilesNamed,
+    Future<Map<String, ({String actual, String expected})>> Function(
+            String projectDir)?
+        detectMisplacedPlans,
+    Future<Set<String>> Function(String projectDir)? featuresWithImplPlan,
   })  : _planRepo = planRepo,
         _configRepo = configRepo,
         _fileExists = fileExists,
@@ -47,7 +57,9 @@ class DoctorUsecase {
         _deleteDir = deleteDir,
         _movePath = movePath,
         _listEntries = listEntries,
-        _listFilesNamed = listFilesNamed;
+        _listFilesNamed = listFilesNamed,
+        _detectMisplacedPlans = detectMisplacedPlans,
+        _featuresWithImplPlan = featuresWithImplPlan;
 
   /// 診断のみ行う(環境チェック + utakata.yaml スキーマ検証)。
   Future<List<String>> diagnose(String projectDir) async {
@@ -88,9 +100,53 @@ class DoctorUsecase {
     // utakata.yaml が壊れていても診断結果ごと失わない
     // (壊れている事実は configRepo.validate が既に報告している)。
     try {
+      issues.addAll(await _diagnoseImplPlans(projectDir));
+    } catch (_) {
+      // 実装計画を読めない場合はその診断だけ諦める
+    }
+    try {
       issues.addAll(await _diagnoseRecordsPolicy(projectDir));
     } catch (_) {
       // 設定を読めない場合はポリシー診断だけ諦める
+    }
+    return issues;
+  }
+
+  /// 実装計画(v1.7.0)の診断:
+  ///   - frontmatter とレーン(ディレクトリ)の乖離
+  ///   - 実装があるのに計画が無い feature(CLI で止められない経路の補完)
+  Future<List<String>> _diagnoseImplPlans(String projectDir) async {
+    final issues = <String>[];
+
+    final detect = _detectMisplacedPlans;
+    if (detect != null) {
+      final misplaced = await detect(projectDir);
+      if (misplaced.isNotEmpty) {
+        issues.add('実装計画 ${misplaced.length} 件が frontmatter と違うレーンに'
+            'あります(${misplaced.keys.take(3).join(", ")}'
+            '${misplaced.length > 3 ? " ほか" : ""})。'
+            '`utakata impl sync` で是正できます。');
+      }
+    }
+
+    final withPlan = _featuresWithImplPlan;
+    if (withPlan == null) return issues;
+    final plan = await _planRepo.read(projectDir);
+    if (plan == null) return issues;
+    final planned = await withPlan(projectDir);
+    final missing = [
+      for (final feature in plan.features)
+        if (!planned.contains(feature.name) &&
+            _dirExists('$projectDir/lib/features/'
+                '${feature.permission == "direct" ? "" : "${feature.permission}/"}'
+                '${feature.name}'))
+          feature.name,
+    ];
+    if (missing.isNotEmpty) {
+      issues.add('実装があるのに実装計画が無い feature が ${missing.length} 件'
+          'あります(${missing.take(3).join(", ")}'
+          '${missing.length > 3 ? " ほか" : ""})。'
+          '`utakata impl new <feature>` で作成できます。');
     }
     return issues;
   }

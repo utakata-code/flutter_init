@@ -365,30 +365,48 @@ name: utakata-impl-flow
 description: |
   feature 単位の実装計画(impl plan)のライフサイクル管理。
   feature の実装を開始する・実装方針を検討する・実装を完了する・
-  「どの feature が進行中？」のときに使用。
+  テストを進める・「どの feature が進行中？」のときに使用。
 ---
 
 # utakata 実装計画フロー
 
 規模のある feature は、コードを書く前に feature ごとの実装計画を作る
-(`utakata.yaml` の `enforcement.impl_plan: "on"` が既定)。
+(`utakata.yaml` の `enforcement.impl_plan: "on"` で必須化できる)。
 
-## ライフサイクル
+## 状態は2軸
+
+- `status`(実装): `todo` → `in_progress` → `review` → `done`
+- `test`(検証): `todo` → `in_progress` → `review` → `done`(不要なら `not_required`)
+
+計画ファイルは状態に応じて `doc/impl/<レーン>/` を移動する
+(`1_todo` / `2_in_progress` / `3_review` / `4_test_todo` /
+`5_test_in_progress` / `6_test_review` / `7_done` / `archive`)。
+**正は frontmatter** であり、配置はそこから導出される。
+
+## 手順
 
 1. **着手前**: `utakata impl new <feature> [--agreement <AGR-id>] [--spec <path>]`
-   — `doc/impl/PLAN-NNNN_<feature>.md` が発行される。根拠になった合意が
-   あれば `--agreement` で紐づける
-2. **実装中**: 技術選定の理由・試行錯誤・途中の判断は**その feature の PLAN
+   — `doc/impl/1_todo/PLAN-NNNN_<feature>.md` が発行される
+2. **実装開始**: `utakata impl start <PLAN-id>`
+3. **実装中**: 技術選定の理由・試行錯誤・途中の判断は**その feature の PLAN
    ファイルの本文に書く**(他の feature の文脈と混ぜない = コンテキスト分離)。
-   frontmatter(機械管理部分)は編集しない
-3. **完了**: `utakata impl done <PLAN-id>` → 参照しなくなったら
-   `utakata impl archive <PLAN-id>`(`doc/impl/archive/` へ退避)
-4. **状況確認**: `utakata impl list` — 進行中/完了の一覧
+   frontmatter(機械管理部分)は手で編集しない
+4. **自分のレビュー**: `utakata impl review <PLAN-id>`
+5. **実装完了**: `utakata impl done <PLAN-id>`
+6. **検証**: `utakata impl test start|review|done <PLAN-id>`
+   — テストが不要な変更なら `utakata impl test skip <PLAN-id> --reason "..."`
+7. **アーカイブ**: 参照しなくなったら `utakata impl archive <PLAN-id>`
+8. **状況確認**: `utakata impl list` / `utakata impl board`
 
 ## 注意
 
+- **逆行してよい**。テストが落ちたら `utakata impl start` で実装へ戻す
+  (検証軸は実装が `done` になるまで進められない)
+- frontmatter を手で書き換えてしまった / ファイルを手で動かした場合は
+  `utakata impl sync` で配置を是正する
 - `doc/impl/` は AI も編集できる(deny 対象は `doc/records/**` と `doc/preview/**`)。
   ただし本文の追記に留め、既存の記述を書き換えない
+- ボード(`doc/preview/impl_board.md`)は状態変更のたびに自動再生成される
 - 実装が仕様やお客様の合意に関わる場合は、着手前に utakata-client-context
   スキルの手順で根拠を確認する
 ''';

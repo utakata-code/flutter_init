@@ -245,6 +245,29 @@ abstract interface class CliMessages {
   String implDoneDone(String id);
   String implArchiveDone(String id);
 
+  // ─── impl の2軸ライフサイクル (v1.7.0) ───
+  String get cmdImplStartDesc;
+  String get cmdImplReviewDesc;
+  String get cmdImplBoardDesc;
+  String get cmdImplTestDesc;
+  String cmdImplTestTransitionDesc(String name);
+  String get cmdImplSyncDesc;
+  String get optImplStatus;
+  String get optImplTest;
+  String get optImplLane;
+  String get optImplSkipReason;
+  String get implFeatureRequired;
+  String get implIdRequired;
+  String implUnknownLane(String given, String known);
+  String implTransitionDone(String id, String status, String test);
+  String implMovedTo(String path);
+  String implBoardDone(String path);
+  String get implSyncClean;
+  String implSyncDryRun(int count);
+  String implSyncDone(int count);
+  String implPlanRequired(String feature);
+  String implPlanMissingForCode(int count);
+
   // ─── summary (v0.9) ───
   String get cmdSummaryDesc;
   String get summaryRenderDone;

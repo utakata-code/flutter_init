@@ -1,6 +1,9 @@
 import '../../1_domain/1_entities/record/impl_plan_meta.dart';
 
 /// frontmatter(Map)⇔ [ImplPlanMeta] の変換を担う DTO。
+///
+/// v1.7.0 で検証は `test:` マップへ統合された。旧 `verification:`
+/// (`static` / `on_device` のみ)も読めるようにしてある。
 abstract final class ImplPlanFrontMatterModel {
   static ImplPlanMeta fromMap(Map<String, dynamic> map) {
     final originMap = map['origin'];
@@ -14,15 +17,34 @@ abstract final class ImplPlanFrontMatterModel {
           )
         : const ImplPlanOrigin();
 
-    final verification = map['verification'];
-    final staticVerified = verification is Map && verification['static'] == 'done';
-    final onDeviceVerified = verification is Map && verification['on_device'] == 'done';
+    // v1.7.0: test マップ / v1.6.x 以前: verification マップ
+    final testNode = map['test'];
+    final legacy = map['verification'];
+    final staticVerified = _isDone(testNode, 'static') || _isDone(legacy, 'static');
+    final onDeviceVerified =
+        _isDone(testNode, 'on_device') || _isDone(legacy, 'on_device');
+
+    final ImplTestStatus test;
+    if (testNode is Map && testNode['status'] != null) {
+      test = ImplPlanMeta.testFromString(testNode['status'].toString());
+    } else if (testNode is String) {
+      // `test: done` のような素の書き方も受理する
+      test = ImplPlanMeta.testFromString(testNode);
+    } else if (legacy is Map) {
+      // 旧形式からの移行: 両方 done ならテスト完了とみなす
+      test = staticVerified && onDeviceVerified
+          ? ImplTestStatus.done
+          : ImplTestStatus.todo;
+    } else {
+      test = ImplTestStatus.todo;
+    }
 
     return ImplPlanMeta(
       id: map['id'] as String,
       feature: map['feature'] as String,
       backlog: (map['backlog'] as String?) ?? '',
-      status: ImplPlanMeta.statusFromString((map['status'] as String?) ?? 'draft'),
+      status: ImplPlanMeta.statusFromString((map['status'] as String?) ?? 'todo'),
+      test: test,
       created: DateTime.parse(map['created'] as String),
       origin: origin,
       basis: map['basis'] == 'client_agreed'
@@ -32,9 +54,14 @@ abstract final class ImplPlanFrontMatterModel {
               : null,
       staticVerified: staticVerified,
       onDeviceVerified: onDeviceVerified,
+      testSkipReason:
+          testNode is Map ? testNode['skip_reason']?.toString() : null,
       completedOn: map['completed_on'] != null ? DateTime.parse(map['completed_on'] as String) : null,
     );
   }
+
+  static bool _isDone(Object? node, String key) =>
+      node is Map && node[key] == 'done';
 
   static Map<String, dynamic> toMap(ImplPlanMeta meta) => {
         'id': meta.id,
@@ -49,9 +76,12 @@ abstract final class ImplPlanFrontMatterModel {
         },
         if (meta.basis != null)
           'basis': meta.basis == ImplPlanBasis.clientAgreed ? 'client_agreed' : 'developer_judgment',
-        'verification': {
+        'test': {
+          'status': ImplPlanMeta.testToString(meta.test),
           'static': meta.staticVerified ? 'done' : 'pending',
           'on_device': meta.onDeviceVerified ? 'done' : 'pending',
+          if (meta.testSkipReason != null && meta.testSkipReason!.isNotEmpty)
+            'skip_reason': meta.testSkipReason,
         },
         if (meta.completedOn != null)
           'completed_on': meta.completedOn!.toIso8601String().substring(0, 10),

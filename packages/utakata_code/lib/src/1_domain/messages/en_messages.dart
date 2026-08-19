@@ -480,6 +480,78 @@ class EnMessages implements CliMessages {
   @override
   String implArchiveDone(String id) => '✅ Moved $id to archive/';
 
+  // ─── impl の2軸ライフサイクル (v1.7.0) ───
+  @override
+  String get cmdImplStartDesc => 'Start implementing (status: in_progress)';
+  @override
+  String get cmdImplReviewDesc => 'Move to your own review stage (status: review)';
+  @override
+  String get cmdImplBoardDesc =>
+      'Print the lane board and regenerate doc/preview/impl_board.md';
+  @override
+  String get cmdImplTestDesc =>
+      'Advance the verification axis (start|review|done|todo|skip)';
+  @override
+  String cmdImplTestTransitionDesc(String name) {
+    switch (name) {
+      case 'start':
+        return 'Start testing (test: in_progress)';
+      case 'review':
+        return 'Move to test review (test: review)';
+      case 'done':
+        return 'Mark testing complete (test: done)';
+      case 'todo':
+        return 'Send testing back to not-started (test: todo)';
+      default:
+        return 'Declare testing unnecessary (test: not_required)';
+    }
+  }
+  @override
+  String get cmdImplSyncDesc =>
+      'Move plan files back to the lane their frontmatter implies';
+  @override
+  String get optImplStatus =>
+      'Filter by implementation status (todo|in_progress|review|done|archived)';
+  @override
+  String get optImplTest =>
+      'Filter by test status (not_required|todo|in_progress|review|done)';
+  @override
+  String get optImplLane => 'Filter by lane (directory name)';
+  @override
+  String get optImplSkipReason => 'Why testing is unnecessary';
+  @override
+  String get implFeatureRequired =>
+      'Specify a feature name: utakata impl new <feature>';
+  @override
+  String get implIdRequired =>
+      'Specify a plan ID (see utakata impl list)';
+  @override
+  String implUnknownLane(String given, String known) =>
+      'Unknown lane "$given". Valid lanes: $known';
+  @override
+  String implTransitionDone(String id, String status, String test) =>
+      '$id: status=$status / test=$test';
+  @override
+  String implMovedTo(String path) => 'moved: $path';
+  @override
+  String implBoardDone(String path) => 'Board regenerated: $path';
+  @override
+  String get implSyncClean => 'Every plan is already in the right lane.';
+  @override
+  String implSyncDryRun(int count) => '[DRY] Would move $count plan(s)';
+  @override
+  String implSyncDone(int count) => 'Moved $count plan(s) into the right lane';
+  @override
+  String implPlanRequired(String feature) =>
+      'Feature "$feature" has no implementation plan '
+      '(enforcement.impl_plan: on). Create one with '
+      '`utakata impl new $feature`.';
+  @override
+  String implPlanMissingForCode(int count) =>
+      '$count feature(s) have code but no implementation plan '
+      '(create one with `utakata impl new <feature>`).';
+
+
   // ─── summary (v0.9) ───
   @override
   String get cmdSummaryDesc => 'Regenerate the marked sections of the project summary';

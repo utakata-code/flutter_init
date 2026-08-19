@@ -31,6 +31,10 @@ class ApplyUsecase {
   final bool Function(String path) _fileExists;
   final Future<void> Function(String path, String content) _writeFile;
 
+  /// `enforcement.impl_plan: on` のゲート(v1.7.0)。
+  /// 「実装計画のある feature 名」を返す。未注入ならゲートしない。
+  final Future<Set<String>> Function(String projectDir)? _featuresWithPlan;
+
   const ApplyUsecase({
     required PlanRepository planRepo,
     required ArchitectureRepository archRepo,
@@ -38,12 +42,14 @@ class ApplyUsecase {
     required GenerateCoreUsecase generateCoreUsecase,
     required bool Function(String path) fileExists,
     required Future<void> Function(String path, String content) writeFile,
+    Future<Set<String>> Function(String projectDir)? featuresWithPlan,
   })  : _planRepo = planRepo,
         _archRepo = archRepo,
         _addFeatureUsecase = addFeatureUsecase,
         _generateCoreUsecase = generateCoreUsecase,
         _fileExists = fileExists,
-        _writeFile = writeFile;
+        _writeFile = writeFile,
+        _featuresWithPlan = featuresWithPlan;
 
   /// [scope]: 'all' | 'feature' | 'core'
   Future<ApplyResult> execute(
@@ -54,8 +60,15 @@ class ApplyUsecase {
     final plan = await _planRepo.read(projectDir);
 
     final features = <FeatureSpecEntity>[];
+    final blocked = <String>[];
+    final blockedPaths = <String>[];
     var createdFiles = const <String>[];
     if ((scope == 'all' || scope == 'feature') && plan != null) {
+      // 実装計画ゲート(enforcement.impl_plan)。**新規に作る feature だけ**を
+      // 対象にする — 既にディスクにあるものは「これから実装を始める」わけでは
+      // ないため。
+      final withPlan = await _featuresWithPlan?.call(projectDir);
+
       for (final feature in plan.features) {
         final spec = FeatureSpecEntity(
           featureName: feature.name,
@@ -68,13 +81,25 @@ class ApplyUsecase {
               if (entry.value.isEmpty) entry.key,
           },
         );
+
+        final alreadyScaffolded =
+            _fileExists(p.join(projectDir, spec.relativePath));
+        if (withPlan != null &&
+            !alreadyScaffolded &&
+            !withPlan.contains(feature.name)) {
+          blocked.add(feature.name);
+          blockedPaths.add(spec.relativePath);
+          continue;
+        }
+
         features.add(spec);
         if (!dryRun) {
           await _addFeatureUsecase.execute(projectDir, spec);
         }
       }
 
-      createdFiles = await _createRequiredFiles(projectDir, plan, dryRun: dryRun);
+      createdFiles = await _createRequiredFiles(projectDir, plan,
+          dryRun: dryRun, skipPathPrefixes: blockedPaths);
     }
 
     var coreModulePaths = const <String>[];
@@ -87,6 +112,7 @@ class ApplyUsecase {
       features: features,
       coreModulePaths: coreModulePaths,
       createdFiles: createdFiles,
+      blockedFeatures: blocked,
     );
   }
 
@@ -97,6 +123,7 @@ class ApplyUsecase {
     String projectDir,
     PlanIntent plan, {
     required bool dryRun,
+    List<String> skipPathPrefixes = const [],
   }) async {
     final architecturesById = await resolveArchitectures(plan, _archRepo);
     final expected = ExpectedStructureBuilder.build(plan, architecturesById);
@@ -106,6 +133,10 @@ class ApplyUsecase {
 
     final created = <String>[];
     for (final relative in relativePaths) {
+      // ゲートで止めた feature のファイルは作らない
+      if (skipPathPrefixes.any((prefix) => relative.startsWith('$prefix/'))) {
+        continue;
+      }
       final absolute = p.join(projectDir, relative);
       if (_fileExists(absolute)) continue;
       if (!dryRun) await _writeFile(absolute, '');
@@ -140,9 +171,13 @@ class ApplyResult {
   /// 今回生成した(dry-run 時は生成予定の)必須ファイルのプロジェクト相対パス。
   final List<String> createdFiles;
 
+  /// 実装計画が無いため生成しなかった feature 名(enforcement.impl_plan)。
+  final List<String> blockedFeatures;
+
   const ApplyResult({
     required this.features,
     required this.coreModulePaths,
     this.createdFiles = const [],
+    this.blockedFeatures = const [],
   });
 }
