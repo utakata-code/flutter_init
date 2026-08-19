@@ -13,6 +13,10 @@ class ImplPlanUsecase {
 
   const ImplPlanUsecase({required ImplPlanRepository repo}) : _repo = repo;
 
+  /// feature 名として許す形。パス区切り・`..`・空文字を弾く
+  /// (ファイル名に素で使うため、doc/impl の外へ書き出せてしまう)。
+  static final _featurePattern = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]*$');
+
   Future<String> create(
     String projectDir, {
     required String feature,
@@ -24,6 +28,10 @@ class ImplPlanUsecase {
     required DateTime now,
     required String bodyTemplate,
   }) async {
+    if (!_featurePattern.hasMatch(feature) || feature.contains('..')) {
+      throw ArgumentError('invalid feature name: "$feature" '
+          '(use letters, digits, ".", "_", "-")');
+    }
     final id = await _repo.nextId(projectDir);
     final meta = ImplPlanMeta(
       id: id,
@@ -52,9 +60,12 @@ class ImplPlanUsecase {
     required DateTime now,
   }) async {
     final meta = await _require(projectDir, id);
+    final done = status == ImplPlanStatus.done;
     final updated = meta.copyWith(
       status: status,
-      completedOn: status == ImplPlanStatus.done ? now : null,
+      completedOn: done ? now : null,
+      // done から戻したら完了日は消す(古い日付が残ると嘘になる)
+      clearCompletedOn: !done && status != ImplPlanStatus.archived,
     );
     final movedTo = await _repo.update(projectDir, updated);
     return ImplTransition(before: meta, after: updated, movedTo: movedTo);
@@ -77,12 +88,17 @@ class ImplPlanUsecase {
         'Run `utakata impl done $id` first.',
       );
     }
+    final complete = test == ImplTestStatus.done;
     final updated = meta.copyWith(
       test: test,
       testSkipReason: test == ImplTestStatus.notRequired ? skipReason : null,
-      // 検証の内訳は「テスト完了」で両方満たされたとみなす
-      staticVerified: test == ImplTestStatus.done ? true : null,
-      onDeviceVerified: test == ImplTestStatus.done ? true : null,
+      // 「テスト不要」以外へ移ったら理由を消す(前回の理由が残らないように)
+      clearSkipReason: test != ImplTestStatus.notRequired,
+      // 検証の内訳は「テスト完了」で両方満たされたとみなし、
+      // 差し戻したら両方 pending に戻す
+      staticVerified: complete ? true : null,
+      onDeviceVerified: complete ? true : null,
+      clearVerified: !complete,
     );
     final movedTo = await _repo.update(projectDir, updated);
     return ImplTransition(before: meta, after: updated, movedTo: movedTo);
@@ -92,9 +108,12 @@ class ImplPlanUsecase {
       {required DateTime now}) =>
       setStatus(projectDir, id, ImplPlanStatus.archived, now: now);
 
-  /// frontmatter に合わせてファイル配置を是正する。移動した ID を返す。
-  Future<List<String>> sync(String projectDir, {bool dryRun = false}) =>
+  /// frontmatter に合わせてファイル配置を是正する。
+  Future<ImplSyncResult> sync(String projectDir, {bool dryRun = false}) =>
       _repo.sync(projectDir, dryRun: dryRun);
+
+  /// 走査の生結果(読めないファイル・重複 ID を含む)。
+  Future<ImplScanResult> scan(String projectDir) => _repo.scanAll(projectDir);
 
   Future<Map<String, ({String actual, String expected})>> detectMisplaced(
           String projectDir) =>

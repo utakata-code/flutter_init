@@ -1,5 +1,7 @@
 import '../2_repositories/config_repository.dart';
+import '../2_repositories/impl_plan_repository.dart';
 import '../2_repositories/plan_repository.dart';
+import '../messages/cli_messages.dart';
 
 /// 1件の移行操作を表す(dry-run 表示・実行ログ共用)。
 class MigrationAction {
@@ -32,6 +34,8 @@ class DoctorUsecase {
   final Future<Map<String, ({String actual, String expected})>> Function(
       String projectDir)? _detectMisplacedPlans;
   final Future<Set<String>?> Function(String projectDir)? _featuresWithImplPlan;
+  final Future<ImplScanResult> Function(String projectDir)? _scanImplPlans;
+  final CliMessages? _msg;
 
   const DoctorUsecase({
     required PlanRepository planRepo,
@@ -48,6 +52,8 @@ class DoctorUsecase {
             String projectDir)?
         detectMisplacedPlans,
     Future<Set<String>?> Function(String projectDir)? featuresWithImplPlan,
+    Future<ImplScanResult> Function(String projectDir)? scanImplPlans,
+    CliMessages? msg,
   })  : _planRepo = planRepo,
         _configRepo = configRepo,
         _fileExists = fileExists,
@@ -59,7 +65,9 @@ class DoctorUsecase {
         _listEntries = listEntries,
         _listFilesNamed = listFilesNamed,
         _detectMisplacedPlans = detectMisplacedPlans,
-        _featuresWithImplPlan = featuresWithImplPlan;
+        _featuresWithImplPlan = featuresWithImplPlan,
+        _scanImplPlans = scanImplPlans,
+        _msg = msg;
 
   /// 診断のみ行う(環境チェック + utakata.yaml スキーマ検証)。
   Future<List<String>> diagnose(String projectDir) async {
@@ -106,6 +114,7 @@ class DoctorUsecase {
     }
     try {
       issues.addAll(await _diagnoseRecordsPolicy(projectDir));
+      issues.addAll(await _diagnoseGeneratedSkills(projectDir));
     } catch (_) {
       // 設定を読めない場合はポリシー診断だけ諦める
     }
@@ -117,20 +126,33 @@ class DoctorUsecase {
   ///   - 実装があるのに計画が無い feature(CLI で止められない経路の補完)
   Future<List<String>> _diagnoseImplPlans(String projectDir) async {
     final issues = <String>[];
+    final msg = _msg;
+
+    // 読めない計画・重複 ID は「静かに消える」ため必ず報告する
+    final scan = _scanImplPlans;
+    if (scan != null && msg != null) {
+      final result = await scan(projectDir);
+      if (result.unreadable.isNotEmpty) {
+        issues.add(msg.implScanUnreadable(
+            result.unreadable.length, _sample(result.unreadable)));
+      }
+      if (result.duplicates.isNotEmpty) {
+        issues.add(msg.implScanDuplicates(
+            result.duplicates.length, _sample(result.duplicates.keys)));
+      }
+    }
 
     final detect = _detectMisplacedPlans;
-    if (detect != null) {
+    if (detect != null && msg != null) {
       final misplaced = await detect(projectDir);
       if (misplaced.isNotEmpty) {
-        issues.add('実装計画 ${misplaced.length} 件が frontmatter と違うレーンに'
-            'あります(${misplaced.keys.take(3).join(", ")}'
-            '${misplaced.length > 3 ? " ほか" : ""})。'
-            '`utakata impl sync` で是正できます。');
+        issues.add(
+            msg.implPlansMisplaced(misplaced.length, _sample(misplaced.keys)));
       }
     }
 
     final withPlan = _featuresWithImplPlan;
-    if (withPlan == null) return issues;
+    if (withPlan == null || msg == null) return issues;
     final plan = await _planRepo.read(projectDir);
     if (plan == null) return issues;
     final planned = await withPlan(projectDir);
@@ -144,12 +166,38 @@ class DoctorUsecase {
           feature.name,
     ];
     if (missing.isNotEmpty) {
-      issues.add('実装があるのに実装計画が無い feature が ${missing.length} 件'
-          'あります(${missing.take(3).join(", ")}'
-          '${missing.length > 3 ? " ほか" : ""})。'
-          '`utakata impl new <feature>` で作成できます。');
+      issues.add(msg.implPlanMissingForCode(missing.length, _sample(missing)));
     }
     return issues;
+  }
+
+  /// 一覧が長くなりすぎないよう先頭数件だけ見せる。
+  static String _sample(Iterable<String> values) {
+    final list = values.toList();
+    final head = list.take(3).join(', ');
+    return list.length > 3 ? '$head ほか' : head;
+  }
+
+  /// 生成済みスキルが古いバージョンのまま残っていないか。
+  ///
+  /// `claude init` は既存ファイルを上書きしないため、CLI を上げても
+  /// `.claude/skills/` の内容は古いまま残る。AI が古い手順(v1.6.x の
+  /// `new → done → archive`)に従い続けるので、明示的に案内する。
+  Future<List<String>> _diagnoseGeneratedSkills(String projectDir) async {
+    final path = '$projectDir/.claude/skills/utakata-impl-flow/SKILL.md';
+    if (!_fileExists(path)) return const [];
+    final content = await _readFile(path);
+    if (content == null) return const [];
+    // v1.7.0 のスキルは必ずレーンと start コマンドに触れている
+    if (content.contains('impl start') && content.contains('レーン')) {
+      return const [];
+    }
+    final msg = _msg;
+    return [
+      msg?.staleGeneratedSkill('utakata-impl-flow') ??
+          '.claude/skills/utakata-impl-flow/SKILL.md が古いバージョンのままです。'
+              '`utakata claude init --force` で再生成してください。',
+    ];
   }
 
   /// `records.agent_write`(v1.6.0)の設定と、生成済み

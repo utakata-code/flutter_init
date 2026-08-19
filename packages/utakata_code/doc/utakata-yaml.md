@@ -33,10 +33,13 @@ team:                                              # 任意
     - id: feature-builder
       role: "実装担当。plan.yaml と層ごとのガイドを読み込みコードを生成する。"
 
-enforcement:                                       # 予約(下記参照)
-  impl_plan: "on"
-records:                                           # 予約(下記参照)
-  git: commit
+enforcement:
+  impl_plan: "off"                                 # on で計画なしの実装を止める
+records:
+  agent_write: none                                # none | append | full
+  agent_read:
+    messages: false
+  git: commit                                      # 予約(下記参照)
 lang: ja                                           # 予約(下記参照)
 ```
 

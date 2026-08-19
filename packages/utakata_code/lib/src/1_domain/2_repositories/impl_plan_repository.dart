@@ -22,11 +22,47 @@ abstract interface class ImplPlanRepository {
   /// 移動が起きた場合は移動先の相対パスを返す(起きなければ null)。
   Future<String?> update(String projectDir, ImplPlanMeta meta);
 
+  /// 走査の生結果(読めなかったファイル・重複 ID を含む)。
+  Future<ImplScanResult> scanAll(String projectDir);
+
   /// frontmatter とファイル配置の乖離を検出する。
   /// 返り値は「ID → (現在の相対パス, あるべき相対パス)」。
   Future<Map<String, ({String actual, String expected})>> detectMisplaced(
       String projectDir);
 
-  /// [detectMisplaced] の結果に従ってファイルを移動する。移動した ID を返す。
-  Future<List<String>> sync(String projectDir, {bool dryRun = false});
+  /// [detectMisplaced] の結果に従ってファイルを移動する。
+  Future<ImplSyncResult> sync(String projectDir, {bool dryRun = false});
+}
+
+/// `doc/impl/` 走査の結果。
+final class ImplScanResult {
+  /// プロジェクト相対パス → メタ
+  final Map<String, ImplPlanMeta> byPath;
+
+  /// frontmatter が読めなかったファイル(相対パス)。
+  /// 一覧から消えるだけでなく ID 再利用の温床になるので、必ず報告する。
+  final List<String> unreadable;
+
+  /// 同じ ID を持つファイルが複数ある場合の「ID → パス一覧」。
+  final Map<String, List<String>> duplicates;
+
+  const ImplScanResult({
+    this.byPath = const {},
+    this.unreadable = const [],
+    this.duplicates = const {},
+  });
+
+  bool get isHealthy => unreadable.isEmpty && duplicates.isEmpty;
+}
+
+/// `impl sync` の結果。
+final class ImplSyncResult {
+  /// 移動した(dry-run なら移動予定の)計画 ID。
+  final List<String> moved;
+
+  /// 移動先が既に埋まっていて移動できなかった「ID → 移動先」。
+  /// 上書きすると相手の本文が消えるため、人の判断に委ねる。
+  final Map<String, String> blocked;
+
+  const ImplSyncResult({this.moved = const [], this.blocked = const {}});
 }

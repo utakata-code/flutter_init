@@ -43,7 +43,15 @@ class FilesystemDataSource {
   }
 
   /// ファイル/ディレクトリを移動する(移動先の親ディレクトリは自動作成)
-  Future<void> movePath(String from, String to) async {
+  /// [from] を [to] へ移動する。
+  ///
+  /// [overwrite] が false(既定)で移動先が既に存在する場合は
+  /// [FileSystemException] を投げる — rename は宛先を黙って上書きするため、
+  /// 素のまま使うと同名ファイルの中身が警告なしに消える。
+  Future<void> movePath(String from, String to, {bool overwrite = false}) async {
+    if (!overwrite && entityExists(to)) {
+      throw FileSystemException('move destination already exists', to);
+    }
     final toParent = Directory(p.dirname(to));
     await toParent.create(recursive: true);
     if (Directory(from).existsSync()) {

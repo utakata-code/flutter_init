@@ -297,6 +297,8 @@ Future<void> main(List<String> arguments) async {
   final doctorUsecase = DoctorUsecase(
     detectMisplacedPlans: implPlanRepo.detectMisplaced,
     featuresWithImplPlan: featuresWithImplPlan,
+    scanImplPlans: implPlanRepo.scanAll,
+    msg: msg,
     planRepo: planRepo,
     configRepo: configRepo,
     fileExists: fs.fileExists,

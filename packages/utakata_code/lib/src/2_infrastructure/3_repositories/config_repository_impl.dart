@@ -64,6 +64,24 @@ class ConfigRepositoryImpl implements ConfigRepository {
       }
     }
 
+    // enforcement も誤記が黙って無効化される(ゲートが効かない)ので検証する
+    final enforcement = doc['enforcement'];
+    if (enforcement is Map) {
+      for (final key in enforcement.keys) {
+        if (key.toString() != 'impl_plan') {
+          issues.add('utakata.yaml の enforcement に未知のキー "$key" が'
+              'あります(タイポの可能性)。');
+        }
+      }
+      final implPlan = enforcement['impl_plan'];
+      if (implPlan != null &&
+          implPlan.toString() != 'on' &&
+          implPlan.toString() != 'off') {
+        issues.add('enforcement.impl_plan: "$implPlan" は未対応の値です'
+            '(on | off)。既定の off として扱われます。');
+      }
+    }
+
     // records セクションは誤記が「黙って既定(none)に落ちる」ため、
     // 値・キーの妥当性を明示的に報告する(気づけないと権限設定が効かない)。
     final records = doc['records'];

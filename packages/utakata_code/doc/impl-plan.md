@@ -84,6 +84,7 @@ utakata impl list [--status <s>] [--test <s>] [--lane <lane>] [--json]
 utakata impl board            # レーン別ボード(doc/preview/impl_board.md を再生成)
 
 utakata impl archive <ID>     # 参照しなくなったら archive/ へ
+                              # 戻すときは utakata impl start <ID> 等で通常の遷移
 utakata impl sync [--dry-run]
 ```
 
@@ -95,6 +96,16 @@ utakata impl sync [--dry-run]
 
 ただし**検証軸は実装が `done` になるまで進められません**(実装が終わって
 いないのにテスト完了はあり得ないため)。`--force` は用意していません。
+
+### 壊れた計画・重複 ID は動かさない
+
+frontmatter が読めない計画(手編集で YAML を壊した等)は一覧・採番から
+外れますが、**`utakata doctor` が件数とパスを報告**します(黙って消えると
+ID が再利用されて別の計画を上書きするため)。同じ ID のファイルが複数ある
+場合も同様に報告し、遷移・移動は拒否されます — どちらを残すかは人が決めます。
+
+移動先に同名ファイルが既にある場合、`impl sync` はそれを**上書きせずスキップ**
+して報告します(exit 1)。
 
 ### ボードは自動で最新に保たれる
 
@@ -149,10 +160,12 @@ test:
   status: todo
   static: pending          # 自動検証(flutter analyze / utakata check)
   on_device: pending       # 実機確認
-  skip_reason: ""          # test: not_required のときの理由
-completed_on: 2026-08-20
+completed_on: 2026-08-20   # done のときだけ書かれる(戻すと消える)
 ---
 ```
+
+`skip_reason` は `test: not_required` のときだけ書かれ、他の状態へ移ると消えます。
+`static` / `on_device` は `impl test done` で `done` になり、差し戻すと `pending` に戻ります。
 
 本文(Markdown)は人間/AI の自由記述領域です。**frontmatter は CLI が
 機械管理する**ので手で編集せず、コマンドで遷移させてください

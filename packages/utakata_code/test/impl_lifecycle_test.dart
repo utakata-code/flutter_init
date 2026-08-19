@@ -145,7 +145,8 @@ void main() {
       expect(misplaced.keys, [id]);
 
       final movedDry = await usecase.sync(dir.path, dryRun: true);
-      expect(movedDry, [id]);
+      expect(movedDry.moved, [id]);
+      expect(movedDry.blocked, isEmpty);
       expect(existsIn(ImplLane.review, '${id}_login.md'), isFalse,
           reason: 'dry-run では動かさない');
 
@@ -191,6 +192,135 @@ created: "2026-07-01"
 ---
 ''');
       expect(await newPlan('fresh'), 'PLAN-0010');
+    });
+  });
+
+  group('レビュー指摘の回帰(1.7.0)', () {
+    test('移動先が埋まっていたら上書きせず失敗する', () async {
+      final id = await newPlan('login');
+      // 別ブランチのマージ等で 2_in_progress にも同名ファイルがある状況
+      final decoy = File('${dir.path}/doc/impl/2_in_progress/${id}_login.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('---\nid: "$id"\nfeature: "login"\n'
+            'status: "in_progress"\ncreated: "2026-08-11"\n---\n作業メモ\n');
+
+      await expectLater(
+        usecase.setStatus(dir.path, id, ImplPlanStatus.inProgress, now: now),
+        throwsA(isA<StateError>()),
+      );
+      expect(decoy.readAsStringSync(), contains('作業メモ'),
+          reason: '既存ファイルの本文が消えてはいけない');
+    });
+
+    test('sync は移動先が埋まっている計画をスキップして報告する', () async {
+      final id = await newPlan('login');
+      File('${dir.path}/doc/impl/3_review/${id}_login.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('別の中身\n');
+      // frontmatter だけ review に(ファイルは 1_todo のまま)
+      final planFile = File('${dir.path}/doc/impl/1_todo/${id}_login.md');
+      planFile.writeAsStringSync(planFile
+          .readAsStringSync()
+          .replaceFirst('status: "todo"', 'status: "review"'));
+
+      final result = await usecase.sync(dir.path);
+      expect(result.moved, isEmpty);
+      expect(result.blocked.keys, [id]);
+      expect(File('${dir.path}/doc/impl/3_review/${id}_login.md')
+          .readAsStringSync(), '別の中身\n');
+    });
+
+    test('feature 名にパス区切りや .. を含むと拒否する', () {
+      for (final bad in ['../../escape', 'auth/login', '', '.hidden']) {
+        expect(
+            () => usecase.create(dir.path,
+                feature: bad, now: now, bodyTemplate: '# x\n'),
+            throwsArgumentError,
+            reason: bad);
+      }
+    });
+
+    test('入れ子に置かれた計画も採番に含める(archive/2026/ 等)', () async {
+      File('${dir.path}/doc/impl/archive/2026/PLAN-0005_old.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('---\nid: "PLAN-0005"\nfeature: "old"\n'
+            'status: "archived"\ncreated: "2026-01-01"\n---\n');
+
+      expect(await newPlan('fresh'), 'PLAN-0006');
+    });
+
+    test('frontmatter が壊れた計画は報告され、ID も再利用しない', () async {
+      File('${dir.path}/doc/impl/1_todo/PLAN-0003_broken.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('---\nid: "PLAN-0003"\nstatus: [\n---\n');
+
+      final scan = await usecase.scan(dir.path);
+      expect(scan.unreadable, hasLength(1));
+      expect(scan.isHealthy, isFalse);
+      // 壊れていても ID は消費済みとして扱う
+      expect(await newPlan('fresh'), 'PLAN-0004');
+    });
+
+    test('重複 ID は検出され、更新は拒否される', () async {
+      final id = await newPlan('login');
+      File('${dir.path}/doc/impl/3_review/${id}_other.md')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('---\nid: "$id"\nfeature: "other"\n'
+            'status: "review"\ncreated: "2026-08-11"\n---\n');
+
+      final scan = await usecase.scan(dir.path);
+      expect(scan.duplicates.keys, [id]);
+      await expectLater(
+        usecase.setStatus(dir.path, id, ImplPlanStatus.done, now: now),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    test('done から戻すと completed_on が消える', () async {
+      final id = await newPlan('login');
+      await usecase.setStatus(dir.path, id, ImplPlanStatus.done, now: now);
+      expect((await usecase.find(dir.path, id))!.completedOn, isNotNull);
+
+      await usecase.setStatus(dir.path, id, ImplPlanStatus.inProgress, now: now);
+      expect((await usecase.find(dir.path, id))!.completedOn, isNull);
+    });
+
+    test('テストを差し戻すと static/on_device も pending に戻る', () async {
+      final id = await newPlan('login');
+      await usecase.setStatus(dir.path, id, ImplPlanStatus.done, now: now);
+      await usecase.setTest(dir.path, id, ImplTestStatus.done);
+      expect((await usecase.find(dir.path, id))!.staticVerified, isTrue);
+
+      await usecase.setTest(dir.path, id, ImplTestStatus.inProgress);
+      final after = (await usecase.find(dir.path, id))!;
+      expect(after.staticVerified, isFalse);
+      expect(after.onDeviceVerified, isFalse);
+    });
+
+    test('テスト不要から抜けると理由が消える', () async {
+      final id = await newPlan('login');
+      await usecase.setTest(dir.path, id, ImplTestStatus.notRequired,
+          skipReason: '設定変更のみ');
+      expect((await usecase.find(dir.path, id))!.testSkipReason, '設定変更のみ');
+
+      await usecase.setTest(dir.path, id, ImplTestStatus.todo);
+      expect((await usecase.find(dir.path, id))!.testSkipReason, isNull);
+    });
+
+    test('引用符やバックスラッシュを含む値でも frontmatter が壊れない', () async {
+      const tricky = r'BL-1 "quoted" C:\path\to';
+      final id = await usecase.create(dir.path,
+          feature: 'login',
+          backlog: tricky,
+          now: now,
+          bodyTemplate: '# x\n');
+      await usecase.setTest(dir.path, id, ImplTestStatus.notRequired,
+          skipReason: r'"設定のみ" \ 続き');
+
+      final reloaded = await usecase.find(dir.path, id);
+      expect(reloaded, isNotNull, reason: '読み戻せること(YAML が壊れていない)');
+      expect(reloaded!.backlog, tricky);
+      expect(reloaded.testSkipReason, r'"設定のみ" \ 続き');
     });
   });
 

@@ -521,13 +521,34 @@ class JaMessages implements CliMessages {
   @override
   String implSyncDone(int count) => '$count 件を正しいレーンへ移動しました';
   @override
+  String implSyncBlocked(String id, String destination) =>
+      '$id: 移動先 $destination に別のファイルがあるため移動しませんでした'
+      '(上書きすると内容が失われます。重複を解消してください)';
+  @override
+  String implScanUnreadable(int count, String samples) =>
+      '実装計画 $count 件の frontmatter が読めません($samples)。'
+      '一覧・採番から外れるため、書式を直すか退避してください。';
+  @override
+  String implScanDuplicates(int count, String samples) =>
+      '同じ ID を持つ実装計画が $count 組あります($samples)。'
+      '移動・更新ができないので、どちらかを削除・改番してください。';
+  @override
   String implPlanRequired(String feature) =>
       'feature "$feature" には実装計画がありません(enforcement.impl_plan: on)。'
       '`utakata impl new $feature` で作成してください。';
   @override
-  String implPlanMissingForCode(int count) =>
-      '実装があるのに実装計画が無い feature が $count 件あります'
-      '(`utakata impl new <feature>` で作成できます)。';
+  String implPlanMissingForCode(int count, String samples) =>
+      '実装があるのに実装計画が無い feature が $count 件あります($samples)。'
+      '`utakata impl new <feature>` で作成できます。';
+  @override
+  String implPlansMisplaced(int count, String samples) =>
+      '実装計画 $count 件が frontmatter と違うレーンにあります($samples)。'
+      '`utakata impl sync` で是正できます。';
+  @override
+  String staleGeneratedSkill(String skillId) =>
+      '.claude/skills/$skillId/SKILL.md が古いバージョンのままです'
+      '(claude init は既存ファイルを上書きしません)。'
+      '`utakata claude init --force` で再生成してください。';
 
 
   // ─── summary (v0.9) ───

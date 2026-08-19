@@ -73,6 +73,9 @@ final class ImplPlanMeta {
       status == ImplPlanStatus.done &&
       (test == ImplTestStatus.done || test == ImplTestStatus.notRequired);
 
+  /// null は「据え置き」を意味するため、**値を消す**用途には
+  /// `clear...` フラグを使う(逆行時に completed_on や検証済みフラグが
+  /// 残り続けると frontmatter とボードが嘘をつく)。
   ImplPlanMeta copyWith({
     ImplPlanStatus? status,
     ImplTestStatus? test,
@@ -80,6 +83,9 @@ final class ImplPlanMeta {
     bool? onDeviceVerified,
     String? testSkipReason,
     DateTime? completedOn,
+    bool clearCompletedOn = false,
+    bool clearVerified = false,
+    bool clearSkipReason = false,
   }) =>
       ImplPlanMeta(
         id: id,
@@ -90,10 +96,14 @@ final class ImplPlanMeta {
         created: created,
         origin: origin,
         basis: basis,
-        staticVerified: staticVerified ?? this.staticVerified,
-        onDeviceVerified: onDeviceVerified ?? this.onDeviceVerified,
-        testSkipReason: testSkipReason ?? this.testSkipReason,
-        completedOn: completedOn ?? this.completedOn,
+        staticVerified:
+            clearVerified ? false : (staticVerified ?? this.staticVerified),
+        onDeviceVerified:
+            clearVerified ? false : (onDeviceVerified ?? this.onDeviceVerified),
+        testSkipReason:
+            clearSkipReason ? null : (testSkipReason ?? this.testSkipReason),
+        completedOn:
+            clearCompletedOn ? null : (completedOn ?? this.completedOn),
       );
 
   /// v1.6.x までの `draft` は `todo` として読む(書き戻しは常に `todo`)。

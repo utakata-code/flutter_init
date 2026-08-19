@@ -542,14 +542,35 @@ class EnMessages implements CliMessages {
   @override
   String implSyncDone(int count) => 'Moved $count plan(s) into the right lane';
   @override
+  String implSyncBlocked(String id, String destination) =>
+      '$id: not moved — $destination is already occupied '
+      '(moving would overwrite it; resolve the duplicate first)';
+  @override
+  String implScanUnreadable(int count, String samples) =>
+      "$count implementation plan(s) have unreadable frontmatter ($samples). "
+      'They are excluded from listing and ID assignment — fix or move them.';
+  @override
+  String implScanDuplicates(int count, String samples) =>
+      '$count implementation plan ID(s) appear in more than one file '
+      '($samples). Updates and moves are refused until one is removed.';
+  @override
   String implPlanRequired(String feature) =>
       'Feature "$feature" has no implementation plan '
       '(enforcement.impl_plan: on). Create one with '
       '`utakata impl new $feature`.';
   @override
-  String implPlanMissingForCode(int count) =>
-      '$count feature(s) have code but no implementation plan '
-      '(create one with `utakata impl new <feature>`).';
+  String implPlanMissingForCode(int count, String samples) =>
+      '$count feature(s) have code but no implementation plan ($samples). '
+      'Create one with `utakata impl new <feature>`.';
+  @override
+  String implPlansMisplaced(int count, String samples) =>
+      '$count implementation plan(s) sit in a lane their frontmatter does not '
+      'imply ($samples). Run `utakata impl sync` to fix.';
+  @override
+  String staleGeneratedSkill(String skillId) =>
+      '.claude/skills/$skillId/SKILL.md is from an older version '
+      '(claude init never overwrites existing files). '
+      'Regenerate it with `utakata claude init --force`.';
 
 
   // ─── summary (v0.9) ───

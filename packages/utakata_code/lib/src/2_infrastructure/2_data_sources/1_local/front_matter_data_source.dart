@@ -34,6 +34,17 @@ class FrontMatterDataSource {
     return buffer.toString();
   }
 
+  /// YAML の二重引用符スカラーとして安全な形にする。
+  ///
+  /// `\\` を先に処理しないと `"` のエスケープで入れた `\\` 自体が壊れる。
+  /// 改行・タブは実体のまま書くと frontmatter の構造を壊すのでエスケープする。
+  static String _escape(String value) => value
+      .replaceAll('\\', '\\\\')
+      .replaceAll('"', '\\"')
+      .replaceAll('\n', '\\n')
+      .replaceAll('\r', '\\r')
+      .replaceAll('\t', '\\t');
+
   void _writeYaml(Map<String, dynamic> map, StringBuffer buf, int indent) {
     final pad = '  ' * indent;
     for (final entry in map.entries) {
@@ -56,7 +67,7 @@ class FrontMatterDataSource {
       } else if (value == null) {
         buf.writeln('$pad$key: null');
       } else if (value is String) {
-        buf.writeln('$pad$key: "${value.replaceAll('"', '\\"')}"');
+        buf.writeln('$pad$key: "${_escape(value)}"');
       } else {
         buf.writeln('$pad$key: $value');
       }

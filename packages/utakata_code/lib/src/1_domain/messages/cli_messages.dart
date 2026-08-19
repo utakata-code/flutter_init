@@ -265,8 +265,13 @@ abstract interface class CliMessages {
   String get implSyncClean;
   String implSyncDryRun(int count);
   String implSyncDone(int count);
+  String implSyncBlocked(String id, String destination);
+  String implScanUnreadable(int count, String samples);
+  String implScanDuplicates(int count, String samples);
   String implPlanRequired(String feature);
-  String implPlanMissingForCode(int count);
+  String implPlanMissingForCode(int count, String samples);
+  String implPlansMisplaced(int count, String samples);
+  String staleGeneratedSkill(String skillId);
 
   // ─── summary (v0.9) ───
   String get cmdSummaryDesc;

@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 import '../../1_domain/1_entities/record/impl_plan_meta.dart';
 import '../../1_domain/3_usecases/impl_plan_usecase.dart';
 import '../../1_domain/messages/cli_messages.dart';
+import '../../1_domain/services/case_converter.dart';
 import '../../1_domain/services/impl_lane.dart';
 import '../3_presenters/impl_board_presenter.dart';
 import 'base_command.dart';
@@ -125,7 +126,9 @@ class _ImplNewCommand extends BaseCommand {
       Logger.error(_msg.implFeatureRequired);
       return 64;
     }
-    final feature = argResults!.rest.first;
+    // feature add / plan.yaml と同じ正規化を通す(ゲート判定が名前の
+    // 表記ゆれで食い違わないように)
+    final feature = CaseConverter.toSnakeCase(argResults!.rest.first);
     final basisRaw = argResults!['basis'] as String?;
     final projectDir = Directory.current.path;
 
@@ -440,13 +443,16 @@ class _ImplSyncCommand extends BaseCommand {
     for (final entry in misplaced.entries) {
       Logger.step('${entry.key}: ${entry.value.actual} → ${entry.value.expected}');
     }
-    final moved = await _usecase.sync(projectDir, dryRun: dryRun);
+    final result = await _usecase.sync(projectDir, dryRun: dryRun);
+    for (final entry in result.blocked.entries) {
+      Logger.error(_msg.implSyncBlocked(entry.key, entry.value));
+    }
     if (dryRun) {
-      Logger.info(_msg.implSyncDryRun(moved.length));
+      Logger.info(_msg.implSyncDryRun(result.moved.length));
     } else {
       await _refreshBoard(_usecase, projectDir, _writeFile);
-      Logger.success(_msg.implSyncDone(moved.length));
+      Logger.success(_msg.implSyncDone(result.moved.length));
     }
-    return 0;
+    return result.blocked.isEmpty ? 0 : 1;
   }
 }
