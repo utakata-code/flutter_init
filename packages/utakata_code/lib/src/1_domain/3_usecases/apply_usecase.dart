@@ -32,8 +32,9 @@ class ApplyUsecase {
   final Future<void> Function(String path, String content) _writeFile;
 
   /// `enforcement.impl_plan: on` のゲート(v1.7.0)。
-  /// 「実装計画のある feature 名」を返す。未注入ならゲートしない。
-  final Future<Set<String>> Function(String projectDir)? _featuresWithPlan;
+  /// 「実装計画のある feature 名」を返す。**null を返せばゲートしない**
+  /// (未注入も同じ)。設定が off のときは null を返す実装を注入する。
+  final Future<Set<String>?> Function(String projectDir)? _featuresWithPlan;
 
   const ApplyUsecase({
     required PlanRepository planRepo,
@@ -42,7 +43,7 @@ class ApplyUsecase {
     required GenerateCoreUsecase generateCoreUsecase,
     required bool Function(String path) fileExists,
     required Future<void> Function(String path, String content) writeFile,
-    Future<Set<String>> Function(String projectDir)? featuresWithPlan,
+    Future<Set<String>?> Function(String projectDir)? featuresWithPlan,
   })  : _planRepo = planRepo,
         _archRepo = archRepo,
         _addFeatureUsecase = addFeatureUsecase,

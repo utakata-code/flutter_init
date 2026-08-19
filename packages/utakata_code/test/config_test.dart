@@ -53,7 +53,9 @@ void main() {
       expect(config.knowledgeRepo, isNull);
       expect(config.skills, isEmpty);
       expect(config.team.isEmpty, isTrue);
-      expect(config.implPlanEnforcement, 'on');
+      // v1.7.0: ゲートが実際に効くようになったため既定は off
+      // (CLI を上げただけで既存プロジェクトの apply が止まらないように)
+      expect(config.implPlanEnforcement, 'off');
       expect(config.recordsGit, 'commit');
     });
   });

@@ -24,9 +24,10 @@ class FeatureCommand extends Command<int> {
   String get description => _msg.cmdFeatureDesc;
 
   FeatureCommand(this._addUsecase, this._templateUsecase, this._msg,
-      {required ArchitectureResolver archResolver}) {
-    addSubcommand(
-        _FeatureAddCommand(_addUsecase, _templateUsecase, _msg, archResolver));
+      {required ArchitectureResolver archResolver,
+      Future<Set<String>?> Function(String projectDir)? featuresWithPlan}) {
+    addSubcommand(_FeatureAddCommand(
+        _addUsecase, _templateUsecase, _msg, archResolver, featuresWithPlan));
   }
 
   @override
@@ -50,8 +51,12 @@ class _FeatureAddCommand extends BaseCommand {
 
   final ArchitectureResolver _archResolver;
 
-  _FeatureAddCommand(
-      this._usecase, this._templateUsecase, this._msg, this._archResolver) {
+  /// `enforcement.impl_plan: on` のゲート(v1.7.0)。
+  /// **null を返せばゲートしない**(未注入も同じ)。
+  final Future<Set<String>?> Function(String projectDir)? _featuresWithPlan;
+
+  _FeatureAddCommand(this._usecase, this._templateUsecase, this._msg,
+      this._archResolver, this._featuresWithPlan) {
     argParser
       ..addOption('entity', abbr: 'e', help: _msg.optEntity)
       ..addOption('permission',
@@ -72,6 +77,14 @@ class _FeatureAddCommand extends BaseCommand {
     }
 
     final featureName = CaseConverter.toSnakeCase(argResults!.rest.first);
+
+    // 実装計画ゲート(enforcement.impl_plan)。apply と同じ判定を使う。
+    final withPlan = await _featuresWithPlan?.call(Directory.current.path);
+    if (withPlan != null && !withPlan.contains(featureName)) {
+      Logger.error(_msg.implPlanRequired(featureName));
+      return 1;
+    }
+
     final templateId = argResults!['template'] as String?;
     // --arch 未指定なら utakata.yaml / plan.yaml から解決する(Issue #11)
     final archId = await _archResolver.resolve(Directory.current.path,

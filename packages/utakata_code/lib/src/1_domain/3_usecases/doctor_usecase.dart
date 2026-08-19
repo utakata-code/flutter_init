@@ -31,7 +31,7 @@ class DoctorUsecase {
   /// 未注入なら該当の診断を行わない。
   final Future<Map<String, ({String actual, String expected})>> Function(
       String projectDir)? _detectMisplacedPlans;
-  final Future<Set<String>> Function(String projectDir)? _featuresWithImplPlan;
+  final Future<Set<String>?> Function(String projectDir)? _featuresWithImplPlan;
 
   const DoctorUsecase({
     required PlanRepository planRepo,
@@ -47,7 +47,7 @@ class DoctorUsecase {
     Future<Map<String, ({String actual, String expected})>> Function(
             String projectDir)?
         detectMisplacedPlans,
-    Future<Set<String>> Function(String projectDir)? featuresWithImplPlan,
+    Future<Set<String>?> Function(String projectDir)? featuresWithImplPlan,
   })  : _planRepo = planRepo,
         _configRepo = configRepo,
         _fileExists = fileExists,
@@ -134,6 +134,7 @@ class DoctorUsecase {
     final plan = await _planRepo.read(projectDir);
     if (plan == null) return issues;
     final planned = await withPlan(projectDir);
+    if (planned == null) return issues; // ゲート無効時は診断しない
     final missing = [
       for (final feature in plan.features)
         if (!planned.contains(feature.name) &&

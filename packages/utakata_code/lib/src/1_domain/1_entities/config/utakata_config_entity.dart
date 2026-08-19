@@ -135,7 +135,11 @@ final class UtakataConfig {
   /// プロジェクトの `utakata.yaml` に書けばそちらが優先される。
   final VaultRef? vault;
 
-  /// `enforcement.impl_plan`: 'on' | 'off'
+  /// `enforcement.impl_plan`: 'on' | 'off'(既定 'off')。
+  ///
+  /// v1.7.0 で実際にゲートが働くようになったため、既定は **off**。
+  /// 既存プロジェクトが CLI を上げただけで `apply` が止まらないようにする
+  /// (v1.6.x までは値がパースされるだけで挙動に影響しなかった)。
   final String implPlanEnforcement;
 
   /// `records.git`: 'commit' | 'ignore'
@@ -166,7 +170,7 @@ final class UtakataConfig {
     this.skills = const [],
     this.team = TeamDef.empty,
     this.vault,
-    this.implPlanEnforcement = 'on',
+    this.implPlanEnforcement = 'off',
     this.recordsGit = 'commit',
     this.recordsAgentWrite = 'none',
     this.recordsAgentRead = const {},
@@ -210,8 +214,8 @@ final class UtakataConfig {
           ? VaultRef.fromMap(Map<String, dynamic>.from(rawVault))
           : null,
       implPlanEnforcement: enforcement is Map
-          ? (enforcement['impl_plan']?.toString() ?? 'on')
-          : 'on',
+          ? (enforcement['impl_plan']?.toString() ?? 'off')
+          : 'off',
       recordsGit: records is Map ? (records['git']?.toString() ?? 'commit') : 'commit',
       recordsAgentWrite: _parseAgentWrite(records),
       recordsAgentRead: _parseAgentRead(records),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
+import 'package:utakata/src/1_domain/1_entities/config/utakata_config_entity.dart';
 import 'package:utakata/src/1_domain/1_entities/record/impl_plan_meta.dart';
 import 'package:utakata/src/1_domain/3_usecases/impl_plan_usecase.dart';
 import 'package:utakata/src/1_domain/services/impl_lane.dart';
@@ -215,6 +216,16 @@ created: "2026-07-01"
           ImplPlanGate.blocked(
               enforced: false, featureNames: ['a', 'b'], withPlan: const {}),
           isEmpty);
+    });
+
+    test('既定は off(CLI を上げただけでは止まらない)', () {
+      expect(const UtakataConfig().implPlanEnforcement, 'off');
+      expect(UtakataConfig.fromMap(const {}).implPlanEnforcement, 'off');
+      expect(
+          UtakataConfig.fromMap(const {
+            'enforcement': {'impl_plan': 'on'}
+          }).implPlanEnforcement,
+          'on');
     });
 
     test('enforced なら計画の無い feature だけ止める', () {

@@ -72,7 +72,9 @@ project:
 #       role: "実装担当。plan.yaml と層ごとのガイドを読み込みコードを生成する。"
 
 enforcement:
-  impl_plan: "on"
+  # on にすると、実装計画の無い feature のスキャフォールドを止める
+  # (utakata doc show impl を参照)
+  impl_plan: "off"
 records:
   git: commit
 lang: ja

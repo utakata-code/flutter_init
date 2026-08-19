@@ -202,13 +202,11 @@ Future<void> main(List<String> arguments) async {
 
   // enforcement.impl_plan: on のときだけ、実装計画のある feature 名を返す
   // (off なら null を返してゲートを完全に無効化する)。
-  Future<Set<String>> featuresWithImplPlan(String projectDir) async {
+  Future<Set<String>?> featuresWithImplPlan(String projectDir) async {
     final config = await configRepo.read(projectDir);
-    if (config?.implPlanEnforcement != 'on') {
-      // ゲート無効: 全 feature を「計画あり」とみなす
-      final plan = await planRepo.read(projectDir);
-      return {for (final f in plan?.features ?? const []) f.name};
-    }
+    // off(既定)なら null = ゲートしない。空集合を返すと「全 feature に
+    // 計画が無い」と解釈されてしまうので、必ず null で返すこと。
+    if (config?.implPlanEnforcement != 'on') return null;
     return ImplPlanGate.featuresWithPlan(await implPlanRepo.listAll(projectDir));
   }
 
@@ -298,8 +296,7 @@ Future<void> main(List<String> arguments) async {
 
   final doctorUsecase = DoctorUsecase(
     detectMisplacedPlans: implPlanRepo.detectMisplaced,
-    featuresWithImplPlan: (dir) async =>
-        ImplPlanGate.featuresWithPlan(await implPlanRepo.listAll(dir)),
+    featuresWithImplPlan: featuresWithImplPlan,
     planRepo: planRepo,
     configRepo: configRepo,
     fileExists: fs.fileExists,
@@ -396,7 +393,7 @@ Future<void> main(List<String> arguments) async {
     msg: msg,
     createCommand: CreateCommand(createProjectUsecase, generateClaudeIntegrationUsecase, msg),
     featureCommand: FeatureCommand(addFeatureUsecase, applyFeatureTemplateUsecase, msg,
-        archResolver: archResolver),
+        archResolver: archResolver, featuresWithPlan: featuresWithImplPlan),
     planCommand: PlanCommand(adoptPlanUsecase, msg,
         expandUsecase: expandPlanUsecase, planRepo: planRepo),
     diffCommand: DiffCommand(checkUsecase, msg),
