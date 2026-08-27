@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+* **fix(message)**: `utakata message add` documented `--external-id` as the deduplication key but never looked at it, so only `import` actually deduplicated. Re-running an external import tool therefore doubled every message it fed through `add` (attachments, typically, since those cannot go through the JSONL path) while the `import` half stayed correct — the record count grew on every run. `add` now skips when a record with the same `external_id` already exists, reporting the existing ID and exiting 0 so repeated runs stay idempotent. Without `--external-id` the behavior is unchanged: identical entries are still allowed, because a client really can send the same sentence twice.
+* **fix(message)**: `message import --format jsonl` did not normalize timestamps carrying an offset or `Z` to local time, so the same instant produced a different day in the record ID — and a different month file — depending on whether it arrived through `import` or through `add`. 1.6.0 fixed this for `add` and `log`; the JSONL import path was missed.
+
 ## 1.7.0
 
 * **feat(impl)**: `utakata impl` now tracks a plan on **two axes** — implementation (`todo → in_progress → review → done`) and verification (`todo → in_progress → review → done`, plus `not_required` to say testing is deliberately unnecessary). A single lane mixing the two could not tell "implemented, not yet tested" from "in review", nor express a test failure sending work back. New transitions: `impl start` / `impl review` (`in_progress` was previously unreachable from the CLI at all) and `impl test start|review|done|todo|skip`. Going backwards is allowed — a failing test legitimately returns a plan to `in_progress` — but the verification axis cannot advance until implementation is `done`.

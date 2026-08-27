@@ -27,7 +27,7 @@ void main() {
   });
   tearDown(() => dir.deleteSync(recursive: true));
 
-  Future<MessageRecord> add({
+  Future<RecordMessageResult> addResult({
     required String direction,
     required String body,
     String? at,
@@ -45,13 +45,69 @@ void main() {
         externalId: externalId,
       );
 
+  /// 既存テスト向けの薄いラッパ(レコードだけ欲しい場合)。
+  Future<MessageRecord> add({
+    required String direction,
+    required String body,
+    String? at,
+    String? channel,
+    String? externalId,
+  }) async =>
+      (await addResult(
+        direction: direction,
+        body: body,
+        at: at,
+        channel: channel,
+        externalId: externalId,
+      ))
+          .record;
+
+  group('add の external_id 重複排除', () {
+    test('同じ external_id を再度 add しても増えない', () async {
+      final first = await addResult(
+        direction: 'inbound',
+        body: '添付を送ります',
+        at: '2026-08-11 10:24',
+        channel: 'client_portal',
+        externalId: 'client_portal:1001',
+      );
+      expect(first.skipped, isFalse);
+
+      final second = await addResult(
+        direction: 'inbound',
+        body: '添付を送ります',
+        at: '2026-08-11 10:24',
+        channel: 'client_portal',
+        externalId: 'client_portal:1001',
+      );
+      expect(second.skipped, isTrue);
+      expect(second.record.id, first.record.id);
+
+      final file = File('${dir.path}/doc/records/messages/2026-08.jsonl');
+      final lines = file
+          .readAsLinesSync()
+          .where((line) => line.trim().isNotEmpty)
+          .toList();
+      expect(lines.length, 1);
+    });
+
+    test('external_id が無ければ従来どおり重複を許す', () async {
+      final first = await addResult(
+          direction: 'inbound', body: '了解です', at: '2026-08-11 10:24');
+      final second = await addResult(
+          direction: 'inbound', body: '了解です', at: '2026-08-11 10:24');
+      expect(second.skipped, isFalse);
+      expect(second.record.id, isNot(first.record.id));
+    });
+  });
+
   group('add', () {
     test('月別 JSONL に原文を無加工で追記する', () async {
       final saved = await add(
         direction: 'inbound',
         body: 'お世話になります。\n見積もりの件ですが……',
         at: '2026-08-11 10:24',
-        channel: 'coconala',
+        channel: 'client_portal',
       );
 
       expect(saved.id, 'MSGR-20260811-001');
@@ -61,7 +117,7 @@ void main() {
       final row = jsonDecode(file.readAsLinesSync().single)
           as Map<String, dynamic>;
       expect(row['direction'], 'inbound');
-      expect(row['channel'], 'coconala');
+      expect(row['channel'], 'client_portal');
       // 原文は改行含めそのまま(マスクや整形をしない)
       expect(row['body'], 'お世話になります。\n見積もりの件ですが……');
       expect(row['recorded_by'], 'haruma');
@@ -101,7 +157,7 @@ void main() {
           direction: 'inbound',
           body: '受信1',
           at: '2026-08-11 10:00',
-          channel: 'coconala');
+          channel: 'client_portal');
       await add(
           direction: 'outbound',
           body: '送信1',
@@ -111,7 +167,7 @@ void main() {
           direction: 'inbound',
           body: '受信2(7月)',
           at: '2026-07-20 09:00',
-          channel: 'coconala');
+          channel: 'client_portal');
     });
 
     test('direction / channel / month で絞り込める', () async {
@@ -136,13 +192,13 @@ void main() {
           'direction': 'inbound',
           'at': '2026-08-10T09:00:00',
           'body': '一件目',
-          'external_id': 'coconala:1',
+          'external_id': 'client_portal:1',
         }),
         jsonEncode({
           'direction': 'outbound',
           'at': '2026-08-10T10:00:00',
           'body': '二件目',
-          'external_id': 'coconala:2',
+          'external_id': 'client_portal:2',
         }),
       ].join('\n');
 
@@ -248,13 +304,13 @@ void main() {
           format: 'md',
           now: now,
           recordedBy: 'haruma',
-          defaultChannel: 'coconala');
+          defaultChannel: 'client_portal');
 
       expect(results.length, 2);
       final saved = await repo.readAll(dir.path);
       expect(saved.first.direction, MessageDirection.inbound);
       expect(saved.first.from, '山田様');
-      expect(saved.first.channel, 'coconala');
+      expect(saved.first.channel, 'client_portal');
       expect(saved.first.body, contains('見積もりの件'));
       expect(saved.last.direction, MessageDirection.outbound);
     });
@@ -403,6 +459,23 @@ void main() {
       expect(all.map((r) => r.body).toList(), ['ok']);
     });
 
+    test('import と add で同じ日時が同じ月ファイルに落ちる', () async {
+      const at = '2026-07-26T02:20:00+09:00';
+      await add(direction: 'inbound', body: 'add 経由', at: at);
+      await import.execute(dir.path,
+          content: jsonEncode(
+              {'direction': 'inbound', 'at': at, 'body': 'import 経由'}),
+          format: 'jsonl',
+          now: now,
+          recordedBy: 'haruma');
+
+      final saved = await repo.readAll(dir.path);
+      expect(saved, hasLength(2));
+      // 日付部分(= 月ファイルと ID の日付)が経路で食い違わないこと
+      final days = saved.map((r) => r.id.split('-')[1]).toSet();
+      expect(days, hasLength(1), reason: 'import と add で日付がずれてはいけない');
+    });
+
     test('オフセット付きの日時はローカル日付で採番・保存される', () async {
       final saved = await add(
           direction: 'inbound', body: 'A', at: '2026-08-11T08:24:00+09:00');
@@ -476,7 +549,7 @@ void main() {
           direction: 'inbound',
           body: '受信本文',
           at: '2026-08-11 10:00',
-          channel: 'coconala');
+          channel: 'client_portal');
       await add(
           direction: 'outbound', body: '送信本文', at: '2026-08-11 11:00');
 

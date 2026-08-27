@@ -98,7 +98,7 @@ class _MessageAddCommand extends BaseCommand {
       return 64;
     }
 
-    final record = await _usecase.execute(
+    final result = await _usecase.execute(
       Directory.current.path,
       body: body,
       directionRaw: direction,
@@ -114,7 +114,12 @@ class _MessageAddCommand extends BaseCommand {
       attachments: argResults!['attachment'] as List<String>,
     );
 
-    Logger.success(_msg.messageAddDone(record.id));
+    if (result.skipped) {
+      // 同じ external_id が既にある = 取り込みツールの再実行。増やさない。
+      Logger.info(_msg.messageAddDuplicate(result.record.id));
+      return 0;
+    }
+    Logger.success(_msg.messageAddDone(result.record.id));
     return 0;
   }
 }

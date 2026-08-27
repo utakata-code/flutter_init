@@ -34,12 +34,12 @@ utakata doc show records    # このドキュメントを表示
 
 ```sh
 # 1件記録(本文は引数か stdin)
-utakata message add -d inbound -c coconala --from "山田様" --at "2026-08-11 10:24" "本文…"
+utakata message add -d inbound -c client_portal --from "山田様" --at "2026-08-11 10:24" "本文…"
 cat mail.txt | utakata message add -d outbound -c mail --subject "お見積り"
 
 # 既存のやり取りを一括取り込み(重複は自動でスキップ)
 utakata message import --format jsonl --file exported.jsonl
-utakata message import --format md --file thread.md --channel coconala
+utakata message import --format md --file thread.md --channel client_portal
 utakata message import --format md --file thread.md --dry-run   # 件数だけ確認
 
 # 参照・整形
@@ -54,13 +54,17 @@ utakata message link MSGR-20260811-001 --log MSG-20260811-003 --agreement AGR-00
 | オプション | 説明 |
 |---|---|
 | `-d, --direction` | **必須**。`inbound`(先方→自分) / `outbound`(自分→先方) |
-| `-c, --channel` | `coconala` / `mail` / `chatwork` など自由文字列 |
+| `-c, --channel` | `client_portal` / `mail` / `chatwork` など自由文字列 |
 | `--at` | 送受信日時。省略時は現在時刻を使い「概算」印が付く |
 | `--from` / `--to` / `--subject` / `--thread` | 任意のメタ情報 |
 | `--external-id` | 取り込み元での ID。**再取り込み時の重複排除キー** |
 | `--attachment` | 添付ファイルのパス(複数指定可) |
 
 ### 重複排除
+
+`message add` と `message import` の**どちらでも**効きます。`--external-id`
+付きの `add` は、同じ ID の記録が既にあれば追記せずスキップします
+(取り込みツールが同じメッセージを何度投入しても増えない)。
 
 判定の主軸は `external_id` です。取り込み元が ID を持たない場合は
 **取り込み元の内容と並び順から合成した ID** を使うため、同じファイルを

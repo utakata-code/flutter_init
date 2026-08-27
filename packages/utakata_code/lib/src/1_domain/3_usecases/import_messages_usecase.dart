@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show stderr;
 
 import '../1_entities/record/message_record.dart';
+import '../services/date_resolver.dart';
 import '../2_repositories/message_repository.dart';
 
 /// 取り込み1件分の結果。
@@ -146,7 +147,9 @@ class ImportMessagesUsecase {
     if (parsed == null) return null;
     final datePart = raw.length >= 10 ? raw.substring(0, 10) : raw;
     if (parsed.toIso8601String().substring(0, 10) != datePart) return null;
-    return parsed;
+    // `add` と同じくローカルへ揃える(揃えないと同じ日時が経路によって
+    // 別の日・別の月ファイルに落ちる)
+    return DateResolver.toLocal(parsed);
   }
 
   /// `MSGR-YYYYMMDD-NNN` の連番部分を取り出す。
@@ -206,7 +209,11 @@ class ImportMessagesUsecase {
       final rawAt = decoded['at'];
       DateTime? at;
       if (rawAt is String) {
-        at = DateTime.tryParse(rawAt);
+        // オフセット付き / Z 付きはローカルへ正規化する。`message add` は
+        // DateResolver 経由で正規化しており、揃えないと同じ時刻が
+        // import と add で別の日付・別の月ファイルになる。
+        final parsed = DateTime.tryParse(rawAt);
+        at = parsed == null ? null : DateResolver.toLocal(parsed);
         if (at == null) {
           stderr.writeln('⚠️  ${i + 1} 行目: at "$rawAt" を日時として'
               '解釈できません(記録時刻を使います)。');

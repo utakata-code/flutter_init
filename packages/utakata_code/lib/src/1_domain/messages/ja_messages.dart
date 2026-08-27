@@ -43,7 +43,7 @@ class JaMessages implements CliMessages {
   @override
   String get optMessageDirection => '向き(inbound=受信 / outbound=送信)';
   @override
-  String get optMessageChannel => 'やり取りの経路(coconala / mail / chatwork 等)';
+  String get optMessageChannel => 'やり取りの経路(client_portal / mail / chatwork 等)';
   @override
   String get optMessageFrom => '送信者';
   @override
@@ -87,6 +87,9 @@ class JaMessages implements CliMessages {
   String get messageListEmpty => '記録されたメッセージがありません。';
   @override
   String messageAddDone(String id) => '記録しました: $id';
+  @override
+  String messageAddDuplicate(String id) =>
+      '同じ external_id の記録が既にあります($id)。追記しませんでした。';
   @override
   String messageImportDone(int imported, int skipped) =>
       '取り込みました: $imported 件(重複スキップ: $skipped 件)';
