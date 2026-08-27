@@ -10,7 +10,7 @@ class RecordMessageUsecase {
 
   const RecordMessageUsecase({required MessageRepository repo}) : _repo = repo;
 
-  Future<MessageRecord> execute(
+  Future<RecordMessageResult> execute(
     String projectDir, {
     required String body,
     required String directionRaw,
@@ -34,6 +34,17 @@ class RecordMessageUsecase {
       throw ArgumentError('body must not be empty');
     }
 
+    // `--external-id` は重複排除キー(doc/records.md)。add でも効かせる —
+    // 効かないと、取り込みツールが再実行のたびに同じ原文を積んでしまう。
+    if (externalId != null && externalId.isNotEmpty) {
+      final existing = await _repo.readAll(projectDir);
+      for (final record in existing) {
+        if (record.externalId == externalId) {
+          return RecordMessageResult(record: record, skipped: true);
+        }
+      }
+    }
+
     final id = await _repo.nextId(projectDir, at);
     final record = MessageRecord(
       id: id,
@@ -53,6 +64,16 @@ class RecordMessageUsecase {
     );
 
     await _repo.append(projectDir, record);
-    return record;
+    return RecordMessageResult(record: record, skipped: false);
   }
+}
+
+/// `message add` の結果。
+final class RecordMessageResult {
+  final MessageRecord record;
+
+  /// 同じ `external_id` が既にあり、追記しなかったか。
+  final bool skipped;
+
+  const RecordMessageResult({required this.record, required this.skipped});
 }

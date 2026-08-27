@@ -26,7 +26,7 @@ final class MessageRecord {
   final DateTime at;
   final bool atApprox;
 
-  /// `coconala` / `mail` / `chatwork` / `line` など。自由文字列
+  /// `client_portal` / `mail` / `chatwork` / `line` など。自由文字列
   final String? channel;
 
   final String? from;

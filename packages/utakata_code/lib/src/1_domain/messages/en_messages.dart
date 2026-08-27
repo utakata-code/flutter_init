@@ -51,7 +51,7 @@ class EnMessages implements CliMessages {
   @override
   String get optMessageDirection => 'Direction (inbound | outbound)';
   @override
-  String get optMessageChannel => 'Channel (coconala / mail / chatwork …)';
+  String get optMessageChannel => 'Channel (client_portal / mail / chatwork …)';
   @override
   String get optMessageFrom => 'Sender';
   @override
@@ -97,6 +97,9 @@ class EnMessages implements CliMessages {
   String get messageListEmpty => 'No messages recorded.';
   @override
   String messageAddDone(String id) => 'Recorded: $id';
+  @override
+  String messageAddDuplicate(String id) =>
+      'A record with the same external_id already exists ($id). Nothing added.';
   @override
   String messageImportDone(int imported, int skipped) =>
       'Imported $imported message(s) ($skipped duplicate(s) skipped)';

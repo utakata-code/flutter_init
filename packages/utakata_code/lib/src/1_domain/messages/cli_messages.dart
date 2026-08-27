@@ -47,6 +47,7 @@ abstract interface class CliMessages {
   String get messageLinkTargetRequired;
   String get messageListEmpty;
   String messageAddDone(String id);
+  String messageAddDuplicate(String id);
   String messageImportDone(int imported, int skipped);
   String messageImportDryRun(int imported, int skipped);
   String messageRenderDone(int months);
